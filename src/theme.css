@@ -1,0 +1,2 @@
+/* Re-export theme tokens from the new theme architecture */
+@import './theme/theme.css';

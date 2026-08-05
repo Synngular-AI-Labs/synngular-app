@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Light Mode (Default) */
+  :root {
+    /* Main Backgrounds & Surfaces */
+    --background: 0 0% 96.5%; /* #f6f6f6 */
+    --card: 0 0% 100%; /* #ffffff */
+    --card-foreground: 0 0% 6%; /* #0f0f0f */
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 6%;
+
+    /* Typography */
+    --foreground: 0 0% 6%; /* #0f0f0f */
+    --muted: 0 0% 94%; /* #f0f0f0 */
+    --muted-foreground: 0 0% 33.3%; /* #555555 */
+
+    /* Brand Primary / Header Purple Accent */
+    --primary: 268 79% 21%; /* #2d0b5e */
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary & Action Link Blue Accent */
+    --secondary: 215 82% 51%; /* #1a73e8 */
+    --secondary-foreground: 0 0% 100%;
+    --accent: 215 82% 51%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Form Inputs, Borders, & Focus Rings */
+    --border: 0 0% 87.8%; /* #e0e0e0 */
+    --input: 0 0% 87.8%;
+    --ring: 215 82% 51%;
+
+    /* Destruction / Errors */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --color-error: #EF4444;
+
+    /* Button Colors */
+    --btn-primary: #3d0f7f;
+    --btn-primary-hover: #2d0b5e;
+    --btn-primary-active: #1e0740;
+    --btn-primary-foreground: #ffffff;
+    --btn-outline-border: #3d0f7f;
+    --btn-outline-text: #3d0f7f;
+    --btn-outline-hover-bg: #3d0f7f;
+    --btn-outline-hover-text: #ffffff;
+    --btn-disabled-bg: #e0e0e0;
+    --btn-disabled-text: #aaaaaa;
+
+    /* Border Radius */
+    --radius: 1.5rem;
+
+    /* Custom Gradient & Custom Header Tokens */
+    --gradient-top: #2d0b5e;
+    --gradient-bottom: #6b21a8;
+    --color-bg-header: linear-gradient(160deg, var(--gradient-top) 0%, var(--gradient-bottom) 100%);
+  }
+
+  .bg-header-gradient { background: var(--color-bg-header); }
+  
+  /* Dark Mode */
+  [data-theme="dark"],
+  .dark {
+    /* Main Backgrounds & Surfaces */
+    --background: 0 0% 11.8%; /* #1e1e1e */
+    --card: 0 0% 16.5%; /* #2a2a2a */
+    --card-foreground: 0 0% 96.5%; /* #f6f6f6 */
+    --popover: 0 0% 16.5%;
+    --popover-foreground: 0 0% 96.5%;
+
+    /* Typography */
+    --foreground: 0 0% 96.5%; /* #f6f6f6 */
+    --muted: 0 0% 20%; /* #333333 */
+    --muted-foreground: 0 0% 66.7%; /* #aaaaaa */
+
+    /* Brand Primary Accent */
+    --primary: 271 67% 39%; /* #6b21a8 */
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary & Link Accent */
+    --secondary: 208 83% 69%; /* #6db3f2 */
+    --secondary-foreground: 0 0% 10%;
+    --accent: 208 83% 69%;
+    --accent-foreground: 0 0% 10%;
+
+    /* Form Inputs, Borders, & Focus Rings */
+    --border: 0 0% 22.7%; /* #3a3a3a */
+    --input: 0 0% 22.7%;
+    --ring: 208 83% 69%;
+
+    /* Destruction / Errors */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Button Colors */
+    --btn-primary: #6b21a8;
+    --btn-primary-hover: #5b1a8f;
+    --btn-primary-active: #4a1576;
+    --btn-primary-foreground: #ffffff;
+    --btn-outline-border: #6b21a8;
+    --btn-outline-text: #c084fc;
+    --btn-outline-hover-bg: #6b21a8;
+    --btn-outline-hover-text: #ffffff;
+    --btn-disabled-bg: #333333;
+    --btn-disabled-text: #666666;
+
+    /* Custom Gradient & Custom Header Tokens */
+    --gradient-top: #2d0b5e;
+    --gradient-bottom: #6b21a8;
+    --color-bg-header: linear-gradient(160deg, var(--gradient-top) 0%, var(--gradient-bottom) 100%);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
