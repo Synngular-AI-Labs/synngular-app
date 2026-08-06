@@ -18,7 +18,7 @@
     --muted-foreground: 0 0% 33.3%; /* #555555 */
 
     /* Brand Primary / Header Purple Accent */
-    --primary: 268 79% 21%; /* #2d0b5e */
+    --primary: var(--purple-1000);
     --primary-foreground: 0 0% 100%;
 
     /* Secondary & Action Link Blue Accent */
@@ -35,11 +35,11 @@
     /* Destruction / Errors */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --color-error: #EF4444;
+    --color-error: var(--error-600);
 
     /* Button Colors */
-    --btn-primary: #3d0f7f;
-    --btn-primary-hover: #2d0b5e;
+    --btn-primary: var(--purple-1000);
+    --btn-primary-hover: var(--purple-900);
     --btn-primary-active: #1e0740;
     --btn-primary-foreground: #ffffff;
     --btn-outline-border: #3d0f7f;
@@ -48,6 +48,66 @@
     --btn-outline-hover-text: #ffffff;
     --btn-disabled-bg: #e0e0e0;
     --btn-disabled-text: #aaaaaa;
+
+    /* ── Grey Scale ── */
+    --grey-100: #FFFFFF;
+    --grey-200: #F7F7F8;
+    --grey-300: #ECECF1;
+    --grey-400: #D9D9E3;
+    --grey-500: #8E8EA0;
+    --grey-600: #6E6E80;
+    --grey-700: #565869;
+    --grey-800: #444654;
+    --grey-900: #343541;
+    --grey-1000: #202123;
+
+    /* ── Purple Scale ── */
+    --purple-100: #ECE5F0;
+    --purple-200: #D8CCE1;
+    --purple-300: #C5B2D2;
+    --purple-400: #B199C3;
+    --purple-500: #9E80B4;
+    --purple-600: #8B66A6;
+    --purple-700: #774D97;
+    --purple-800: #643388;
+    --purple-900: #501A79;
+    --purple-1000: #3D006A;
+
+    /* ── Error (Red) Scale ── */
+    --error-100: #FEF2F2;
+    --error-200: #FEE2E2;
+    --error-300: #FECACA;
+    --error-400: #FCA5A5;
+    --error-500: #F87171;
+    --error-600: #EF4444;
+    --error-700: #DC2626;
+    --error-800: #B91C1C;
+    --error-900: #991B1B;
+    --error-1000: #7F1D1D;
+
+    /* ── Success (Green) Scale ── */
+    --success-100: #ECFDF5;
+    --success-200: #D1FAE5;
+    --success-300: #A7F3D0;
+    --success-400: #6EE7B7;
+    --success-500: #34D399;
+    --success-600: #10A37F;
+    --success-700: #0E8F70;
+    --success-800: #047857;
+    --success-900: #065F46;
+    --success-1000: #064E3B;
+
+    /* ── Warning (Amber) Scale ── */
+    --warning-100: #FFFBEB;
+    --warning-200: #FEF3C7;
+    --warning-300: #FDE68A;
+    --warning-400: #FCD34D;
+    --warning-500: #FBBF24;
+    --warning-600: #F59E0B;
+    --warning-700: #D97706;
+    --warning-800: #B45309;
+    --warning-900: #92400E;
+    --warning-1000: #78350F;
 
     /* Border Radius */
     --radius: 1.5rem;
@@ -76,7 +136,7 @@
     --muted-foreground: 0 0% 66.7%; /* #aaaaaa */
 
     /* Brand Primary Accent */
-    --primary: 271 67% 39%; /* #6b21a8 */
+    --primary: var(--purple-1000);
     --primary-foreground: 0 0% 100%;
 
     /* Secondary & Link Accent */
@@ -105,6 +165,66 @@
     --btn-outline-hover-text: #ffffff;
     --btn-disabled-bg: #333333;
     --btn-disabled-text: #666666;
+
+    /* ── Grey Scale ── */
+    --grey-100: #FFFFFF;
+    --grey-200: #F7F7F8;
+    --grey-300: #ECECF1;
+    --grey-400: #D9D9E3;
+    --grey-500: #8E8EA0;
+    --grey-600: #6E6E80;
+    --grey-700: #565869;
+    --grey-800: #444654;
+    --grey-900: #343541;
+    --grey-1000: #202123;
+
+    /* ── Purple Scale ── */
+    --purple-100: #ECE5F0;
+    --purple-200: #D8CCE1;
+    --purple-300: #C5B2D2;
+    --purple-400: #B199C3;
+    --purple-500: #9E80B4;
+    --purple-600: #8B66A6;
+    --purple-700: #774D97;
+    --purple-800: #643388;
+    --purple-900: #501A79;
+    --purple-1000: #3D006A;
+
+    /* ── Error (Red) Scale ── */
+    --error-100: #FEF2F2;
+    --error-200: #FEE2E2;
+    --error-300: #FECACA;
+    --error-400: #FCA5A5;
+    --error-500: #F87171;
+    --error-600: #EF4444;
+    --error-700: #DC2626;
+    --error-800: #B91C1C;
+    --error-900: #991B1B;
+    --error-1000: #7F1D1D;
+
+    /* ── Success (Green) Scale ── */
+    --success-100: #ECFDF5;
+    --success-200: #D1FAE5;
+    --success-300: #A7F3D0;
+    --success-400: #6EE7B7;
+    --success-500: #34D399;
+    --success-600: #10A37F;
+    --success-700: #0E8F70;
+    --success-800: #047857;
+    --success-900: #065F46;
+    --success-1000: #064E3B;
+
+    /* ── Warning (Amber) Scale ── */
+    --warning-100: #FFFBEB;
+    --warning-200: #FEF3C7;
+    --warning-300: #FDE68A;
+    --warning-400: #FCD34D;
+    --warning-500: #FBBF24;
+    --warning-600: #F59E0B;
+    --warning-700: #D97706;
+    --warning-800: #B45309;
+    --warning-900: #92400E;
+    --warning-1000: #78350F;
 
     /* Custom Gradient & Custom Header Tokens */
     --gradient-top: #2d0b5e;
