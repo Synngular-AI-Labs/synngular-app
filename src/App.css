@@ -15,9 +15,17 @@
 html,
 body,
 #root {
-  min-height: 100vh;
+  background-color: var(--background);
+  margin: 0;
+  padding: 0;
   height: 100%;
   width: 100%;
+}
+
+html,
+body,
+#root {
+  min-height: 100vh;
 }
 
 :root {

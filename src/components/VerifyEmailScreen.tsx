@@ -6,7 +6,10 @@ import { ArrowLeft, CheckCircle, X } from "lucide-react";
 
 const otpRegex = /^\d{6}$/;
 
-const VerifyEmailScreen: React.FC = () => {
+const VerifyEmailScreen: React.FC<{
+  onNavigate: (screen: "signin" | "home" | "terms" | "privacy") => void;
+  userEmail: string;
+}> = ({ onNavigate, userEmail }) => {
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -17,7 +20,13 @@ const VerifyEmailScreen: React.FC = () => {
   useEffect(() => {
     if (resendTimer <= 0) return;
     const interval = setInterval(() => {
-      setResendTimer((prev) => prev - 1);
+      setResendTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
     return () => clearInterval(interval);
   }, [resendTimer]);
@@ -29,6 +38,7 @@ const VerifyEmailScreen: React.FC = () => {
     setTimeout(() => {
       setIsLoading(false);
       setShowToast(true);
+      onNavigate("home");
     }, 2000);
   };
 
@@ -56,7 +66,7 @@ const VerifyEmailScreen: React.FC = () => {
           type="button"
           className="w-10 h-10 flex items-center justify-center rounded-md shrink-0"
           style={{ background: 'var(--grey-300)' }}
-          onClick={() => window.history.back()}
+          onClick={() => onNavigate?.("signin")}
         >
           <ArrowLeft size={18} style={{ color: 'var(--grey-800)' }} />
         </button>
@@ -68,7 +78,7 @@ const VerifyEmailScreen: React.FC = () => {
 
         {/* Subtitle */}
         <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-          We've sent a 6-digit code to ben@synngular.com
+          We've sent a 6-digit code to {userEmail || 'your email'}
         </p>
 
         {/* Form */}
@@ -115,17 +125,43 @@ const VerifyEmailScreen: React.FC = () => {
 
           {/* Resend Text */}
           <div className="text-sm text-center" style={{ color: 'var(--muted-foreground)' }}>
-            Resend OTP in {resendTimer}s
+            {resendTimer > 0 ? (
+              <>Resend OTP in {resendTimer}s</>
+            ) : (
+              <span
+                onClick={() => setResendTimer(56)}
+                className="hover:underline font-medium"
+                style={{ color: 'var(--purple-800)', cursor: 'pointer' }}
+              >
+                Resend OTP
+              </span>
+            )}
           </div>
 
           {/* Terms & Privacy */}
           <div className="text-xs text-center leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
             By continuing, you agree to our{" "}
-            <a href="#terms" className="hover:underline" style={{ color: 'var(--purple-800)' }}>
+            <a
+              href="#terms"
+              onClick={(e) => {
+                e.preventDefault();
+                onNavigate("terms");
+              }}
+              className="hover:underline"
+              style={{ color: 'var(--purple-800)', cursor: 'pointer' }}
+            >
               Terms of Service
             </a>{" "}
             and{" "}
-            <a href="#privacy" className="hover:underline" style={{ color: 'var(--purple-800)' }}>
+            <a
+              href="#privacy"
+              onClick={(e) => {
+                e.preventDefault();
+                onNavigate("privacy");
+              }}
+              className="hover:underline"
+              style={{ color: 'var(--purple-800)', cursor: 'pointer' }}
+            >
               Privacy Policy
             </a>
           </div>

@@ -7,9 +7,12 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface SignInScreenProps {
   onNavigateToVerify?: () => void;
+  onNavigateToTerms?: () => void;
+  onNavigateToPrivacy?: () => void;
+  setUserEmail: (email: string) => void;
 }
 
-const SignInScreen: React.FC<SignInScreenProps> = ({ onNavigateToVerify }) => {
+const SignInScreen: React.FC<SignInScreenProps> = ({ onNavigateToVerify, onNavigateToTerms, onNavigateToPrivacy, setUserEmail }) => {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState(false);
   const [touched, setTouched] = useState(false);
@@ -38,6 +41,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ onNavigateToVerify }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setUserEmail(email);
     console.log("Sign in with:", email);
     setTimeout(() => {
       setIsLoading(false);
@@ -130,13 +134,29 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ onNavigateToVerify }) => {
         {/* Terms & Privacy */}
         <div className="text-xs text-muted-foreground text-center mt-4 leading-relaxed">
           By continuing, you agree to our{" "}
-          <a href="#terms" className="hover:underline" style={{ color: 'var(--purple-800)' }}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigateToTerms?.();
+            }}
+            className="hover:underline font-medium"
+            style={{ color: 'var(--purple-800)' }}
+          >
             Terms of Service
-          </a>{" "}
+          </button>{" "}
           and{" "}
-          <a href="#privacy" className="hover:underline" style={{ color: 'var(--purple-800)' }}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigateToPrivacy?.();
+            }}
+            className="hover:underline font-medium"
+            style={{ color: 'var(--purple-800)' }}
+          >
             Privacy Policy
-          </a>
+          </button>
         </div>
       </div>
     </div>

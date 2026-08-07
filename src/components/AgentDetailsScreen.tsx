@@ -1,0 +1,88 @@
+import React from "react";
+import { ArrowLeft, ArrowUpRight, ChevronRight } from "lucide-react";
+
+interface AgentDetailsScreenProps {
+  onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details") => void;
+}
+
+const historyItems = [
+  { date: "30 June 2026", duration: "1m 30s" },
+  { date: "28 June 2026", duration: "2m 10s" },
+  { date: "25 June 2026", duration: "3m 5s" },
+  { date: "22 June 2026", duration: "45s" },
+];
+
+const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({ onNavigate }) => {
+  return (
+    <div
+      className="w-full h-full flex flex-col bg-[var(--background)]"
+      style={{
+        paddingTop: "max(env(safe-area-inset-top), 24px)",
+        paddingBottom: "max(env(safe-area-inset-bottom), 24px)",
+      }}
+    >
+      <header className="px-6 py-4 flex flex-row items-center gap-4">
+        <button
+          type="button"
+          onClick={() => onNavigate("agents")}
+          className="cursor-pointer"
+          style={{ color: "var(--foreground)" }}
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
+          Revenue services
+        </h1>
+      </header>
+
+      <div className="px-6 flex-shrink-0">
+        <h2 className="text-base font-semibold mt-2 mb-2" style={{ color: "var(--foreground)" }}>
+          Leads qualification
+        </h2>
+        <p className="text-sm leading-6" style={{ color: "var(--muted-foreground)" }}>
+          The agent helped qualify 2 new leads, verified contact details, and recommended next-step outreach for a higher conversion rate.
+        </p>
+      </div>
+
+      <div className="px-6 mt-6 flex flex-row justify-between items-center">
+        <span className="font-semibold" style={{ color: "var(--foreground)" }}>
+          History (08)
+        </span>
+        <span className="text-sm" style={{ color: "var(--foreground)" }}>
+          Transcript
+        </span>
+      </div>
+
+      <div className="flex-grow overflow-y-auto px-6 mt-4">
+        {historyItems.map((item) => (
+          <div key={item.date} className="flex items-center gap-4 py-3 border-b" style={{ borderColor: "var(--grey-100)" }}>
+            <div className="flex items-center justify-center rounded-full w-10 h-10 bg-[var(--grey-100)]">
+              <ArrowUpRight size={18} style={{ color: "var(--muted-foreground)" }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium" style={{ color: "var(--foreground)" }}>
+                {item.date}
+              </p>
+              <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
+                {item.duration}
+              </p>
+            </div>
+            <ChevronRight size={20} style={{ color: "var(--muted-foreground)" }} />
+          </div>
+        ))}
+      </div>
+
+      <div className="p-6 flex-shrink-0 border-t" style={{ borderColor: "var(--grey-100)" }}>
+        <button
+          type="button"
+          className="w-full rounded-xl border py-3 text-center font-semibold"
+          style={{ borderColor: "var(--purple-1000)", color: "var(--purple-1000)" }}
+        >
+          Call
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default AgentDetailsScreen;
