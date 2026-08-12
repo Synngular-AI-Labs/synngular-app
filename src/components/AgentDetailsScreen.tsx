@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { ArrowLeft, ArrowUpRight, ChevronRight } from "lucide-react";
 
 interface AgentDetailsScreenProps {
-  onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details") => void;
+  onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "transcript") => void;
 }
 
 const historyItems = [
@@ -13,6 +13,8 @@ const historyItems = [
 ];
 
 const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({ onNavigate }) => {
+  const [isCalling, setIsCalling] = useState(false);
+
   return (
     <div
       className="w-full h-full flex flex-col bg-[var(--background)]"
@@ -48,14 +50,25 @@ const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({ onNavigate }) =
         <span className="font-semibold" style={{ color: "var(--foreground)" }}>
           History (08)
         </span>
-        <span className="text-sm" style={{ color: "var(--foreground)" }}>
+        <button
+          type="button"
+          onClick={() => onNavigate('transcript')}
+          className="text-sm cursor-pointer"
+          style={{ color: "var(--foreground)" }}
+        >
           Transcript
-        </span>
+        </button>
       </div>
 
       <div className="flex-grow overflow-y-auto px-6 mt-4">
         {historyItems.map((item) => (
-          <div key={item.date} className="flex items-center gap-4 py-3 border-b" style={{ borderColor: "var(--grey-100)" }}>
+          <button
+            key={item.date}
+            type="button"
+            onClick={() => onNavigate('transcript')}
+            className="w-full flex items-center gap-4 py-3 border-b cursor-pointer text-left"
+            style={{ borderColor: "var(--grey-100)" }}
+          >
             <div className="flex items-center justify-center rounded-full w-10 h-10 bg-[var(--grey-100)]">
               <ArrowUpRight size={18} style={{ color: "var(--muted-foreground)" }} />
             </div>
@@ -68,17 +81,21 @@ const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({ onNavigate }) =
               </p>
             </div>
             <ChevronRight size={20} style={{ color: "var(--muted-foreground)" }} />
-          </div>
+          </button>
         ))}
       </div>
 
       <div className="p-6 flex-shrink-0 border-t" style={{ borderColor: "var(--grey-100)" }}>
         <button
           type="button"
-          className="w-full rounded-xl border py-3 text-center font-semibold"
+          onClick={() => {
+            setIsCalling(true);
+            alert("Initiating call with Revenue services...");
+          }}
+          className="w-full rounded-xl border py-3 text-center font-semibold cursor-pointer transition-all active:scale-95 hover:bg-[var(--purple-1000)] hover:text-white"
           style={{ borderColor: "var(--purple-1000)", color: "var(--purple-1000)" }}
         >
-          Call
+          {isCalling ? "Calling..." : "Call"}
         </button>
       </div>
     </div>

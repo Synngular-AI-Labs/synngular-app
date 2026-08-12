@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import logoAsset from "../assets/logo.png";
 import { M3 } from "tauri-plugin-m3";
 import {
   Menu,
@@ -12,7 +13,7 @@ import {
 } from "lucide-react";
 
 interface HomeScreenProps {
-  onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "outputs") => void;
+  onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "outputs" | "approvals") => void;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
@@ -83,21 +84,39 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
         paddingBottom: "max(env(safe-area-inset-bottom), 24px)",
       }}
     >
-      <header className="flex items-center justify-between px-4 py-4">
-        <button aria-label="menu" className="p-2" style={{ color: "var(--foreground)" }}>
-          <Menu size={20} />
+      <header className="relative z-30 w-full px-6 py-4 flex flex-row items-center justify-between flex-shrink-0 bg-[var(--background)]">
+        <button
+          type="button"
+          aria-label="Open menu"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNavigate?.("menu" as any);
+          }}
+          className="w-10 h-10 flex items-center justify-center rounded-xl text-[var(--foreground)] hover:bg-[var(--grey-100)] active:bg-[var(--grey-200)] cursor-pointer touch-manipulation z-30"
+        >
+          <Menu className="w-6 h-6" />
         </button>
-        <button aria-label="notifications" className="p-2" style={{ color: "var(--foreground)" }}>
-          <Bell size={20} />
+
+        <button
+          type="button"
+          aria-label="Notifications"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNavigate?.("notifications" as any);
+          }}
+          className="w-10 h-10 flex items-center justify-center rounded-xl text-[var(--foreground)] hover:bg-[var(--grey-100)] active:bg-[var(--grey-200)] cursor-pointer touch-manipulation z-30"
+        >
+          <Bell className="w-6 h-6" />
         </button>
       </header>
 
       {messages.length === 0 ? (
         <>
           <main className="flex flex-col items-center px-6 pt-8">
-            <div
-              className="w-16 h-16 rounded-full mb-6"
-              style={{ background: "var(--purple-1000)" }}
+            <img
+              src={logoAsset}
+              alt="Logo"
+              className="w-[70px] h-[70.01px] object-contain mx-auto mb-4"
             />
 
             <h1 className="text-2xl font-extrabold mb-2" style={{ color: "var(--foreground)" }}>
@@ -254,10 +273,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
           <span className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>Outputs</span>
         </button>
 
-        <div className="flex flex-col items-center pt-2">
+        <button
+          type="button"
+          onClick={() => onNavigate("approvals")}
+          className="flex flex-col items-center pt-2 cursor-pointer"
+          style={{ color: "var(--muted-foreground)" }}
+        >
           <UserCheck size={20} style={{ color: "var(--muted-foreground)" }} />
           <span className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>Approvals</span>
-        </div>
+        </button>
       </nav>
     </div>
   );

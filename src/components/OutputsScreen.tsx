@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from "react";
 import { Search, Bell, FileText, Code, Table, Download, Bot, UserCheck, X } from "lucide-react";
+import SearchBar from "./SearchBar";
+import FilterBottomSheet from "./FilterBottomSheet";
 
 interface OutputsScreenProps {
-  onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs") => void;
+  onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals") => void;
 }
 
 const outputs = [
@@ -36,6 +38,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate }) => {
   const [activeFilter, setActiveFilter] = useState("All");
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const handleNotifications = () => alert("Notifications clicked");
   const handleDownload = (itemName: string) => alert(`Downloading: ${itemName}`);
@@ -77,27 +80,13 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate }) => {
             </div>
           </div>
         ) : (
-          <div className="flex flex-row items-center gap-2 w-full">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search outputs..."
-              className="flex-1 bg-[var(--grey-100)] text-[var(--foreground)] px-4 py-2 rounded-xl outline-none"
-              style={{ color: "var(--foreground)" }}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery("");
-                setIsSearchActive(false);
-              }}
-              className="cursor-pointer"
-              style={{ color: "var(--foreground)" }}
-            >
-              <X size={20} />
-            </button>
-          </div>
+          <SearchBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            setIsSearchActive={setIsSearchActive}
+            placeholder="Search outputs..."
+            onFilterClick={() => setIsFilterOpen(true)}
+          />
         )}
       </header>
 
@@ -154,6 +143,12 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate }) => {
         })}
       </div>
 
+      <FilterBottomSheet
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onApply={() => setIsFilterOpen(false)}
+      />
+
       <nav className="flex justify-around items-center py-3 border-t" style={{ borderTopColor: "var(--border)" }}>
         <button
           type="button"
@@ -188,7 +183,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate }) => {
 
         <button
           type="button"
-          onClick={() => onNavigate("home")}
+          onClick={() => onNavigate("approvals")}
           className="flex flex-col items-center pt-2 cursor-pointer"
           style={{ color: "var(--muted-foreground)" }}
         >

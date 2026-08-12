@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import { Search, Bell, ChevronRight, Bot, FileText, UserCheck } from "lucide-react";
+import { Search, Bell, ChevronRight, Bot, FileText, UserCheck, X } from "lucide-react";
+import SearchBar from "./SearchBar";
+import FilterBottomSheet from "./FilterBottomSheet";
 
 interface AgentsScreenProps {
-  onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs") => void;
+  onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals") => void;
 }
 
 const agents = [
-  { initials: "RS", title: "Revenue services", subtitle: "Leads qualification", time: "5min ago" },
-  { initials: "SA", title: "Sales assistant", subtitle: "Calls customers", time: "1hr ago" },
-  { initials: "CS", title: "Customer support", subtitle: "Handles customer inquiries", time: "10hr ago" },
+  { initials: "RS", title: "Revenue services", subtitle: "Leads qualification", time: "5min ago", isFavourite: true },
+  { initials: "SA", title: "Sales assistant", subtitle: "Calls customers", time: "1hr ago", isFavourite: true },
+  { initials: "CS", title: "Customer support", subtitle: "Handles customer inquiries", time: "10hr ago", isFavourite: false },
   { initials: "BS", title: "Billing specialist", subtitle: "Generate sales bills", time: "1d ago" },
   { initials: "OG", title: "Onboarding guide", subtitle: "Leads qualification", time: "10d ago" },
   { initials: "HR", title: "HR operations", subtitle: "Candidate selection", time: "1mon ago" },
@@ -17,6 +19,18 @@ const agents = [
 
 const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'favourites'>('all');
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const filteredAgents = agents.filter((agent) => {
+    const matchesTab = activeTab === 'all' || agent.isFavourite;
+    const query = searchQuery.toLowerCase();
+    const matchesSearch =
+      agent.title.toLowerCase().includes(query) ||
+      agent.subtitle.toLowerCase().includes(query);
+    return matchesTab && matchesSearch;
+  });
 
   return (
     <div
@@ -26,18 +40,40 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate }) => {
         paddingBottom: "max(env(safe-area-inset-bottom), 24px)",
       }}
     >
-      <header className="flex items-center justify-between px-6 py-4">
-        <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>
-          Agents
-        </h1>
-        <div className="flex items-center gap-3">
-          <button type="button" className="p-2" style={{ color: "var(--foreground)" }}>
-            <Search size={20} />
-          </button>
-          <button type="button" className="p-2" style={{ color: "var(--foreground)" }}>
-            <Bell size={20} />
-          </button>
-        </div>
+      <header className="px-6 py-4">
+        {!isSearchActive ? (
+          <div className="flex flex-row justify-between items-center">
+            <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>
+              Agents
+            </h1>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsSearchActive(true)}
+                className="p-2 cursor-pointer"
+                style={{ color: "var(--foreground)" }}
+              >
+                <Search size={20} />
+              </button>
+              <button
+                type="button"
+                onClick={() => alert("Notifications clicked")}
+                className="p-2 cursor-pointer"
+                style={{ color: "var(--foreground)" }}
+              >
+                <Bell size={20} />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <SearchBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            setIsSearchActive={setIsSearchActive}
+            placeholder="Search agents..."
+            onFilterClick={() => setIsFilterOpen(true)}
+          />
+        )}
       </header>
 
       <div className="flex flex-row items-center justify-center rounded-full p-1 inline-flex w-fit mx-auto mt-4 bg-[var(--muted)]">
@@ -58,7 +94,7 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate }) => {
       </div>
 
       <div className="flex-grow overflow-y-auto px-6 mt-4">
-        {agents.map((agent) => (
+        {filteredAgents.map((agent) => (
           <button
             key={agent.title}
             type="button"
@@ -82,6 +118,12 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate }) => {
           </button>
         ))}
       </div>
+
+      <FilterBottomSheet
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onApply={() => setIsFilterOpen(false)}
+      />
 
       <nav className="flex justify-around items-center py-3 border-t" style={{ borderTopColor: "var(--border)" }}>
         <div className="flex flex-col items-center pt-2" style={{ borderTopWidth: 3, borderTopStyle: "solid", borderTopColor: "var(--muted-foreground)" }}>
@@ -108,12 +150,15 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate }) => {
           <span className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>Outputs</span>
         </button>
 
-        <div className="flex flex-col items-center pt-2" style={{ borderTopWidth: 3, borderTopStyle: "solid", borderTopColor: "var(--border)" }}>
-          <div className="flex flex-col items-center" style={{ color: "var(--muted-foreground)" }}>
-            <UserCheck size={20} style={{ color: "var(--muted-foreground)" }} />
-            <span className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>Approvals</span>
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={() => onNavigate("approvals")}
+          className="flex flex-col items-center pt-2 cursor-pointer"
+          style={{ borderTopWidth: 3, borderTopStyle: "solid", borderTopColor: "var(--border)", color: "var(--muted-foreground)" }}
+        >
+          <UserCheck size={20} style={{ color: "var(--muted-foreground)" }} />
+          <span className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>Approvals</span>
+        </button>
       </nav>
     </div>
   );

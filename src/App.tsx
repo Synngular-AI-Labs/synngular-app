@@ -9,12 +9,15 @@ import HomeScreen from "./components/HomeScreen";
 import AgentsScreen from "./components/AgentsScreen";
 import AgentDetailsScreen from "./components/AgentDetailsScreen";
 import OutputsScreen from "./components/OutputsScreen";
+import ApprovalsScreen from "./components/ApprovalsScreen";
+import TranscriptScreen from "./components/TranscriptScreen";
+import ApprovalDetailsScreen from "./components/ApprovalDetailsScreen";
 import "./App.css";
 import "./theme.css";
 
 const SPLASH_DURATION = 2500;
 
-type Screen = "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs";
+type Screen = "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals" | "approval-details" | "transcript";
 
 type DocumentScreen = "signin" | "verify" | "terms" | "privacy";
 
@@ -69,6 +72,15 @@ const AppContent = () => {
       )}
       {currentScreen === "outputs" && (
         <OutputsScreen onNavigate={handleNavigate} />
+      )}
+      {currentScreen === "approvals" && (
+        <ApprovalsScreen onNavigate={handleNavigate} />
+      )}
+      {currentScreen === "approval-details" && (
+        <ApprovalDetailsScreen onNavigate={handleNavigate} />
+      )}
+      {currentScreen === "transcript" && (
+        <TranscriptScreen onNavigate={handleNavigate} />
       )}
     </>
   );
