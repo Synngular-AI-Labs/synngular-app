@@ -1,5 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { Search, Bell, FileText, Code, Table, Download, Bot, UserCheck, X } from "lucide-react";
+import { Search, Bell, FileText, SquareCode, FileSpreadsheet, Download, Bot } from "lucide-react";
+import FileOutputIcon from "./ui/FileOutputIcon";
+import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
+import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
 
@@ -90,7 +93,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate }) => {
         )}
       </header>
 
-      <div className="px-6 py-2 flex flex-row gap-2 overflow-x-auto whitespace-nowrap hide-scrollbar">
+      <div className="px-6 py-2 my-3 flex flex-row gap-2 overflow-x-auto whitespace-nowrap hide-scrollbar">
         {[
           { label: "All", key: "All" },
           { label: "Pdf", key: "Pdf" },
@@ -114,11 +117,24 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate }) => {
 
       <div className="flex-grow overflow-y-auto px-6 mt-2 flex flex-col gap-6">
         {filteredOutputs.map((output) => {
-          const Icon = output.type === "pdf" ? FileText : output.type === "code" ? Code : Table;
+          let Icon;
+          let iconColor;
+
+          if (output.type === "pdf") {
+            Icon = FileText;
+            iconColor = "var(--error-700)";
+          } else if (output.type === "code") {
+            Icon = SquareCode;
+            iconColor = "var(--purple-800)";
+          } else {
+            Icon = FileSpreadsheet;
+            iconColor = "var(--success-700)";
+          }
+
           return (
             <div key={output.title} className="flex items-start gap-4">
               <div className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center bg-[var(--grey-100)]">
-                <Icon size={20} style={{ color: "var(--foreground)" }} />
+                <Icon size={20} style={{ color: iconColor }} />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
@@ -149,46 +165,41 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate }) => {
         onApply={() => setIsFilterOpen(false)}
       />
 
-      <nav className="flex justify-around items-center py-3 border-t" style={{ borderTopColor: "var(--border)" }}>
+      <nav
+        className="w-full flex flex-row items-center justify-between border-t border-[var(--grey-100)] bg-[var(--background)]"
+        style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}
+      >
         <button
           type="button"
           onClick={() => onNavigate("home")}
-          className="flex flex-col items-center pt-2 cursor-pointer"
-          style={{ color: "var(--muted-foreground)" }}
+          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
-          <span className="text-xs mt-1">Chat</span>
+          <MessageSquareTextIcon size={24} style={{ color: "var(--grey-700)" }} />
+          <span className="text-xs font-medium text-[var(--grey-700)]">Chat</span>
         </button>
 
         <button
           type="button"
           onClick={() => onNavigate("agents")}
-          className="flex flex-col items-center pt-2 cursor-pointer"
-          style={{ color: "var(--muted-foreground)" }}
+          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
         >
-          <Bot size={20} style={{ color: "var(--muted-foreground)" }} />
-          <span className="text-xs mt-1">Agent</span>
+          <Bot size={24} style={{ color: "var(--grey-700)" }} />
+          <span className="text-xs font-medium text-[var(--grey-700)]">Agent</span>
         </button>
 
-        <div className="flex flex-col items-center pt-2" style={{ borderTopWidth: 3, borderTopStyle: "solid", borderTopColor: "var(--purple-1000)" }}>
-          <div className="flex flex-col items-center" style={{ color: "var(--purple-1000)" }}>
-            <FileText size={20} style={{ color: "var(--purple-1000)" }} />
-            <span className="text-xs mt-1">Outputs</span>
-          </div>
+        <div className="relative flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer">
+          <div className="absolute top-0 inset-x-0 h-[2px] bg-[var(--purple-1000)]" />
+          <FileOutputIcon size={24} style={{ color: "var(--purple-1000)" }} />
+          <span className="text-xs font-medium text-[var(--purple-1000)]">Outputs</span>
         </div>
 
         <button
           type="button"
           onClick={() => onNavigate("approvals")}
-          className="flex flex-col items-center pt-2 cursor-pointer"
-          style={{ color: "var(--muted-foreground)" }}
+          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
         >
-          <UserCheck size={20} style={{ color: "var(--muted-foreground)" }} />
-          <span className="text-xs mt-1">Approvals</span>
+          <UserRoundCheckIcon size={24} style={{ color: "var(--grey-700)" }} />
+          <span className="text-xs font-medium text-[var(--grey-700)]">Approvals</span>
         </button>
       </nav>
     </div>

@@ -5,12 +5,12 @@ import {
   Menu,
   Bell,
   Paperclip,
-  SendHorizontal,
-  MessageSquare,
+  Send,
   Bot,
-  FileText,
-  UserCheck,
 } from "lucide-react";
+import FileOutputIcon from "./ui/FileOutputIcon";
+import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
+import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 
 interface HomeScreenProps {
   onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "outputs" | "approvals") => void;
@@ -170,7 +170,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
         </div>
       )}
 
-      <div className="px-4 pb-6">
+      <div className="w-full px-4 py-3 bg-[var(--background)] border-t border-[var(--grey-100)]">
         <input
           type="file"
           ref={fileInputRef}
@@ -183,104 +183,107 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
             }
           }}
         />
-        <div
-          className="rounded-xl p-4 shadow-md w-[342px] h-[102px] mx-auto flex flex-col justify-between overflow-hidden"
-          style={{ background: "var(--card)", border: "1px solid var(--border)" }}
-        >
-          {selectedFiles.length > 0 && (
-            <div className="flex flex-row gap-2 overflow-x-auto pb-1">
-              {selectedFiles.map((file, index) => (
-                <div
-                  key={`${file.name}-${index}`}
-                  className="relative w-10 h-10 rounded bg-[var(--grey-100)] flex items-center justify-center p-1"
+
+        {selectedFiles.length > 0 && (
+          <div className="flex flex-row gap-2 overflow-x-auto pb-2">
+            {selectedFiles.map((file, index) => (
+              <div
+                key={`${file.name}-${index}`}
+                className="relative w-10 h-10 rounded bg-[var(--grey-100)] flex items-center justify-center p-1"
+              >
+                <span className="text-[10px] text-[var(--foreground)] text-center truncate">
+                  {file.name}
+                </span>
+                <button
+                  type="button"
+                  className="absolute top-0 right-0 text-[8px]"
+                  style={{ color: "var(--foreground)" }}
+                  onClick={() => {
+                    setSelectedFiles((current) => current.filter((_, i) => i !== index));
+                  }}
                 >
-                  <span className="text-[10px] text-[var(--foreground)] text-center truncate">
-                    {file.name}
-                  </span>
-                  <button
-                    type="button"
-                    className="absolute top-0 right-0 text-[8px]"
-                    style={{ color: "var(--foreground)" }}
-                    onClick={() => {
-                      setSelectedFiles((current) => current.filter((_, i) => i !== index));
-                    }}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
+                  ×
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="text-[10px] font-bold"
+              style={{ color: "var(--foreground)" }}
+              onClick={() => setSelectedFiles([])}
+            >
+              Clear
+            </button>
+          </div>
+        )}
+
+        <div className="w-full px-4 mb-4 flex-shrink-0">
+          <div className="w-full min-h-[102px] border border-[var(--grey-300)] rounded-2xl bg-white flex flex-col justify-between p-3 shadow-sm">
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Type a message..."
+              className="w-full flex-1 bg-transparent border-none outline-none text-sm text-[var(--foreground)] placeholder:text-[var(--grey-500)] resize-none"
+            />
+
+            <div className="flex flex-row items-center justify-end gap-2 w-full mt-2">
               <button
                 type="button"
-                className="text-[10px] font-bold"
-                style={{ color: "var(--foreground)" }}
-                onClick={() => setSelectedFiles([])}
+                aria-label="Attach file"
+                className="p-1.5 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
+                onClick={() => fileInputRef?.current?.click()}
               >
-                Clear
+                <Paperclip className="w-5 h-5 text-[var(--grey-700)]" />
               </button>
-            </div>
-          )}
 
-          <textarea
-            className="w-full flex-1 min-h-0 resize-none bg-transparent border-none focus:outline-none text-sm placeholder:text-[var(--muted-foreground)]"
-            placeholder="Type a message..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            style={{ color: "var(--foreground)" }}
-          />
-
-          <div className="flex justify-end items-end">
-            <div className="flex items-center gap-3">
-              <Paperclip
-                size={18}
-                className="cursor-pointer"
-                style={{ color: "var(--purple-1000)" }}
-                onClick={() => fileInputRef.current?.click()}
-              />
-              <SendHorizontal
-                size={18}
-                className="cursor-pointer"
-                style={{ color: "var(--purple-1000)" }}
-                onClick={handleSend}
-              />
+              <button
+                type="button"
+                aria-label="Send message"
+                className="p-1.5 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
+                onClick={() => { if (message.trim().length > 0) handleSend(); }}
+              >
+                <Send className={`w-5 h-5 transition-colors duration-200 ${message.trim().length > 0 ? 'text-[var(--purple-1000)]' : 'text-[var(--grey-500)]'}`} />
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      <nav className="flex justify-around items-center py-3 border-t" style={{ borderTopColor: "var(--border)" }}>
-        <div className="flex flex-col items-center pt-2" style={{ borderTopWidth: 3, borderTopStyle: 'solid', borderTopColor: 'var(--purple-1000)' }}>
-          <MessageSquare size={20} style={{ color: "var(--purple-1000)" }} />
-          <span className="text-xs mt-1" style={{ color: "var(--purple-1000)" }}>Chat</span>
+      <nav
+        className="w-full flex flex-row items-center justify-between border-t border-[var(--grey-100)] bg-[var(--background)]"
+        style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}
+      >
+        <div className="relative flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer">
+          <div className="absolute top-0 inset-x-0 h-[2px] bg-[var(--purple-1000)]" />
+          <MessageSquareTextIcon size={24} style={{ color: "var(--purple-1000)" }} />
+          <span className="text-xs font-medium text-[var(--purple-1000)]">Chat</span>
         </div>
 
         <button
           type="button"
           onClick={() => onNavigate("agents")}
-          className="flex flex-col items-center pt-2 cursor-pointer"
-          style={{ color: "var(--muted-foreground)" }}
+          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
         >
-          <Bot size={20} style={{ color: "var(--muted-foreground)" }} />
-          <span className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>Agent</span>
+          <Bot size={24} style={{ color: "var(--grey-700)" }} />
+          <span className="text-xs font-medium text-[var(--grey-700)]">Agent</span>
         </button>
 
         <button
           type="button"
           onClick={() => onNavigate("outputs")}
-          className="flex flex-col items-center pt-2 cursor-pointer"
-          style={{ color: "var(--muted-foreground)" }}
+          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
         >
-          <FileText size={20} style={{ color: "var(--muted-foreground)" }} />
-          <span className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>Outputs</span>
+          <FileOutputIcon size={24} style={{ color: "var(--grey-700)" }} />
+          <span className="text-xs font-medium text-[var(--grey-700)]">Outputs</span>
         </button>
 
         <button
           type="button"
           onClick={() => onNavigate("approvals")}
-          className="flex flex-col items-center pt-2 cursor-pointer"
-          style={{ color: "var(--muted-foreground)" }}
+          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
         >
-          <UserCheck size={20} style={{ color: "var(--muted-foreground)" }} />
-          <span className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>Approvals</span>
+          <UserRoundCheckIcon size={24} style={{ color: "var(--grey-700)" }} />
+          <span className="text-xs font-medium text-[var(--grey-700)]">Approvals</span>
         </button>
       </nav>
     </div>

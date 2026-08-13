@@ -91,12 +91,12 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
             <div className="w-10 h-1.5 bg-[var(--grey-300)] rounded-full" />
           </div>
 
-          <div className="mt-3">
+          <div className="mt-4">
             <p className="text-xs font-semibold text-[var(--muted-foreground)] mb-2">
               Filter by:
             </p>
 
-            <div className="flex flex-row justify-between items-center mb-2">
+            <div className="flex flex-row justify-between items-center mt-4 mb-2">
               <p className="text-sm font-bold text-[var(--foreground)]">Date</p>
               <button
                 type="button"
@@ -107,7 +107,7 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
               </button>
             </div>
 
-            <div className="flex flex-row justify-between w-full mb-1.5 px-0.5">
+            <div className="flex flex-row justify-between w-full mt-4 mb-1.5 px-0.5">
               <span className="text-xs font-semibold text-[var(--foreground)] w-[165.5px] text-left">
                 From
               </span>
@@ -183,6 +183,8 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
               ))}
             </div>
 
+            <div className="w-full border-t border-[var(--grey-300)] my-4"></div>
+
             <div className="flex flex-row justify-between items-center mb-3">
               <p className="text-sm font-bold text-[var(--foreground)]">Department</p>
               <button
@@ -194,7 +196,7 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
               </button>
             </div>
 
-            <div className="relative w-[343px] h-[40px] bg-[var(--grey-200)] rounded-xl mx-auto mb-4">
+            <div className="relative w-[343px] h-[40px] bg-[var(--grey-200)] rounded-xl mx-auto mt-4 mb-4">
               <div className="w-full h-full px-4 flex flex-row items-center justify-between pointer-events-none">
                 <span className="text-xs font-medium text-[var(--foreground)]">
                   {selectedDepartment || "Select Department"}

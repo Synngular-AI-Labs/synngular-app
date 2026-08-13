@@ -1,5 +1,8 @@
 import React, { useState } from "react";
-import { Search, Bell, ChevronRight, Bot, FileText, UserCheck, X } from "lucide-react";
+import { Search, Bell, ChevronRight, Bot } from "lucide-react";
+import FileOutputIcon from "./ui/FileOutputIcon";
+import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
+import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
 
@@ -99,22 +102,21 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate }) => {
             key={agent.title}
             type="button"
             onClick={() => onNavigate('agent-details')}
-            className="w-full flex items-center gap-4 py-3 border-b cursor-pointer text-left"
-            style={{ borderColor: "var(--border)" }}
+            className="w-full flex flex-row items-center justify-between py-3 cursor-pointer hover:bg-[var(--grey-50)] active:bg-[var(--grey-100)] transition-all"
           >
-            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[var(--grey-100)] text-sm font-semibold" style={{ color: "var(--foreground)" }}>
-              {agent.initials}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold mb-1" style={{ color: "var(--foreground)" }}>
-                {agent.title}
-              </p>
-              <div className="flex items-center justify-between gap-4 text-[0.8rem]" style={{ color: "var(--muted-foreground)" }}>
-                <span>{agent.subtitle}</span>
-                <span>{agent.time}</span>
+            <div className="flex flex-row items-center gap-3 flex-1">
+              <div className="w-[40px] h-[40px] flex-shrink-0 rounded-full bg-[var(--grey-200)] flex items-center justify-center">
+                <span className="text-sm font-bold text-[var(--grey-700)]">{agent.initials}</span>
+              </div>
+
+              <div className="flex flex-col flex-1 items-start text-left min-w-0 ml-3">
+                <p className="text-sm font-semibold text-[var(--foreground)] text-left w-full">{agent.title}</p>
+                <p className="text-xs font-medium text-[var(--muted-foreground)] mt-0.5 text-left w-full">{agent.subtitle}</p>
+                <span className="text-[10px] font-medium text-[var(--grey-400)] mt-0.5 text-left w-full">{agent.time}</span>
               </div>
             </div>
-            <ChevronRight size={20} style={{ color: "var(--muted-foreground)" }} />
+
+            <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)] flex-shrink-0 ml-2" />
           </button>
         ))}
       </div>
@@ -125,39 +127,41 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate }) => {
         onApply={() => setIsFilterOpen(false)}
       />
 
-      <nav className="flex justify-around items-center py-3 border-t" style={{ borderTopColor: "var(--border)" }}>
-        <div className="flex flex-col items-center pt-2" style={{ borderTopWidth: 3, borderTopStyle: "solid", borderTopColor: "var(--muted-foreground)" }}>
-          <button type="button" onClick={() => onNavigate("home")} className="flex flex-col items-center" style={{ color: "var(--muted-foreground)" }}>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span className="text-xs mt-1">Chat</span>
-          </button>
-        </div>
+      <nav
+        className="w-full flex flex-row items-center justify-between border-t border-[var(--grey-100)] bg-[var(--background)]"
+        style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}
+      >
+        <button
+          type="button"
+          onClick={() => onNavigate("home")}
+          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
+        >
+          <MessageSquareTextIcon size={24} style={{ color: "var(--grey-700)" }} />
+          <span className="text-xs font-medium text-[var(--grey-700)]">Chat</span>
+        </button>
 
-        <div className="flex flex-col items-center pt-2" style={{ borderTopWidth: 3, borderTopStyle: "solid", borderTopColor: "var(--purple-1000)" }}>
-          <div className="flex flex-col items-center" style={{ color: "var(--purple-1000)" }}>
-            <Bot size={20} style={{ color: "var(--purple-1000)" }} />
-            <span className="text-xs mt-1" style={{ color: "var(--purple-1000)" }}>Agent</span>
-          </div>
+        <div className="relative flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer">
+          <div className="absolute top-0 inset-x-0 h-[2px] bg-[var(--purple-1000)]" />
+          <Bot size={24} style={{ color: "var(--purple-1000)" }} />
+          <span className="text-xs font-medium text-[var(--purple-1000)]">Agent</span>
         </div>
 
         <button
           type="button"
           onClick={() => onNavigate("outputs")}
-          className="flex flex-col items-center pt-2 cursor-pointer"
-          style={{ borderTopWidth: 3, borderTopStyle: "solid", borderTopColor: "var(--border)", color: "var(--muted-foreground)" }}
+          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
         >
-          <FileText size={20} style={{ color: "var(--muted-foreground)" }} />
-          <span className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>Outputs</span>
+          <FileOutputIcon size={24} style={{ color: "var(--grey-700)" }} />
+          <span className="text-xs font-medium text-[var(--grey-700)]">Outputs</span>
         </button>
 
         <button
           type="button"
           onClick={() => onNavigate("approvals")}
-          className="flex flex-col items-center pt-2 cursor-pointer"
-          style={{ borderTopWidth: 3, borderTopStyle: "solid", borderTopColor: "var(--border)", color: "var(--muted-foreground)" }}
+          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
         >
-          <UserCheck size={20} style={{ color: "var(--muted-foreground)" }} />
-          <span className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>Approvals</span>
+          <UserRoundCheckIcon size={24} style={{ color: "var(--grey-700)" }} />
+          <span className="text-xs font-medium text-[var(--grey-700)]">Approvals</span>
         </button>
       </nav>
     </div>

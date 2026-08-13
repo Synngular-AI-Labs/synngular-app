@@ -1,5 +1,8 @@
 import React, { useState } from "react";
-import { Search, Bell, User, ChevronRight, Bot, FileText, MessageSquare, UserCheck, X } from "lucide-react";
+import { Search, Bell, ChevronRight, Bot, UserCheck } from "lucide-react";
+import FileOutputIcon from "./ui/FileOutputIcon";
+import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
+import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
 
@@ -99,7 +102,7 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate }) => {
         )}
       </header>
 
-      <div className="flex flex-row items-center justify-center rounded-full p-1 inline-flex w-fit mx-auto mt-4 bg-[var(--muted)]">
+      <div className="flex flex-row items-center justify-center rounded-full p-1 inline-flex w-fit mx-auto mt-4 bg-[var(--muted)] mb-4">
         <button
           type="button"
           onClick={() => setActiveTab('all')}
@@ -124,7 +127,7 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate }) => {
         </button>
       </div>
 
-      <div className="flex-grow overflow-y-auto px-6 mt-6 flex flex-col">
+      <div className="flex-grow overflow-y-auto px-6 mt-6 flex flex-col gap-4">
         {filteredApprovals.map((approval, index) => (
           <button
             key={`${approval.title}-${index}`}
@@ -133,16 +136,17 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate }) => {
             className="w-full flex flex-row items-start gap-4 py-4 border-b cursor-pointer text-left"
             style={{ borderColor: "var(--grey-100)" }}
           >
-            <div className="w-10 h-10 rounded-full bg-[var(--grey-100)] flex items-center justify-center text-[var(--muted-foreground)]">
-              <User size={18} />
+            <div className="w-8 h-8 flex-shrink-0 rounded-full bg-[var(--grey-200)] flex items-center justify-center">
+              <UserCheck className="w-4 h-4 text-[var(--grey-700)]" />
             </div>
             <div className="flex-1 flex flex-col">
               <p className="text-sm font-medium line-clamp-2" style={{ color: "var(--foreground)" }}>
                 {approval.title}
               </p>
-              <p className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>
-                {approval.subtitle} • {approval.time}
+              <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+                {approval.subtitle}
               </p>
+              <span className="text-xs text-[var(--muted-foreground)] mt-2">{approval.time}</span>
             </div>
             <ChevronRight size={20} style={{ color: "var(--muted-foreground)" }} />
           </button>
@@ -155,42 +159,41 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate }) => {
         onApply={() => setIsFilterOpen(false)}
       />
 
-      <nav className="flex justify-around items-center py-3 border-t" style={{ borderTopColor: "var(--border)" }}>
+      <nav
+        className="w-full flex flex-row items-center justify-between border-t border-[var(--grey-100)] bg-[var(--background)]"
+        style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}
+      >
         <button
           type="button"
-          onClick={() => onNavigate('home')}
-          className="flex flex-col items-center pt-2 cursor-pointer"
-          style={{ color: "var(--muted-foreground)" }}
+          onClick={() => onNavigate("home")}
+          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
         >
-          <MessageSquare size={20} style={{ color: "var(--muted-foreground)" }} />
-          <span className="text-xs mt-1">Chat</span>
+          <MessageSquareTextIcon size={24} style={{ color: "var(--grey-700)" }} />
+          <span className="text-xs font-medium text-[var(--grey-700)]">Chat</span>
         </button>
 
         <button
           type="button"
-          onClick={() => onNavigate('agents')}
-          className="flex flex-col items-center pt-2 cursor-pointer"
-          style={{ color: "var(--muted-foreground)" }}
+          onClick={() => onNavigate("agents")}
+          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
         >
-          <Bot size={20} style={{ color: "var(--muted-foreground)" }} />
-          <span className="text-xs mt-1">Agent</span>
+          <Bot size={24} style={{ color: "var(--grey-700)" }} />
+          <span className="text-xs font-medium text-[var(--grey-700)]">Agent</span>
         </button>
 
         <button
           type="button"
-          onClick={() => onNavigate('outputs')}
-          className="flex flex-col items-center pt-2 cursor-pointer"
-          style={{ color: "var(--muted-foreground)" }}
+          onClick={() => onNavigate("outputs")}
+          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
         >
-          <FileText size={20} style={{ color: "var(--muted-foreground)" }} />
-          <span className="text-xs mt-1">Outputs</span>
+          <FileOutputIcon size={24} style={{ color: "var(--grey-700)" }} />
+          <span className="text-xs font-medium text-[var(--grey-700)]">Outputs</span>
         </button>
 
-        <div className="flex flex-col items-center pt-2" style={{ borderTopWidth: 3, borderTopStyle: 'solid', borderTopColor: 'var(--purple-1000)' }}>
-          <div className="flex flex-col items-center" style={{ color: "var(--purple-1000)" }}>
-            <UserCheck size={20} style={{ color: "var(--purple-1000)" }} />
-            <span className="text-xs mt-1" style={{ color: "var(--purple-1000)" }}>Approvals</span>
-          </div>
+        <div className="relative flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer">
+          <div className="absolute top-0 inset-x-0 h-[2px] bg-[var(--purple-1000)]" />
+          <UserRoundCheckIcon size={24} style={{ color: "var(--purple-1000)" }} />
+          <span className="text-xs font-medium text-[var(--purple-1000)]">Approvals</span>
         </div>
       </nav>
     </div>
