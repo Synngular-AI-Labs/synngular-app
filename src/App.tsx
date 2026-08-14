@@ -9,6 +9,7 @@ import HomeScreen from "./components/HomeScreen";
 import AgentsScreen from "./components/AgentsScreen";
 import AgentDetailsScreen from "./components/AgentDetailsScreen";
 import OutputsScreen from "./components/OutputsScreen";
+import OutputDetailScreen from "./components/OutputDetailScreen";
 import ApprovalsScreen from "./components/ApprovalsScreen";
 import TranscriptScreen from "./components/TranscriptScreen";
 import ApprovalDetailsScreen from "./components/ApprovalDetailsScreen";
@@ -17,7 +18,7 @@ import "./theme.css";
 
 const SPLASH_DURATION = 2500;
 
-type Screen = "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals" | "approval-details" | "transcript";
+type Screen = "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals" | "approval-details" | "transcript" | "output-details";
 
 type DocumentScreen = "signin" | "verify" | "terms" | "privacy";
 
@@ -25,6 +26,7 @@ const AppContent = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen>("splash");
   const [previousScreen, setPreviousScreen] = useState<DocumentScreen>("signin");
   const [userEmail, setUserEmail] = useState("");
+  const [selectedOutput, setSelectedOutput] = useState<any | null>(null);
 
   const handleNavigate = (screen: Screen) => {
     if (currentScreen === "signin" || currentScreen === "verify" || currentScreen === "terms" || currentScreen === "privacy") {
@@ -71,7 +73,10 @@ const AppContent = () => {
         <AgentDetailsScreen onNavigate={handleNavigate} />
       )}
       {currentScreen === "outputs" && (
-        <OutputsScreen onNavigate={handleNavigate} />
+        <OutputsScreen onNavigate={handleNavigate} setSelectedOutput={(o) => { setSelectedOutput(o); setCurrentScreen("output-details"); }} />
+      )}
+      {currentScreen === "output-details" && (
+        <OutputDetailScreen onNavigate={handleNavigate} output={selectedOutput} />
       )}
       {currentScreen === "approvals" && (
         <ApprovalsScreen onNavigate={handleNavigate} />

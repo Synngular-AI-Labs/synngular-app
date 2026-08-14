@@ -74,89 +74,93 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ onNavigateToVerify, onNavig
         </h1>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
-          {/* Email Input */}
-          <div className="flex flex-col gap-2 w-full">
-            <label htmlFor="email" className="text-sm font-medium text-muted-foreground">
-              Enter your email id
-            </label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="ben@company.com"
-              value={email}
-              onChange={handleEmailChange}
-              onBlur={handleEmailBlur}
-              aria-invalid={emailError}
-              data-invalid={emailError}
-              style={emailError ? { borderColor: 'var(--error-600)', boxShadow: '0 0 0 3px rgba(239, 68, 68, 0.2)' } : {}}
-              required
-              className="h-12 placeholder:text-[var(--grey-500)]"
-            />
-            {emailError && (
-              <p className="text-sm mt-1" style={{ color: 'var(--error-600)' }}>
+        <div className="w-full flex flex-col gap-4 mt-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
+            {/* Email Input */}
+            <div className="flex flex-col gap-2 w-full">
+              <label htmlFor="email" className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
                 Enter your email id
-              </p>
-            )}
+              </label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="ben@company.com"
+                value={email}
+                onChange={handleEmailChange}
+                onBlur={handleEmailBlur}
+                aria-invalid={emailError}
+                data-invalid={emailError}
+                style={emailError ? { borderColor: 'var(--error-600)', boxShadow: '0 0 0 3px rgba(239, 68, 68, 0.2)' } : {}}
+                required
+                className="h-12 placeholder:text-[var(--grey-400)] text-[var(--foreground)]"
+              />
+              {emailError && (
+                <p className="text-sm mt-1" style={{ color: 'var(--error-600)' }}>
+                  Enter your email id
+                </p>
+              )}
+            </div>
+
+            {/* Continue Button with Dynamic State */}
+            <Button
+              type="submit"
+              disabled={!isEmailValid || isLoading}
+              variant={isEmailValid ? "default" : "ghost"}
+              size="default"
+              style={
+                isEmailValid
+                  ? { background: 'var(--purple-1000)', color: 'var(--grey-100)' }
+                  : { background: 'var(--grey-300)', color: 'var(--grey-500)' }
+              }
+            >
+              {isLoading ? (
+                <svg className="animate-spin h-5 w-5" style={{ color: 'currentColor' }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : (
+                "Continue with email"
+              )}
+            </Button>
+          </form>
+
+          {/* Switch Action */}
+          <div className="text-sm text-center" style={{ color: 'var(--muted-foreground)' }}>
+            Don't have an account?{" "}
+            <a href="#signup" className="font-medium hover:underline" style={{ color: 'var(--purple-800)' }}>
+              Sign up
+            </a>
           </div>
-
-          {/* Continue Button with Dynamic State */}
-          <Button
-            type="submit"
-            disabled={!isEmailValid || isLoading}
-            variant={isEmailValid ? "default" : "ghost"}
-            size="default"
-            style={
-              isEmailValid
-                ? { background: 'var(--purple-1000)', color: 'var(--grey-100)' }
-                : { background: 'var(--grey-300)', color: 'var(--grey-500)' }
-            }
-          >
-            {isLoading ? (
-              <svg className="animate-spin h-5 w-5" style={{ color: 'currentColor' }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            ) : (
-              "Continue with email"
-            )}
-          </Button>
-        </form>
-
-        {/* Switch Action */}
-        <div className="text-sm text-muted-foreground text-center mt-6">
-          Don't have an account?{" "}
-          <a href="#signup" className="font-medium hover:underline" style={{ color: 'var(--purple-800)' }}>
-            Sign up
-          </a>
         </div>
 
-        {/* Terms & Privacy */}
-        <div className="text-xs text-muted-foreground text-center mt-4 leading-relaxed">
-          By continuing, you agree to our{" "}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              onNavigateToTerms?.();
-            }}
-            className="hover:underline font-medium"
-            style={{ color: 'var(--purple-800)' }}
-          >
-            Terms of Service
-          </button>{" "}
-          and{" "}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              onNavigateToPrivacy?.();
-            }}
-            className="hover:underline font-medium"
-            style={{ color: 'var(--purple-800)' }}
-          >
-            Privacy Policy
-          </button>
+        {/* Terms & Privacy - pushed to bottom with 32px margin */}
+        <div className="mt-auto mb-8 w-full text-center px-4">
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
+            By continuing, you agree to our{" "}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                onNavigateToTerms?.();
+              }}
+              className="hover:underline font-medium"
+              style={{ color: 'var(--purple-800)' }}
+            >
+              Terms of Service
+            </button>{" "}
+            and{" "}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                onNavigateToPrivacy?.();
+              }}
+              className="hover:underline font-medium"
+              style={{ color: 'var(--purple-800)' }}
+            >
+              Privacy Policy
+            </button>
+          </p>
         </div>
       </div>
     </div>

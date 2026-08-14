@@ -6,8 +6,16 @@ import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
 
+interface OutputItem {
+  title: string;
+  subtitle: string;
+  meta: string;
+  type: "pdf" | "code" | "spreadsheet";
+}
+
 interface OutputsScreenProps {
   onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals") => void;
+  setSelectedOutput?: (output: OutputItem) => void;
 }
 
 const outputs = [
@@ -37,7 +45,7 @@ const outputs = [
   },
 ];
 
-const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate }) => {
+const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOutput }) => {
   const [activeFilter, setActiveFilter] = useState("All");
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -132,7 +140,15 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate }) => {
           }
 
           return (
-            <div key={output.title} className="flex items-start gap-4">
+            <div
+              key={output.title}
+              className="flex items-start gap-4 cursor-pointer active:opacity-70 transition-opacity"
+              onClick={() => {
+                if (setSelectedOutput) {
+                  setSelectedOutput(output);
+                }
+              }}
+            >
               <div className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center bg-[var(--grey-100)]">
                 <Icon size={20} style={{ color: iconColor }} />
               </div>
@@ -149,7 +165,10 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate }) => {
               </div>
               <button
                 type="button"
-                onClick={() => handleDownload(output.title)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDownload(output.title);
+                }}
                 className="self-start text-[var(--purple-1000)] cursor-pointer transition-colors hover:text-[var(--purple-1000)]"
               >
                 <Download size={20} />
@@ -183,7 +202,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate }) => {
           onClick={() => onNavigate("agents")}
           className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
         >
-          <Bot size={24} style={{ color: "var(--grey-700)" }} />
+          <Bot size={24} strokeWidth={1.5} style={{ color: "var(--grey-700)" }} />
           <span className="text-xs font-medium text-[var(--grey-700)]">Agent</span>
         </button>
 

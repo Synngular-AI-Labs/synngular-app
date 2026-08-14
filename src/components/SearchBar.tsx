@@ -1,5 +1,26 @@
 import React from "react";
-import { ArrowLeft, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+
+// Custom filter icon (settings-2 style)
+const FilterIcon = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M14 17H5" />
+    <path d="M19 7h-9" />
+    <circle cx="17" cy="17" r="3" />
+    <circle cx="7" cy="7" r="3" />
+  </svg>
+);
 
 interface SearchBarProps {
   searchQuery: string;
@@ -50,7 +71,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         }}
         className="w-[36px] h-[36px] flex items-center justify-center cursor-pointer text-[var(--foreground)]"
       >
-        <SlidersHorizontal className="w-5 h-5" />
+        <FilterIcon className="w-5 h-5" />
       </button>
     </div>
   );

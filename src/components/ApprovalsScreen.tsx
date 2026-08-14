@@ -102,7 +102,8 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate }) => {
         )}
       </header>
 
-      <div className="flex flex-row items-center justify-center rounded-full p-1 inline-flex w-fit mx-auto mt-4 bg-[var(--muted)] mb-4">
+      {/* Toggle â€” mt-4 top margin, mb-4 enforces strict 16px gap before the list */}
+      <div className="flex flex-row items-center justify-center rounded-full p-1 inline-flex w-fit mx-auto mt-4 mb-4 bg-[var(--muted)]">
         <button
           type="button"
           onClick={() => setActiveTab('all')}
@@ -127,13 +128,14 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate }) => {
         </button>
       </div>
 
-      <div className="flex-grow overflow-y-auto px-6 mt-6 flex flex-col gap-4">
+      {/* List â€” flex-col with gap-4 gives strict 16px between every item */}
+      <div className="flex-grow overflow-y-auto px-6 flex flex-col">
         {filteredApprovals.map((approval, index) => (
           <button
             key={`${approval.title}-${index}`}
             type="button"
             onClick={() => onNavigate('approval-details')}
-            className="w-full flex flex-row items-start gap-4 py-4 border-b cursor-pointer text-left"
+            className="w-full flex flex-row items-start gap-4 pb-4 pt-0 border-b cursor-pointer text-left"
             style={{ borderColor: "var(--grey-100)" }}
           >
             <div className="w-8 h-8 flex-shrink-0 rounded-full bg-[var(--grey-200)] flex items-center justify-center">
@@ -177,7 +179,7 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate }) => {
           onClick={() => onNavigate("agents")}
           className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
         >
-          <Bot size={24} style={{ color: "var(--grey-700)" }} />
+          <Bot size={24} strokeWidth={1.5} style={{ color: "var(--grey-700)" }} />
           <span className="text-xs font-medium text-[var(--grey-700)]">Agent</span>
         </button>
 

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ArrowLeft, Play, Pause, Download, Star, Bot, Check } from "lucide-react";
-import FrameSvg from "../assets/Frame.svg";
+import AudioWaveform from "./AudioWaveform";
 
 interface TranscriptScreenProps {
   onNavigate: (
@@ -346,16 +346,7 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
                   className="flex-1 flex items-center justify-center overflow-hidden"
                   style={{ gap: 12 }}
                 >
-                  <img
-                    src={FrameSvg}
-                    alt="audio waveform"
-                    style={{
-                      width: "min(195px, 55%)",
-                      height: 26,
-                      objectFit: "contain",
-                      flexShrink: 0,
-                    }}
-                  />
+                  <AudioWaveform isPlaying={isPlaying} />
                   <span className="text-sm font-medium text-white flex-shrink-0">
                     {formatTime(elapsed)}
                   </span>

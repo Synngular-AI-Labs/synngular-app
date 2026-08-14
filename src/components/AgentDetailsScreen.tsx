@@ -69,8 +69,8 @@ const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({ onNavigate }) =
             className="w-full flex items-center gap-4 py-3 border-b cursor-pointer text-left"
             style={{ borderColor: "var(--grey-100)" }}
           >
-            <div className="flex items-center justify-center rounded-full w-10 h-10 bg-[var(--grey-100)]">
-              <ArrowUpRight size={18} style={{ color: "var(--muted-foreground)" }} />
+            <div className="w-5 h-5 flex-shrink-0 flex items-center justify-center mr-3">
+              <ArrowUpRight className="w-full h-full text-[var(--success-700)]" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-medium" style={{ color: "var(--foreground)" }}>

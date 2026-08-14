@@ -57,8 +57,10 @@ const VerifyEmailScreen: React.FC<{
       </div>
 
       {/* Container 2: OTP Verification Card */}
+      {/* FIX: flex flex-col + flex-1 so the card fills remaining height,
+          enabling mt-auto to push Terms to the bottom */}
       <div
-        className="w-full flex-1 rounded-t-[2.5rem] -mt-8 relative z-30 px-6 pt-8 pb-6 flex flex-col gap-6"
+        className="w-full flex-1 rounded-t-[2.5rem] -mt-8 relative z-30 px-6 pt-8 pb-6 flex flex-col"
         style={{ background: 'var(--grey-100)' }}
       >
         {/* Back Button */}
@@ -72,20 +74,27 @@ const VerifyEmailScreen: React.FC<{
         </button>
 
         {/* Heading */}
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+        <h1 className="text-2xl font-bold mt-6" style={{ color: 'var(--foreground)' }}>
           Check your email
         </h1>
 
-        {/* Subtitle */}
-        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-          We've sent a 6-digit code to {userEmail || 'your email'}
-        </p>
+        {/* REQUIREMENT 4: All 4 OTP content elements in flex-col gap-4 mt-6 */}
+        <div className="w-full flex flex-col gap-4 mt-6">
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
-          {/* OTP Input */}
+          {/* 1. Subtitle â€” REQUIREMENT 3: email span uses text-black (not var(--foreground)) */}
+          <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+            We've sent a 6-digit code to{" "}
+            <span className="font-bold text-black">{userEmail || 'your email'}</span>
+          </p>
+
+          {/* 2. Enter verification code input
+              REQUIREMENT 2: placeholder:text-[var(--grey-400)] and text-black */}
           <div className="flex flex-col gap-2 w-full">
-            <label htmlFor="otp" className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
+            <label
+              htmlFor="otp"
+              className="text-sm font-medium"
+              style={{ color: 'var(--muted-foreground)' }}
+            >
               Enter verification code
             </label>
             <Input
@@ -96,16 +105,17 @@ const VerifyEmailScreen: React.FC<{
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
               required
               maxLength={6}
-              className="h-12 placeholder:text-[var(--grey-500)]"
+              className="h-12 placeholder:text-[var(--grey-400)] text-black"
             />
           </div>
 
-          {/* Verify Button */}
+          {/* 3. Verify Email button */}
           <Button
             type="submit"
             disabled={!isOtpValid || isLoading}
             variant={isOtpValid ? "default" : "ghost"}
             size="default"
+            onClick={handleSubmit}
             style={
               isOtpValid && !isLoading
                 ? { background: 'var(--purple-1000)', color: 'var(--grey-100)' }
@@ -113,17 +123,33 @@ const VerifyEmailScreen: React.FC<{
             }
           >
             {isLoading ? (
-              <svg className="animate-spin h-5 w-5" style={{ color: 'currentColor' }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg
+                className="animate-spin h-5 w-5"
+                style={{ color: 'currentColor' }}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
               </svg>
             ) : (
               "Verify Email"
             )}
           </Button>
-        </form>
 
-          {/* Resend Text */}
+          {/* 4. Resend OTP */}
           <div className="text-sm text-center" style={{ color: 'var(--muted-foreground)' }}>
             {resendTimer > 0 ? (
               <>Resend OTP in {resendTimer}s</>
@@ -138,8 +164,11 @@ const VerifyEmailScreen: React.FC<{
             )}
           </div>
 
-          {/* Terms & Privacy */}
-          <div className="text-xs text-center leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
+        </div>{/* end gap-4 content block */}
+
+        {/* REQUIREMENT 1: Terms pushed to bottom with mt-auto mb-8 (32px) */}
+        <div className="mt-auto mb-8 w-full text-center px-4">
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
             By continuing, you agree to our{" "}
             <a
               href="#terms"
@@ -164,28 +193,30 @@ const VerifyEmailScreen: React.FC<{
             >
               Privacy Policy
             </a>
-          </div>
+          </p>
+        </div>
 
-          {/* Success Toast */}
-          {showToast && (
-            <div
-              className="absolute bottom-6 left-6 right-6 flex items-center gap-3 p-4 rounded-xl shadow-lg z-50"
-              style={{ background: 'var(--success-100)', border: '1px solid var(--success-700)' }}
+        {/* Success Toast */}
+        {showToast && (
+          <div
+            className="absolute bottom-8 left-6 right-6 flex items-center gap-3 p-4 rounded-xl shadow-lg z-50"
+            style={{ background: 'var(--success-100)', border: '1px solid var(--success-700)' }}
+          >
+            <CheckCircle size={20} style={{ color: 'var(--success-700)' }} />
+            <span className="flex-1 text-sm font-medium" style={{ color: 'var(--success-800)' }}>
+              Email verified successfully
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowToast(false)}
+              className="shrink-0"
             >
-              <CheckCircle size={20} style={{ color: 'var(--success-700)' }} />
-              <span className="flex-1 text-sm font-medium" style={{ color: 'var(--success-800)' }}>
-                Task created successfully
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowToast(false)}
-                className="shrink-0"
-              >
-                <X size={16} style={{ color: 'var(--success-700)' }} />
-              </button>
-            </div>
-          )}
-      </div>
+              <X size={16} style={{ color: 'var(--success-700)' }} />
+            </button>
+          </div>
+        )}
+
+      </div>{/* end card */}
     </div>
   );
 };

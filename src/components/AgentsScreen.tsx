@@ -142,7 +142,7 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate }) => {
 
         <div className="relative flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer">
           <div className="absolute top-0 inset-x-0 h-[2px] bg-[var(--purple-1000)]" />
-          <Bot size={24} style={{ color: "var(--purple-1000)" }} />
+          <Bot size={24} strokeWidth={1.5} style={{ color: "var(--purple-1000)" }} />
           <span className="text-xs font-medium text-[var(--purple-1000)]">Agent</span>
         </div>
 
