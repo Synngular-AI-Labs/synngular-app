@@ -71,7 +71,7 @@ const CallAgainButton: React.FC = () => (
     <button
       type="button"
       onClick={() => alert("Calling again...")}
-      className="flex items-center justify-center rounded-xl border text-sm font-semibold transition-colors"
+      className="flex items-center justify-center rounded-xl border text-body-14-m transition-colors"
       style={{
         width: "min(343px, 100%)",
         height: 40,
@@ -150,7 +150,7 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
+        <h1 className="text-page-title-22 text-[var(--grey-1000)]">
           Transcript
         </h1>
       </header>
@@ -171,13 +171,12 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
         </div>
         <div>
           <p
-            className="font-bold cursor-pointer text-sm"
+            className="text-body-16-m text-[var(--grey-1000)] cursor-pointer"
             onClick={() => onNavigate("agent-details")}
-            style={{ color: "var(--foreground)" }}
           >
             Revenue services
           </p>
-          <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+          <p className="text-captions-12 text-[var(--grey-700)]">
             Leads qualifications
           </p>
         </div>
@@ -186,7 +185,7 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
       {/* ── Stats table ── */}
       <div className="px-4 mb-4">
         <div
-          className="w-full rounded-2xl border border-[var(--grey-300)] bg-[var(--grey-100)] grid grid-cols-4 divide-x divide-[var(--grey-300)] text-center text-xs box-border"
+          className="w-full rounded-2xl border border-[var(--grey-300)] bg-[var(--grey-100)] grid grid-cols-4 divide-x divide-[var(--grey-300)] text-center box-border"
           style={{ height: 56 }}
         >
           {[
@@ -196,11 +195,8 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
             { label: "Type", value: "Voice" },
           ].map(({ label, value }) => (
             <div key={label} className="flex flex-col justify-center">
-              <div className="text-[var(--muted-foreground)] mb-1">{label}</div>
-              <div
-                className="text-sm font-semibold"
-                style={{ color: "var(--foreground)" }}
-              >
+              <div className="text-captions-12 text-[var(--grey-500)] mb-1">{label}</div>
+              <div className="text-body-12-m text-[var(--grey-700)]">
                 {value}
               </div>
             </div>
@@ -215,15 +211,11 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
             key={view}
             type="button"
             onClick={() => setActiveView(view)}
-            className={`py-3 ${
+            className={`text-body-14-m py-3 ${
               activeView === view
-                ? "border-b-2 border-[var(--purple-1000)] -mb-px font-semibold"
-                : "border-b-2 border-transparent font-medium"
+                ? "text-[var(--grey-1000)] border-b-2 border-[var(--purple-1000)] -mb-px"
+                : "text-[var(--grey-500)] border-b-2 border-transparent"
             }`}
-            style={{
-              color:
-                activeView === view ? "var(--foreground)" : "var(--muted-foreground)",
-            }}
           >
             {view.charAt(0).toUpperCase() + view.slice(1)}
           </button>
@@ -237,16 +229,10 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
 
             {/* AI Summary */}
             <section>
-              <h3
-                className="text-sm font-semibold mb-2"
-                style={{ color: "var(--foreground)" }}
-              >
+              <h3 className="text-body-14-m text-[var(--grey-1000)] mb-2">
                 AI Summary
               </h3>
-              <p
-                className="text-xs leading-relaxed"
-                style={{ color: "var(--muted-foreground)" }}
-              >
+              <p className="text-captions-12 text-[var(--grey-700)] leading-relaxed">
                 The agent helped John clarke to generate the accounts documents and Emailed
                 them after generating it to the contacts of John clarke.
               </p>
@@ -254,18 +240,14 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
 
             {/* Topics Covered */}
             <section>
-              <h3
-                className="text-sm font-semibold mb-2"
-                style={{ color: "var(--foreground)" }}
-              >
+              <h3 className="text-body-14-m text-[var(--grey-1000)] mb-2">
                 Topics Covered
               </h3>
               <div className="flex flex-row flex-wrap gap-2">
                 {topicTags.map((tag) => (
                   <span
                     key={tag}
-                    className="border border-[var(--grey-300)] bg-transparent px-3 py-1 rounded-xl text-xs font-medium"
-                    style={{ color: "var(--muted-foreground)" }}
+                    className="text-captions-12 text-[var(--grey-700)] border border-[var(--grey-300)] bg-transparent px-3 py-1 rounded-xl"
                   >
                     {tag}
                   </span>
@@ -275,10 +257,7 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
 
             {/* Agents Actions */}
             <section>
-              <h3
-                className="text-sm font-bold mb-2"
-                style={{ color: "var(--foreground)" }}
-              >
+              <h3 className="text-body-14-m text-[var(--grey-1000)] mb-2">
                 Agents Actions
               </h3>
               <div className="flex flex-col gap-2">
@@ -301,10 +280,7 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
                       >
                         {checked && <Check size={10} className="text-white" />}
                       </div>
-                      <span
-                        className="text-sm"
-                        style={{ color: "var(--foreground)" }}
-                      >
+                      <span className="text-secondary-14 text-[var(--grey-700)]">
                         {action}
                       </span>
                     </div>
@@ -315,10 +291,7 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
 
             {/* Call Recording */}
             <section>
-              <h3
-                className="text-sm font-medium mb-2"
-                style={{ color: "var(--foreground)" }}
-              >
+              <h3 className="text-body-14-m text-[var(--grey-1000)] mb-2">
                 Call recording
               </h3>
 
@@ -347,7 +320,7 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
                   style={{ gap: 12 }}
                 >
                   <AudioWaveform isPlaying={isPlaying} />
-                  <span className="text-sm font-medium text-white flex-shrink-0">
+                  <span className="text-body-12-m text-white flex-shrink-0">
                     {formatTime(elapsed)}
                   </span>
                 </div>
@@ -370,10 +343,7 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
                 className="w-full rounded-xl px-4 py-3 flex flex-row justify-between items-center"
                 style={{ backgroundColor: "var(--grey-300)" }}
               >
-                <span
-                  className="text-sm font-semibold"
-                  style={{ color: "var(--foreground)" }}
-                >
+                <span className="text-body-14-m text-[var(--grey-1000)]">
                   Rate this call
                 </span>
                 <div className="flex flex-row gap-1">
@@ -414,25 +384,18 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
             {transcriptBubbles.map((b, idx) => (
               <div key={idx} className="w-full">
                 <div className="flex flex-row justify-between items-center mb-1.5">
-                  <span
-                    className="text-sm font-bold"
-                    style={{ color: "var(--foreground)" }}
-                  >
+                  <span className="text-body-14-m text-[var(--grey-1000)]">
                     {b.sender}
                   </span>
-                  <span
-                    className="text-xs"
-                    style={{ color: "var(--muted-foreground)" }}
-                  >
+                  <span className="text-captions-12 text-[var(--grey-700)]">
                     {b.time}
                   </span>
                 </div>
                 <div
-                  className="w-full rounded-xl px-4 py-2.5 flex items-center leading-relaxed text-xs sm:text-sm font-normal"
+                  className="w-full rounded-xl px-4 py-2.5 flex items-center leading-relaxed text-secondary-14 text-[var(--grey-700)]"
                   style={{
                     minHeight: 37,
                     backgroundColor: "var(--grey-200)",
-                    color: "var(--foreground)",
                   }}
                 >
                   {b.text}

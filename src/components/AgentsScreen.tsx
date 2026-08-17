@@ -110,9 +110,9 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate }) => {
               </div>
 
               <div className="flex flex-col flex-1 items-start text-left min-w-0 ml-3">
-                <p className="text-sm font-semibold text-[var(--foreground)] text-left w-full">{agent.title}</p>
-                <p className="text-xs font-medium text-[var(--muted-foreground)] mt-0.5 text-left w-full">{agent.subtitle}</p>
-                <span className="text-[10px] font-medium text-[var(--grey-400)] mt-0.5 text-left w-full">{agent.time}</span>
+                <p className="text-body-16-m text-[var(--grey-1000)] text-left w-full">{agent.title}</p>
+                <p className="text-secondary-14 text-[var(--grey-700)] mt-0.5 text-left w-full">{agent.subtitle}</p>
+                <span className="text-captions-12 text-[var(--grey-500)] mt-0.5 text-left w-full">{agent.time}</span>
               </div>
             </div>
 

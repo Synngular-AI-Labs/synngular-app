@@ -261,3 +261,67 @@
   line-height: 1.5rem;
   font-weight: 500;
 }
+
+/* Figma: body 16 M (16px size, 24px line-height, Medium) */
+.text-body-16-m {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem; /* 16px */
+  line-height: 1.5rem; /* 24px */
+  font-weight: 500;
+}
+
+/* Figma: secondary text (14px size, 21px line-height, Regular) */
+.text-secondary-14 {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.3125rem; /* 21px */
+  font-weight: 400;
+}
+
+/* Figma: body 16 SB (16px size, 24px line-height, SemiBold) */
+.text-body-16-sb {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem; /* 16px */
+  line-height: 1.5rem; /* 24px */
+  font-weight: 600;
+}
+
+/* Figma: body 14 SB (14px size, 21px line-height, SemiBold) */
+.text-body-14-sb {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.3125rem; /* 21px */
+  font-weight: 600;
+}
+
+/* Figma: body 14 M (14px size, 21px line-height, Medium) */
+.text-body-14-m {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.3125rem; /* 21px */
+  font-weight: 500;
+}
+
+/* Figma: captions (12px size, 18px line-height, Regular) */
+.text-captions-12 {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem; /* 12px */
+  line-height: 1.125rem; /* 18px */
+  font-weight: 400;
+}
+
+/* Figma: body 12 M (12px size, 18px line-height, Medium) */
+.text-body-12-m {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem; /* 12px */
+  line-height: 1.125rem; /* 18px */
+  font-weight: 500;
+}
+
+/* Figma: page title 22 (22px size, 28px line-height, Bold) */
+.text-page-title-22 {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.375rem; /* 22px */
+  line-height: 1.75rem; /* 28px */
+  font-weight: 700;
+}

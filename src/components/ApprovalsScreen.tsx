@@ -142,13 +142,13 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate }) => {
               <UserCheck className="w-4 h-4 text-[var(--grey-700)]" />
             </div>
             <div className="flex-1 flex flex-col">
-              <p className="text-sm font-medium line-clamp-2" style={{ color: "var(--foreground)" }}>
+              <p className="text-body-14-m line-clamp-2 text-[var(--grey-1000)]">
                 {approval.title}
               </p>
-              <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+              <p className="text-body-12-m text-[var(--grey-700)]">
                 {approval.subtitle}
               </p>
-              <span className="text-xs text-[var(--muted-foreground)] mt-2">{approval.time}</span>
+              <span className="text-captions-12 text-[var(--grey-500)] mt-2">{approval.time}</span>
             </div>
             <ChevronRight size={20} style={{ color: "var(--muted-foreground)" }} />
           </button>

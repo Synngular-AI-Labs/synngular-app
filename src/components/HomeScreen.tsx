@@ -86,7 +86,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
     >
       {/* ── Header ── */}
       <header className="relative z-30 w-full px-6 py-4 flex flex-row items-center justify-between flex-shrink-0 bg-[var(--background)]">
-        {/* <button
+        <button
           type="button"
           aria-label="Open menu"
           onClick={(e) => {
@@ -96,9 +96,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
           className="w-10 h-10 flex items-center justify-center rounded-xl text-[var(--foreground)] hover:bg-[var(--grey-100)] active:bg-[var(--grey-200)] cursor-pointer touch-manipulation z-30"
         >
           <Menu className="w-6 h-6" />
-        </button> */}
+        </button>
 
-        {/* <button
+        <button
           type="button"
           aria-label="Notifications"
           onClick={(e) => {
@@ -108,7 +108,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
           className="w-10 h-10 flex items-center justify-center rounded-xl text-[var(--foreground)] hover:bg-[var(--grey-100)] active:bg-[var(--grey-200)] cursor-pointer touch-manipulation z-30"
         >
           <Bell className="w-6 h-6" />
-        </button> */}
+        </button>
       </header>
 
       {/* ── Body ── */}

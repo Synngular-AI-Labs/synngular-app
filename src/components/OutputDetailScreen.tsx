@@ -102,20 +102,17 @@ const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, out
         {/* Title, subtitle, date */}
         <div className="flex flex-col flex-1 min-w-0">
           <p
-            className="text-sm font-semibold leading-tight truncate"
-            style={{ color: "var(--foreground)" }}
+            className="text-body-16-sb text-[var(--grey-1000)] truncate"
           >
             {output.title}
           </p>
           <p
-            className="text-xs mt-0.5 leading-tight truncate"
-            style={{ color: "var(--muted-foreground)" }}
+            className="text-secondary-14 text-[var(--grey-500)] truncate"
           >
             {output.subtitle}
           </p>
           <p
-            className="text-xs mt-0.5 leading-tight"
-            style={{ color: "var(--muted-foreground)" }}
+            className="text-captions-12 text-[var(--grey-500)]"
           >
             {output.meta}
           </p>
@@ -125,18 +122,18 @@ const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, out
       {/* Agent / Status section */}
       <div className="flex flex-row justify-between px-4 mb-6">
         <div className="flex flex-col">
-          <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+          <span className="text-captions-12 text-[var(--grey-700)]">
             Agent
           </span>
-          <span className="text-sm font-semibold mt-0.5" style={{ color: "var(--foreground)" }}>
+          <span className="text-body-14-m text-[var(--grey-1000)] mt-0.5">
             Revenue services
           </span>
         </div>
         <div className="flex flex-col items-end">
-          <span className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+          <span className="text-captions-12 text-[var(--grey-700)]">
             Status
           </span>
-          <span className="text-sm font-semibold mt-0.5" style={{ color: "var(--foreground)" }}>
+          <span className="text-body-14-m text-[var(--grey-1000)] mt-0.5">
             Completed
           </span>
         </div>
@@ -160,14 +157,14 @@ const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, out
       {/* Table section */}
       <div className="flex flex-col px-4">
         {/* Table headers */}
-        <div className="flex flex-row text-xs mb-2">
-          <div className="flex-1" style={{ color: "var(--muted-foreground)" }}>
+        <div className="flex flex-row mb-2">
+          <div className="flex-1 text-captions-12 text-[var(--grey-500)]">
             Item
           </div>
-          <div className="w-12 text-right" style={{ color: "var(--muted-foreground)" }}>
+          <div className="w-12 text-right text-captions-12 text-[var(--grey-500)]">
             Qty
           </div>
-          <div className="w-20 text-right" style={{ color: "var(--muted-foreground)" }}>
+          <div className="w-20 text-right text-captions-12 text-[var(--grey-500)]">
             Amount
           </div>
         </div>
@@ -176,12 +173,11 @@ const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, out
         {tableRows.map((row) => (
           <div
             key={row.item}
-            className="flex flex-row items-center py-2 text-sm font-medium"
-            style={{ color: "var(--foreground)" }}
+            className="flex flex-row items-center py-2"
           >
-            <div className="flex-1">{row.item}</div>
-            <div className="w-12 text-right">{row.qty}</div>
-            <div className="w-20 text-right">{row.amount}</div>
+            <div className="flex-1 text-body-14-m text-[var(--grey-900)]">{row.item}</div>
+            <div className="w-12 text-right text-body-14-sb text-[var(--grey-900)]">{row.qty}</div>
+            <div className="w-20 text-right text-body-14-sb text-[var(--grey-900)]">{row.amount}</div>
           </div>
         ))}
 
@@ -190,10 +186,10 @@ const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, out
 
         {/* Total revenue */}
         <div className="flex flex-col items-end mt-2 mb-4">
-          <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>
+          <span className="text-captions-12 text-[var(--grey-500)]">
             Total revenue
           </span>
-          <span className="text-lg font-bold" style={{ color: "var(--purple-1000)" }}>
+          <span className="text-body-16-sb text-[var(--purple-1000)]">
             {totalRevenue}
           </span>
         </div>

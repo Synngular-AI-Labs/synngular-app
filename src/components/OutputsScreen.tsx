@@ -153,13 +153,13 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
                 <Icon size={20} style={{ color: iconColor }} />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                <p className="text-body-14-m text-[var(--grey-1000)]">
                   {output.title}
                 </p>
-                <p className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>
+                <p className="text-body-12-m text-[var(--grey-700)] mt-1">
                   {output.subtitle}
                 </p>
-                <p className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>
+                <p className="text-captions-12 text-[var(--grey-500)] mt-1">
                   {output.meta}
                 </p>
               </div>

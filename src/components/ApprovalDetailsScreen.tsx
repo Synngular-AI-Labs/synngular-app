@@ -36,16 +36,16 @@ const ApprovalDetailsScreen: React.FC<ApprovalDetailsScreenProps> = ({ onNavigat
 
       <div className="flex-grow overflow-y-auto px-6 mt-2">
         <div className="mb-4">
-          <h2 className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
+          <h2 className="text-body-16-m text-[var(--grey-1000)]">
             Review AI-generated customer emails before sending
           </h2>
         </div>
 
         <section className="border-b border-[var(--grey-200)] pb-4 mb-4">
-          <h3 className="text-sm font-semibold mb-1" style={{ color: "var(--foreground)" }}>
+          <h3 className="text-body-14-m text-[var(--grey-1000)] mb-1">
             Description
           </h3>
-          <div className="text-sm text-[var(--grey-700)] leading-relaxed">
+          <div className="text-captions-12 text-[var(--grey-700)]">
             {isDescExpanded ? fullDescription : truncatedDescription}
             {isTruncated && (
               <button
@@ -59,40 +59,40 @@ const ApprovalDetailsScreen: React.FC<ApprovalDetailsScreenProps> = ({ onNavigat
         </section>
 
         <section className="mb-4">
-          <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--foreground)" }}>
+          <h3 className="text-body-14-m text-[var(--grey-1000)] mb-3">
             Emails to be sent
           </h3>
 
           <div className="border-b border-[var(--grey-200)] pb-4 mb-4">
-            <p className="text-xs font-medium" style={{ color: "var(--foreground)" }}>
+            <p className="text-captions-12 text-[var(--grey-700)]">
               Subscription renewal reminder
             </p>
-            <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+            <p className="text-body-12-m text-[var(--grey-1000)]">
               To : Ben.kolf@gmail.com
             </p>
           </div>
 
           <div className="border-b border-[var(--grey-200)] pb-4 mb-4">
-            <p className="text-xs font-medium" style={{ color: "var(--foreground)" }}>
+            <p className="text-captions-12 text-[var(--grey-700)]">
               Account verification instructions and guidance
             </p>
-            <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+            <p className="text-body-12-m text-[var(--grey-1000)]">
               To : Ben.kolf@gmail.com
             </p>
           </div>
 
           <div className="pb-4 border-b border-[var(--grey-200)]">
-            <p className="text-xs font-medium" style={{ color: "var(--foreground)" }}>
+            <p className="text-captions-12 text-[var(--grey-700)]">
               Service outage notification and alert
             </p>
-            <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+            <p className="text-body-12-m text-[var(--grey-1000)]">
               To : Ben.kolf@gmail.com
             </p>
           </div>
         </section>
 
         <section>
-          <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--foreground)" }}>
+          <h3 className="text-body-14-m text-[var(--grey-1000)] mb-3">
             Agents details
           </h3>
           <div
@@ -104,10 +104,10 @@ const ApprovalDetailsScreen: React.FC<ApprovalDetailsScreenProps> = ({ onNavigat
                 ES
               </div>
               <div>
-                <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                <p className="text-body-16-m text-[var(--grey-1000)]">
                   Email services
                 </p>
-                <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+                <p className="text-captions-12 text-[var(--grey-700)]">
                   Generates and sends emails
                 </p>
               </div>

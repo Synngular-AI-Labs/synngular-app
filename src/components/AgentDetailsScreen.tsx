@@ -38,10 +38,10 @@ const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({ onNavigate }) =
       </header>
 
       <div className="px-6 flex-shrink-0">
-        <h2 className="text-base font-semibold mt-2 mb-2" style={{ color: "var(--foreground)" }}>
+        <h2 className="text-body-14-m text-[var(--grey-1000)] mt-2 mb-2">
           Leads qualification
         </h2>
-        <p className="text-sm leading-6" style={{ color: "var(--muted-foreground)" }}>
+        <p className="text-captions-12 text-[var(--grey-700)]">
           The agent helped qualify 2 new leads, verified contact details, and recommended next-step outreach for a higher conversion rate.
         </p>
       </div>
@@ -53,8 +53,7 @@ const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({ onNavigate }) =
         <button
           type="button"
           onClick={() => onNavigate('transcript')}
-          className="text-sm cursor-pointer"
-          style={{ color: "var(--foreground)" }}
+          className="text-captions-12 text-[var(--grey-1000)] cursor-pointer"
         >
           Transcript
         </button>
@@ -73,10 +72,10 @@ const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({ onNavigate }) =
               <ArrowUpRight className="w-full h-full text-[var(--success-700)]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium" style={{ color: "var(--foreground)" }}>
+              <p className="text-secondary-14 text-[var(--grey-700)]">
                 {item.date}
               </p>
-              <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
+              <p className="text-captions-12 text-[var(--grey-500)]">
                 {item.duration}
               </p>
             </div>
@@ -95,7 +94,7 @@ const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({ onNavigate }) =
           className="w-full rounded-xl border py-3 text-center font-semibold cursor-pointer transition-all active:scale-95 hover:bg-[var(--purple-1000)] hover:text-white"
           style={{ borderColor: "var(--purple-1000)", color: "var(--purple-1000)" }}
         >
-          {isCalling ? "Calling..." : "Call"}
+          {isCalling ? "Calling..." : "Call again"}
         </button>
       </div>
     </div>
