@@ -132,6 +132,10 @@
     --font-size-body-14-m: clamp(0.875rem, 3.5vw, 0.875rem);
     --line-height-body-14-m: clamp(1.3125rem, 5.25vw, 1.3125rem);
 
+    /* Typography: card title 20 (fluid 18px–20px size, 26px–30px line-height) */
+    --font-size-card-title-20: clamp(1.125rem, 5vw, 1.25rem);
+    --line-height-card-title-20: clamp(1.625rem, 7vw, 1.875rem);
+
     /* Custom Gradient & Custom Header Tokens */
     --gradient-top: #2d0b5e;
     --gradient-bottom: #6b21a8;
@@ -245,6 +249,10 @@
     --warning-800: #B45309;
     --warning-900: #92400E;
     --warning-1000: #78350F;
+
+    /* Typography: card title 20 (fluid 18px–20px size, 26px–30px line-height) */
+    --font-size-card-title-20: clamp(1.125rem, 5vw, 1.25rem);
+    --line-height-card-title-20: clamp(1.625rem, 7vw, 1.875rem);
 
     /* Custom Gradient & Custom Header Tokens */
     --gradient-top: #2d0b5e;

@@ -1,10 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import groupLogo from "../assets/Group.svg";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ArrowLeft, CheckCircle, X } from "lucide-react";
 
-const otpRegex = /^\d{6}$/;
+/* ── Constants ── */
+const ERROR_MSG_EMPTY_OTP = "Enter the 6-digit code";
+const ERROR_MSG_INVALID_OTP = "Enter valid 6-digit code";
+const OTP_REGEX = /^\d{6}$/;
+const HEADING_TEXT_VERIFY = "Check your email";
+const SUBTITLE_PREFIX = "We've sent a 6-digit code to ";
+const SUBTITLE_FALLBACK = "your email";
+const LABEL_OTP = "Enter verification code";
+const PLACEHOLDER_OTP = "123456";
+const BUTTON_TEXT_CONFIRM = "Confirm OTP";
+const TEXT_AGREE_PREAMBLE = "By continuing, you agree to our ";
+const TEXT_AND = " and ";
+const TEXT_TERMS = "Terms of Service";
+const TEXT_PRIVACY = "Privacy Policy";
+const ALT_LOGO = "Synngular";
+const TOAST_MESSAGE = "Email verified successfully";
+const RESEND_TEXT_PREFIX = "Resend OTP in ";
+const RESEND_TEXT_SUFFIX = "s";
+const RESEND_TEXT_LINK = "Resend OTP";
+const RESEND_INITIAL_TIMER = 56;
+const MAX_OTP_LENGTH = 6;
+
+/* ── Validation Helper ── */
+const validateOtp = (otp: string): string | null => {
+  if (!otp || otp.trim() === "") return ERROR_MSG_EMPTY_OTP;
+  if (!OTP_REGEX.test(otp)) return ERROR_MSG_INVALID_OTP;
+  return null;
+};
+
+/* ── Button State Helper ── */
+const getButtonStyles = (isValid: boolean, isLoading: boolean): React.CSSProperties => {
+  if (isValid && !isLoading) {
+    return { background: "var(--purple-1000)", color: "var(--grey-100)" };
+  }
+  return { background: "var(--grey-200)", color: "var(--grey-500)" };
+};
 
 const VerifyEmailScreen: React.FC<{
   onNavigate: (screen: "signin" | "home" | "terms" | "privacy") => void;
@@ -13,9 +48,9 @@ const VerifyEmailScreen: React.FC<{
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
-  const [resendTimer, setResendTimer] = useState(56);
+  const [resendTimer, setResendTimer] = useState(RESEND_INITIAL_TIMER);
 
-  const isOtpValid = otpRegex.test(otp);
+  const isOtpValid = OTP_REGEX.test(otp);
 
   useEffect(() => {
     if (resendTimer <= 0) return;
@@ -31,8 +66,10 @@ const VerifyEmailScreen: React.FC<{
     return () => clearInterval(interval);
   }, [resendTimer]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
+    const otpError = validateOtp(otp);
+    if (otpError) return;
     setIsLoading(true);
     console.log("Verifying OTP:", otp);
     setTimeout(() => {
@@ -40,72 +77,73 @@ const VerifyEmailScreen: React.FC<{
       setShowToast(true);
       onNavigate("home");
     }, 2000);
-  };
+  }, [otp, onNavigate]);
+
+  const handleOtpChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setOtp(e.target.value.replace(/\D/g, '').slice(0, MAX_OTP_LENGTH));
+  }, []);
+
+  const handleResend = useCallback(() => {
+    setResendTimer(RESEND_INITIAL_TIMER);
+  }, []);
 
   return (
-    <div className="w-full min-h-screen flex flex-col" style={{ background: 'var(--grey-200)' }}>
+    <div className="w-full min-h-screen flex flex-col pt-[env(safe-area-inset-top,calc(2rem))] bg-[var(--grey-200)]">
       {/* Container 1: Header Banner */}
       <div
-        className="w-full h-56 sm:h-52 flex"
-        style={{ background: 'var(--color-bg-header)' }}
+        className="w-full h-56 sm:h-52 flex bg-header-gradient"
       >
         <img
           src={groupLogo}
-          alt="Synngular"
+          alt={ALT_LOGO}
           className="w-full h-[800px] z-20 pointer-events-none"
         />
       </div>
 
       {/* Container 2: OTP Verification Card */}
-      {/* FIX: flex flex-col + flex-1 so the card fills remaining height,
-          enabling mt-auto to push Terms to the bottom */}
       <div
-        className="w-full flex-1 rounded-t-[2.5rem] -mt-8 relative z-30 px-6 pt-8 pb-6 flex flex-col"
-        style={{ background: 'var(--grey-100)' }}
+        className="w-full flex-1 rounded-t-[2.5rem] -mt-8 relative z-30 px-6 pt-8 pb-6 flex flex-col bg-[var(--grey-100)]"
       >
         {/* Back Button */}
         <button
           type="button"
-          className="w-10 h-10 flex items-center justify-center rounded-md shrink-0"
-          style={{ background: 'var(--grey-300)' }}
+          className="w-10 h-10 flex items-center justify-center rounded-md shrink-0 bg-[var(--grey-300)]"
           onClick={() => onNavigate?.("signin")}
         >
-          <ArrowLeft size={18} style={{ color: 'var(--grey-800)' }} />
+          <ArrowLeft size={18} className="text-[var(--grey-800)]" />
         </button>
 
         {/* Heading */}
-        <h1 className="text-2xl font-bold mt-6" style={{ color: 'var(--foreground)' }}>
-          Check your email
+        <h1 className="font-semibold text-[var(--font-size-card-title-20)] leading-[var(--line-height-card-title-20)] mt-6 text-[var(--grey-1000)]">
+          {HEADING_TEXT_VERIFY}
         </h1>
 
-        {/* REQUIREMENT 4: All 4 OTP content elements in flex-col gap-4 mt-6 */}
+        {/* All 4 OTP content elements in flex-col gap-4 mt-6 */}
         <div className="w-full flex flex-col gap-4 mt-6">
 
           {/* 1. Subtitle â€” REQUIREMENT 3: email span uses text-black (not var(--foreground)) */}
-          <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-            We've sent a 6-digit code to{" "}
-            <span className="font-bold text-black">{userEmail || 'your email'}</span>
+          <p className="text-sm text-[var(--muted-foreground)]">
+            {SUBTITLE_PREFIX}
+            <span className="font-bold text-[var(--grey-1000)]">{userEmail || SUBTITLE_FALLBACK}</span>
           </p>
 
-          {/* 2. Enter verification code input
-              REQUIREMENT 2: placeholder:text-[var(--grey-400)] and text-black */}
+          {/* 2. Enter verification code input */}
           <div className="flex flex-col gap-2 w-full">
             <label
               htmlFor="otp"
-              className="text-sm font-medium"
-              style={{ color: 'var(--muted-foreground)' }}
+              className="text-sm font-medium text-[var(--muted-foreground)]"
             >
-              Enter verification code
+              {LABEL_OTP}
             </label>
             <Input
               id="otp"
               type="text"
-              placeholder="123456"
+              placeholder={PLACEHOLDER_OTP}
               value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              onChange={handleOtpChange}
               required
-              maxLength={6}
-              className="h-12 placeholder:text-[var(--grey-400)] text-black"
+              maxLength={MAX_OTP_LENGTH}
+              className="h-12 w-full bg-[var(--grey-100)] border border-[var(--grey-400)] placeholder:text-[var(--grey-400)] text-[var(--foreground)]"
             />
           </div>
 
@@ -116,11 +154,8 @@ const VerifyEmailScreen: React.FC<{
             variant={isOtpValid ? "default" : "ghost"}
             size="default"
             onClick={handleSubmit}
-            style={
-              isOtpValid && !isLoading
-                ? { background: 'var(--purple-1000)', color: 'var(--grey-100)' }
-                : { background: 'var(--grey-300)', color: 'var(--grey-500)' }
-            }
+            className="w-full bg-[var(--grey-200)] border border-[var(--grey-300)]"
+            style={getButtonStyles(isOtpValid, isLoading)}
           >
             {isLoading ? (
               <svg
@@ -145,53 +180,50 @@ const VerifyEmailScreen: React.FC<{
                 />
               </svg>
             ) : (
-              "Confirm OTP"
+              BUTTON_TEXT_CONFIRM
             )}
           </Button>
 
           {/* 4. Resend OTP */}
-          <div className="text-sm text-center" style={{ color: 'var(--muted-foreground)' }}>
+          <div className="text-sm text-center text-[var(--muted-foreground)]">
             {resendTimer > 0 ? (
-              <>Resend OTP in {resendTimer}s</>
+              <>{RESEND_TEXT_PREFIX}{resendTimer}{RESEND_TEXT_SUFFIX}</>
             ) : (
               <span
-                onClick={() => setResendTimer(56)}
-                className="hover:underline font-medium"
-                style={{ color: 'var(--purple-800)', cursor: 'pointer' }}
+                onClick={handleResend}
+                className="hover:underline font-medium text-[var(--purple-800)] cursor-pointer"
               >
-                Resend OTP
+                {RESEND_TEXT_LINK}
               </span>
             )}
           </div>
 
         </div>{/* end gap-4 content block */}
 
-        {/* REQUIREMENT 1: Terms pushed to bottom with mt-auto mb-8 (32px) */}
+        {/* Terms pushed to bottom with mt-auto mb-8 (32px) */}
         <div className="mt-auto mb-8 w-full text-center px-4">
-          <p className="text-xs leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
-            By continuing, you agree to our{" "}
+          <p className="text-xs leading-relaxed text-[var(--muted-foreground)]">
+            {TEXT_AGREE_PREAMBLE}
             <a
               href="#terms"
               onClick={(e) => {
                 e.preventDefault();
                 onNavigate("terms");
               }}
-              className="hover:underline"
-              style={{ color: 'var(--purple-800)', cursor: 'pointer' }}
+              className="hover:underline text-[var(--purple-800)] cursor-pointer"
             >
-              Terms of Service
-            </a>{" "}
-            and{" "}
+              {TEXT_TERMS}
+            </a>
+            {TEXT_AND}
             <a
               href="#privacy"
               onClick={(e) => {
                 e.preventDefault();
                 onNavigate("privacy");
               }}
-              className="hover:underline"
-              style={{ color: 'var(--purple-800)', cursor: 'pointer' }}
+              className="hover:underline text-[var(--purple-800)] cursor-pointer"
             >
-              Privacy Policy
+              {TEXT_PRIVACY}
             </a>
           </p>
         </div>
@@ -199,19 +231,18 @@ const VerifyEmailScreen: React.FC<{
         {/* Success Toast */}
         {showToast && (
           <div
-            className="absolute bottom-8 left-6 right-6 flex items-center gap-3 p-4 rounded-xl shadow-lg z-50"
-            style={{ background: 'var(--success-100)', border: '1px solid var(--success-700)' }}
+            className="absolute bottom-8 left-6 right-6 flex items-center gap-3 p-4 rounded-xl shadow-lg z-50 bg-[var(--success-100)] border border-[var(--success-700)]"
           >
-            <CheckCircle size={20} style={{ color: 'var(--success-700)' }} />
-            <span className="flex-1 text-sm font-medium" style={{ color: 'var(--success-800)' }}>
-              Email verified successfully
+            <CheckCircle size={20} className="text-[var(--success-700)]" />
+            <span className="flex-1 text-sm font-medium text-[var(--success-800)]">
+              {TOAST_MESSAGE}
             </span>
             <button
               type="button"
               onClick={() => setShowToast(false)}
               className="shrink-0"
             >
-              <X size={16} style={{ color: 'var(--success-700)' }} />
+              <X size={16} className="text-[var(--success-700)]" />
             </button>
           </div>
         )}
