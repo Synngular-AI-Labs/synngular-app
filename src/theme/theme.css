@@ -111,8 +111,26 @@
     --warning-900: #92400E;
     --warning-1000: #78350F;
 
+    /* Padding & Gaps */
+    --layout-gap-12: 0.75rem; /* 12px padding/gap between player elements */
+
+    /* Heights (Figma 'Hug' converted to min-heights in rem) */
+    --h-recording-container: 3.75rem; /* 60px */
+    --h-audio-waves: 1.625rem;       /* 26px */
+    --h-btn-rate-call: 2.8125rem;    /* 45px */
+    --h-btn-call-again: 2.5rem;      /* 40px */
+
     /* Border Radius */
     --radius: 1.5rem;
+    --border-radius-btn: 0.5rem; /* 8px */
+
+    /* Label Spacing */
+    --spacing-label-top: 1rem;        /* 16px */
+    --spacing-label-bottom: 0.5rem;   /* 8px */
+
+    /* Typography: body 14 M (14px size, 21px line-height) */
+    --font-size-body-14-m: clamp(0.875rem, 3.5vw, 0.875rem);
+    --line-height-body-14-m: clamp(1.3125rem, 5.25vw, 1.3125rem);
 
     /* Custom Gradient & Custom Header Tokens */
     --gradient-top: #2d0b5e;

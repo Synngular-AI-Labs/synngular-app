@@ -17,27 +17,41 @@ import "./App.css";
 import "./theme.css";
 
 const SPLASH_DURATION = 2500;
+const SPLASH_FADE_DURATION = 800;
 
-type Screen = "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals" | "approval-details" | "transcript" | "output-details";
+type Screen = "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals" | "approval-details" | "transcript" | "output-details";
 
 type DocumentScreen = "signin" | "verify" | "terms" | "privacy";
 
 const AppContent = () => {
-  const [currentScreen, setCurrentScreen] = useState<Screen>("splash");
+  const [currentScreen, setCurrentScreen] = useState<Screen>("signin");
   const [previousScreen, setPreviousScreen] = useState<DocumentScreen>("signin");
   const [userEmail, setUserEmail] = useState("");
   const [selectedOutput, setSelectedOutput] = useState<any | null>(null);
+  const [transcriptPayload, setTranscriptPayload] = useState<Record<string, unknown> | null>(null);
 
-  const handleNavigate = (screen: Screen) => {
+  // Splash overlay state: sits on top of everything during startup
+  const [splashVisible, setSplashVisible] = useState(true);
+  const [splashFading, setSplashFading] = useState(false);
+
+  const handleNavigate = (screen: Screen, payload?: Record<string, unknown>) => {
     if (currentScreen === "signin" || currentScreen === "verify" || currentScreen === "terms" || currentScreen === "privacy") {
       setPreviousScreen(currentScreen);
+    }
+    if (screen === "transcript" && payload) {
+      setTranscriptPayload(payload);
     }
     setCurrentScreen(screen);
   };
 
+  // After SPLASH_DURATION, start fading out the splash overlay.
+  // The SignInScreen is already rendering underneath.
   useEffect(() => {
     const timer = setTimeout(() => {
-      setCurrentScreen("signin");
+      setSplashFading(true);
+      setTimeout(() => {
+        setSplashVisible(false);
+      }, SPLASH_FADE_DURATION);
     }, SPLASH_DURATION);
 
     return () => clearTimeout(timer);
@@ -45,7 +59,6 @@ const AppContent = () => {
 
   return (
     <>
-      {currentScreen === "splash" && <SplashScreen />}
       {currentScreen === "signin" && (
         <SignInScreen
           onNavigateToVerify={() => handleNavigate("verify")}
@@ -76,7 +89,7 @@ const AppContent = () => {
         <OutputsScreen onNavigate={handleNavigate} setSelectedOutput={(o) => { setSelectedOutput(o); setCurrentScreen("output-details"); }} />
       )}
       {currentScreen === "output-details" && (
-        <OutputDetailScreen onNavigate={handleNavigate} output={selectedOutput} />
+        <OutputDetailScreen onNavigate={(screen: string) => handleNavigate(screen as Screen)} output={selectedOutput} />
       )}
       {currentScreen === "approvals" && (
         <ApprovalsScreen onNavigate={handleNavigate} />
@@ -85,8 +98,11 @@ const AppContent = () => {
         <ApprovalDetailsScreen onNavigate={handleNavigate} />
       )}
       {currentScreen === "transcript" && (
-        <TranscriptScreen onNavigate={handleNavigate} />
+        <TranscriptScreen onNavigate={handleNavigate} payload={transcriptPayload} />
       )}
+
+      {/* Splash overlay sits on top of everything during startup */}
+      {splashVisible && <SplashScreen isFading={splashFading} />}
     </>
   );
 };

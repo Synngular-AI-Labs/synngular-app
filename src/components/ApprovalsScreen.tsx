@@ -7,7 +7,7 @@ import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
 
 interface ApprovalsScreenProps {
-  onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "outputs" | "approvals" | "approval-details") => void;
+  onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "outputs" | "approvals" | "approval-details") => void;
 }
 
 const approvals = [

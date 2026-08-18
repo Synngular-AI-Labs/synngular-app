@@ -7,7 +7,7 @@ import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
 
 interface AgentsScreenProps {
-  onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals") => void;
+  onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals") => void;
 }
 
 const agents = [

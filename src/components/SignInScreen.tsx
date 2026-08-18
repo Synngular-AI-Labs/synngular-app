@@ -125,12 +125,12 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ onNavigateToVerify, onNavig
           </form>
 
           {/* Switch Action */}
-          <div className="text-sm text-center" style={{ color: 'var(--muted-foreground)' }}>
+          {/* <div className="text-sm text-center" style={{ color: 'var(--muted-foreground)' }}>
             Don't have an account?{" "}
             <a href="#signup" className="font-medium hover:underline" style={{ color: 'var(--purple-800)' }}>
               Sign up
             </a>
-          </div>
+          </div> */}
         </div>
 
         {/* Terms & Privacy - pushed to bottom with 32px margin */}

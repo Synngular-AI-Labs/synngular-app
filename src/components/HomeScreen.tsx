@@ -13,7 +13,7 @@ import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 
 interface HomeScreenProps {
-  onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "outputs" | "approvals") => void;
+  onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "outputs" | "approvals") => void;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
@@ -244,7 +244,7 @@ interface InputAreaProps {
   setMessage: React.Dispatch<React.SetStateAction<string>>;
   selectedFiles: File[];
   setSelectedFiles: React.Dispatch<React.SetStateAction<File[]>>;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.MutableRefObject<HTMLInputElement | null>;
   handleSend: () => void;
 }
 

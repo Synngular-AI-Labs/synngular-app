@@ -1,100 +1,265 @@
 import React, { useState } from "react";
 import { ArrowLeft, ArrowUpRight, ChevronRight } from "lucide-react";
 
-interface AgentDetailsScreenProps {
-  onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "transcript") => void;
+/* ── Layout Constants ─────────────────────────────────────────────── */
+const SAFE_AREA_TOP = "max(env(safe-area-inset-top), 1.5rem)";
+const SAFE_AREA_BOTTOM = "max(env(safe-area-inset-bottom), 1.5rem)";
+
+/* ── Labels ───────────────────────────────────────────────────────── */
+const LABELS = {
+  HISTORY: "History",
+  CALL_AGAIN: "Call again",
+  CALLING: "Calling...",
+  NO_HISTORY: "No history available.",
+  BACK: "Go back",
+} as const;
+
+/* ── Types ────────────────────────────────────────────────────────── */
+export interface HistoryItem {
+  id: string;
+  date: string;
+  duration: string;
 }
 
-const historyItems = [
-  { date: "30 June 2026", duration: "1m 30s" },
-  { date: "28 June 2026", duration: "2m 10s" },
-  { date: "25 June 2026", duration: "3m 5s" },
-  { date: "22 June 2026", duration: "45s" },
-];
+export interface AgentDetailsScreenProps {
+  agentTitle?: string;
+  agentSubtitle?: string;
+  agentDescription?: string;
+  historyItems?: HistoryItem[];
+  onNavigate: (screen: string, payload?: Record<string, unknown>) => void;
+}
 
-const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({ onNavigate }) => {
-  const [isCalling, setIsCalling] = useState(false);
+/* ── Helpers ──────────────────────────────────────────────────────── */
+function buildHistoryLabel(count: number): string {
+  return `${LABELS.HISTORY} (${String(count).padStart(2, "0")})`;
+}
+
+/* ── History Row ──────────────────────────────────────────────────── */
+interface HistoryRowProps {
+  item: HistoryItem;
+  isLast: boolean;
+  agentTitle: string;
+  agentSubtitle: string;
+  onNavigate: AgentDetailsScreenProps["onNavigate"];
+}
+
+const HistoryRow: React.FC<HistoryRowProps> = ({
+  item,
+  isLast,
+  agentTitle,
+  agentSubtitle,
+  onNavigate,
+}) => {
+  const handlePress = () => {
+    onNavigate("transcript", {
+      historyId: item.id,
+      date: item.date,
+      duration: item.duration,
+      agentTitle,
+      agentSubtitle,
+    });
+  };
 
   return (
-    <div
-      className="w-full h-full flex flex-col bg-[var(--background)]"
+    <button
+      type="button"
+      onClick={handlePress}
+      className="w-full flex items-center gap-4 py-3 cursor-pointer text-left active:opacity-70 transition-opacity"
       style={{
-        paddingTop: "max(env(safe-area-inset-top), 24px)",
-        paddingBottom: "max(env(safe-area-inset-bottom), 24px)",
+        borderBottom: isLast ? "none" : "1px solid var(--grey-100)",
+        background: "none",
+        border: isLast ? "none" : undefined,
+        borderBottomWidth: isLast ? 0 : 1,
+        borderBottomStyle: "solid",
+        borderBottomColor: "var(--grey-100)",
       }}
     >
-      <header className="px-6 py-4 flex flex-row items-center gap-4">
-        <button
-          type="button"
-          onClick={() => onNavigate("agents")}
-          className="cursor-pointer"
-          style={{ color: "var(--foreground)" }}
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className="text-xl font-bold" style={{ color: "var(--foreground)" }}>
-          Revenue services
-        </h1>
-      </header>
+      {/* Arrow icon */}
+      <div
+        className="flex-shrink-0 flex items-center justify-center"
+        style={{ width: "clamp(1.1rem, 4vw, 1.4rem)", height: "clamp(1.1rem, 4vw, 1.4rem)", marginRight: "0.75rem" }}
+      >
+        <ArrowUpRight
+          style={{
+            width: "100%",
+            height: "100%",
+            color: "var(--success-700, #16a34a)",
+          }}
+        />
+      </div>
 
-      <div className="px-6 flex-shrink-0">
-        <h2 className="text-body-14-m text-[var(--grey-1000)] mt-2 mb-2">
-          Leads qualification
-        </h2>
-        <p className="text-captions-12 text-[var(--grey-700)]">
-          The agent helped qualify 2 new leads, verified contact details, and recommended next-step outreach for a higher conversion rate.
+      {/* Date + duration */}
+      <div className="flex-1 min-w-0">
+        <p
+          style={{
+            fontSize: "clamp(0.8rem, 3.5vw, 0.875rem)",
+            color: "var(--grey-700)",
+            margin: 0,
+          }}
+        >
+          {item.date}
+        </p>
+        <p
+          style={{
+            fontSize: "clamp(0.7rem, 3vw, 0.75rem)",
+            color: "var(--grey-500)",
+            margin: 0,
+          }}
+        >
+          {item.duration}
         </p>
       </div>
 
-      <div className="px-6 mt-6 flex flex-row justify-between items-center">
-        <span className="font-semibold" style={{ color: "var(--foreground)" }}>
-          History (08)
-        </span>
+      <ChevronRight
+        style={{
+          width: "clamp(1rem, 4vw, 1.25rem)",
+          height: "clamp(1rem, 4vw, 1.25rem)",
+          flexShrink: 0,
+          color: "var(--muted-foreground)",
+        }}
+      />
+    </button>
+  );
+};
+
+/* ── Default Data ─────────────────────────────────────────────────── */
+const DEFAULT_HISTORY: HistoryItem[] = [
+  { id: "history-1", date: "30 June 2026", duration: "1m 30s" },
+  { id: "history-2", date: "28 June 2026", duration: "2m 10s" },
+  { id: "history-3", date: "25 June 2026", duration: "3m 5s" },
+  { id: "history-4", date: "22 June 2026", duration: "45s" },
+];
+
+/* ── Component ────────────────────────────────────────────────────── */
+const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({
+  agentTitle = "Revenue services",
+  agentSubtitle = "Leads qualification",
+  agentDescription = "The agent helped qualify 2 new leads, verified contact details, and recommended next-step outreach for a higher conversion rate.",
+  historyItems = DEFAULT_HISTORY,
+  onNavigate,
+}) => {
+  const [isCalling, setIsCalling] = useState(false);
+
+  const handleCallAgain = () => {
+    setIsCalling(true);
+    alert(`Initiating call with ${agentTitle}...`);
+  };
+
+  return (
+    <div
+      className="flex flex-col w-full h-full bg-[var(--background)]"
+      style={{ paddingTop: SAFE_AREA_TOP, paddingBottom: SAFE_AREA_BOTTOM }}
+    >
+      {/* ── Header ── */}
+      <header
+        className="flex flex-row items-center px-4 py-4 flex-shrink-0"
+        style={{ gap: "clamp(0.75rem, 3vw, 1rem)" }}
+      >
         <button
           type="button"
-          onClick={() => onNavigate('transcript')}
-          className="text-captions-12 text-[var(--grey-1000)] cursor-pointer"
+          onClick={() => onNavigate("agents")}
+          className="cursor-pointer flex-shrink-0"
+          style={{ color: "var(--foreground)", background: "none", border: "none", padding: 0 }}
+          aria-label={LABELS.BACK}
         >
-          Transcript
+          <ArrowLeft
+            style={{
+              width: "clamp(1.1rem, 4.5vw, 1.25rem)",
+              height: "clamp(1.1rem, 4.5vw, 1.25rem)",
+            }}
+          />
         </button>
+        <h1
+          className="truncate"
+          style={{
+            fontSize: "clamp(1.1rem, 5vw, 1.375rem)",
+            fontWeight: 700,
+            color: "var(--foreground)",
+            margin: 0,
+          }}
+        >
+          {agentTitle}
+        </h1>
+      </header>
+
+      {/* ── Agent description ── */}
+      <div className="px-4 flex-shrink-0">
+        <h2
+          style={{
+            fontSize: "clamp(0.8rem, 3.5vw, 0.875rem)",
+            fontWeight: 600,
+            color: "var(--grey-1000)",
+            marginTop: "0.5rem",
+            marginBottom: "0.5rem",
+          }}
+        >
+          {agentSubtitle}
+        </h2>
+        <p
+          style={{
+            fontSize: "clamp(0.7rem, 3vw, 0.75rem)",
+            color: "var(--grey-700)",
+            lineHeight: 1.6,
+            margin: 0,
+          }}
+        >
+          {agentDescription}
+        </p>
       </div>
 
-      <div className="flex-grow overflow-y-auto px-6 mt-4">
-        {historyItems.map((item) => (
-          <button
-            key={item.date}
-            type="button"
-            onClick={() => onNavigate('transcript')}
-            className="w-full flex items-center gap-4 py-3 border-b cursor-pointer text-left"
-            style={{ borderColor: "var(--grey-100)" }}
+      {/* ── History header ── */}
+      <div className="px-4 flex-shrink-0" style={{ marginTop: "1.5rem", marginBottom: "0.5rem" }}>
+        <span
+          style={{
+            fontWeight: 700,
+            fontSize: "clamp(1.1rem, 5vw, 1.375rem)",
+            color: "var(--foreground)",
+          }}
+        >
+          {buildHistoryLabel(historyItems.length)}
+        </span>
+      </div>
+
+      {/* ── History list (scrollable) ── */}
+      <div className="flex-1 overflow-y-auto px-4">
+        {historyItems.length > 0 ? (
+          historyItems.map((item, idx) => (
+            <HistoryRow
+              key={item.id}
+              item={item}
+              isLast={idx === historyItems.length - 1}
+              agentTitle={agentTitle}
+              agentSubtitle={agentSubtitle}
+              onNavigate={onNavigate}
+            />
+          ))
+        ) : (
+          <p
+            style={{
+              fontSize: "clamp(0.7rem, 3vw, 0.75rem)",
+              color: "var(--grey-500)",
+              marginTop: "1rem",
+            }}
           >
-            <div className="w-5 h-5 flex-shrink-0 flex items-center justify-center mr-3">
-              <ArrowUpRight className="w-full h-full text-[var(--success-700)]" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-secondary-14 text-[var(--grey-700)]">
-                {item.date}
-              </p>
-              <p className="text-captions-12 text-[var(--grey-500)]">
-                {item.duration}
-              </p>
-            </div>
-            <ChevronRight size={20} style={{ color: "var(--muted-foreground)" }} />
-          </button>
-        ))}
+            {LABELS.NO_HISTORY}
+          </p>
+        )}
       </div>
 
-      <div className="p-6 flex-shrink-0 border-t" style={{ borderColor: "var(--grey-100)" }}>
+      {/* ── Call Again button ── */}
+      <div
+        className="flex flex-col items-center flex-shrink-0"
+        style={{
+          padding: "1rem 1rem 0.5rem",
+          borderTop: "1px solid var(--grey-100)",
+        }}
+      >
         <button
           type="button"
-          onClick={() => {
-            setIsCalling(true);
-            alert("Initiating call with Revenue services...");
-          }}
-          className="w-full rounded-xl border py-3 text-center font-semibold cursor-pointer transition-all active:scale-95 hover:bg-[var(--purple-1000)] hover:text-white"
-          style={{ borderColor: "var(--purple-1000)", color: "var(--purple-1000)" }}
+          onClick={handleCallAgain}
+          className={`flex items-center justify-center w-full min-h-[var(--h-btn-call-again)] rounded-[var(--border-radius-btn)] font-semibold text-body-14-m border border-[var(--purple-1000)] transition-colors duration-200 cursor-pointer ${isCalling ? "bg-[var(--purple-1000)] text-white" : "bg-transparent text-[var(--purple-1000)]"}`}
         >
-          {isCalling ? "Calling..." : "Call again"}
+          {isCalling ? LABELS.CALLING : LABELS.CALL_AGAIN}
         </button>
       </div>
     </div>

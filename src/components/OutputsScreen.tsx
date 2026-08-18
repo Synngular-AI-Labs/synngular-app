@@ -14,11 +14,11 @@ interface OutputItem {
 }
 
 interface OutputsScreenProps {
-  onNavigate: (screen: "splash" | "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals") => void;
+  onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals") => void;
   setSelectedOutput?: (output: OutputItem) => void;
 }
 
-const outputs = [
+const outputs: OutputItem[] = [
   {
     title: "PDF created for HR policy",
     subtitle: "Hr department",

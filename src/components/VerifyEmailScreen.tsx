@@ -145,7 +145,7 @@ const VerifyEmailScreen: React.FC<{
                 />
               </svg>
             ) : (
-              "Verify Email"
+              "Confirm OTP"
             )}
           </Button>
 

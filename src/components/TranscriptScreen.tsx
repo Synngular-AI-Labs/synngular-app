@@ -1,51 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { ArrowLeft, Play, Pause, Download, Star, Bot, Check } from "lucide-react";
 import AudioWaveform from "./AudioWaveform";
 
+/* ── Types ────────────────────────────────────────────────────────── */
 interface TranscriptScreenProps {
-  onNavigate: (
-    screen:
-      | "splash"
-      | "signin"
-      | "verify"
-      | "terms"
-      | "privacy"
-      | "home"
-      | "agents"
-      | "agent-details"
-      | "outputs"
-      | "approvals"
-      | "transcript"
-  ) => void;
+  agentTitle?: string;
+  agentSubtitle?: string;
+  date?: string;
+  duration?: string;
+  startDate?: string;
+  callType?: string;
+  status?: string;
+  aiSummary?: string;
+  topicTags?: string[];
+  agentActions?: string[];
+  audioUrl?: string;
+  onNavigate: (screen: string, payload?: Record<string, unknown>) => void;
 }
 
-const transcriptBubbles = [
-  { sender: "John", time: "9:28 AM", text: "Hello, i am john clarke." },
-  { sender: "Agent", time: "9:28 AM", text: "Hello, john how may i help you today." },
-  {
-    sender: "John",
-    time: "9:28 AM",
-    text: "I want you to generate my accounts documents and email them to my contacts.",
-  },
-  {
-    sender: "Agent",
-    time: "9:28 AM",
-    text: "Yes, i am generating the accounts documents and sending it through email to your contacts.",
-  },
-  {
-    sender: "Agent",
-    time: "9:28 AM",
-    text: "Anything else you would like me to do john?",
-  },
-];
+/* ── Audio Constants ──────────────────────────────────────────────── */
+const SECONDS_IN_MINUTE = 60;
+const START_TIME = 0;
+const DEFAULT_TIME_DISPLAY = "0:00";
+const TIME_PAD_LENGTH = 2;
+const TIME_PAD_CHAR = "0";
+const SAMPLE_AUDIO_URL =
+  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
 
-const agentActions = [
-  "Accounts documents creation",
-  "Emails sent to contacts",
-  "Follow up action",
-];
+/* ── Text Constants ───────────────────────────────────────────────── */
+const LABEL_CALL_RECORDING = "Call recording";
+const RATE_CALL_TEXT = "Rate this call";
+const BUTTON_TEXT_CALL_AGAIN = "Call again";
 
-const topicTags = [
+/* ── State Constants ──────────────────────────────────────────────── */
+const DEFAULT_RATING = 0;
+const DEFAULT_HOVER_RATING = 0;
+const DEFAULT_IS_PLAYING = false;
+
+/* ── Default Data ─────────────────────────────────────────────────── */
+const DEFAULT_TOPIC_TAGS = [
   "Documents",
   "Emails",
   "Contacts",
@@ -55,71 +48,156 @@ const topicTags = [
   "Follow-up",
 ];
 
-const CallAgainButton: React.FC = () => (
+const DEFAULT_AGENT_ACTIONS = [
+  "Accounts documents creation",
+  "Emails sent to contacts",
+  "Follow up action",
+];
+
+const DEFAULT_AI_SUMMARY =
+  "The agent helped John Clarke to generate the accounts documents and emailed them after generating to the contacts of John Clarke.";
+
+/* ── Helpers ──────────────────────────────────────────────────────── */
+function formatTime(seconds: number, isNegative = false): string {
+  if (isNaN(seconds) || seconds < START_TIME) return DEFAULT_TIME_DISPLAY;
+  const m = Math.floor(seconds / SECONDS_IN_MINUTE);
+  const s = Math.floor(seconds % SECONDS_IN_MINUTE);
+  return `${isNegative ? "-" : ""}${m}:${s.toString().padStart(TIME_PAD_LENGTH, TIME_PAD_CHAR)}`;
+}
+
+/* ── Stat Cell ────────────────────────────────────────────────────── */
+interface StatCellProps {
+  label: string;
+  value: string;
+  isLast?: boolean;
+}
+
+const StatCell: React.FC<StatCellProps> = ({ label, value, isLast }) => (
   <div
-    className="flex flex-col items-center justify-center pb-8"
-    style={{ marginTop: 16 }}
+    className="flex flex-col justify-center items-center"
+    style={{
+      flex: 1,
+      borderRight: isLast ? "none" : "1px solid var(--grey-300)",
+      padding: "0.5rem 0.25rem",
+      minWidth: 0,
+    }}
   >
-    <hr
+    <span
       style={{
-        width: "100%",
-        maxWidth: "min(343px, 100%)",
-        borderTop: "2px solid var(--grey-300)",
-        marginBottom: 12,
-      }}
-    />
-    <button
-      type="button"
-      onClick={() => alert("Calling again...")}
-      className="flex items-center justify-center rounded-xl border text-body-14-m transition-colors"
-      style={{
-        width: "min(343px, 100%)",
-        height: 40,
-        borderColor: "var(--purple-1000)",
-        color: "var(--purple-1000)",
-        backgroundColor: "transparent",
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--purple-1000)";
-        (e.currentTarget as HTMLButtonElement).style.color = "white";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
-        (e.currentTarget as HTMLButtonElement).style.color = "var(--purple-1000)";
+        fontSize: "clamp(0.6rem, 2.5vw, 0.7rem)",
+        color: "var(--grey-500)",
+        marginBottom: "0.2rem",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        maxWidth: "100%",
       }}
     >
-      Call again
-    </button>
+      {label}
+    </span>
+    <span
+      style={{
+        fontSize: "clamp(0.65rem, 2.8vw, 0.75rem)",
+        fontWeight: 600,
+        color: "var(--grey-700)",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        maxWidth: "100%",
+      }}
+    >
+      {value}
+    </span>
   </div>
 );
 
-const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
-  const [activeView, setActiveView] = useState<"summary" | "transcript">("summary");
-  const [rating, setRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
+/* ── Call Again Button ────────────────────────────────────────────── */
+const CallAgainButton: React.FC = () => {
+  const [hasCalled, setHasCalled] = useState(false);
+
+  return (
+    <div className="flex flex-col items-center w-full pb-8">
+      <hr className="w-full border-0 border-t-[2px] border-[var(--grey-300)] mb-3" />
+      <button
+        onClick={() => setHasCalled(true)}
+        className={`flex items-center justify-center w-full min-h-[var(--h-btn-call-again)] rounded-[var(--border-radius-btn)] font-medium transition-colors duration-200 ${hasCalled ? "bg-[var(--purple-1000)] text-white border border-[var(--purple-1000)]" : "bg-transparent text-[var(--purple-1000)] border border-[var(--purple-1000)]"}`}
+      >
+        {BUTTON_TEXT_CALL_AGAIN}
+      </button>
+    </div>
+  );
+};
+
+/* ── Section Title ────────────────────────────────────────────────── */
+const SectionTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <h3
+    style={{
+      fontSize: "clamp(0.8rem, 3.5vw, 0.875rem)",
+      fontWeight: 600,
+      color: "var(--grey-1000)",
+      margin: "0 0 0.5rem 0",
+    }}
+  >
+    {children}
+  </h3>
+);
+
+/* ── Main Component ───────────────────────────────────────────────── */
+const TranscriptScreen: React.FC<TranscriptScreenProps> = ({
+  agentTitle = "Revenue services",
+  agentSubtitle = "Leads qualifications",
+  date = "30 June 2026",
+  duration = "1m 30s",
+  startDate = "30/06/26",
+  callType = "Voice",
+  status = "Completed",
+  aiSummary = DEFAULT_AI_SUMMARY,
+  topicTags = DEFAULT_TOPIC_TAGS,
+  agentActions: actionsProp = DEFAULT_AGENT_ACTIONS,
+  audioUrl = SAMPLE_AUDIO_URL,
+  onNavigate,
+}) => {
+  const [rating, setRating] = useState(DEFAULT_RATING);
+  const [hoverRating, setHoverRating] = useState(DEFAULT_HOVER_RATING);
   const [isOnline] = useState(true);
   const [checkedActions, setCheckedActions] = useState<number[]>([0, 1]);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [elapsed, setElapsed] = useState(0);
-  const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+  const [isPlaying, setIsPlaying] = useState(DEFAULT_IS_PLAYING);
+  const [currentTime, setCurrentTime] = useState(START_TIME);
+  const [audioDuration, setAudioDuration] = useState(START_TIME);
 
-  React.useEffect(() => {
-    if (isPlaying) {
-      intervalRef.current = setInterval(() => {
-        setElapsed((s) => s + 1);
-      }, 1000);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  /* ── Play / Pause ──
+     Drive isPlaying only from audio events (onPlay / onPause / onEnded),
+     never from the button click. This avoids stale-state bugs where the
+     promise hasn't resolved yet and the icon flips incorrectly.          */
+  const handlePlayPause = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      audio.play().catch(() => {/* browser blocked — onPause event will not fire, state stays false */});
     } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      audio.pause();
     }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [isPlaying]);
+  };
 
-  const formatTime = (secs: number) => {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
+  const handleEnded = () => {
+    setIsPlaying(false);
+    setCurrentTime(START_TIME);
+  };
+
+  /* ── Dynamic timer ── */
+  const roundedDuration = audioDuration > START_TIME ? Math.ceil(audioDuration) : START_TIME;
+  const timerString =
+    currentTime === START_TIME
+      ? formatTime(roundedDuration)
+      : formatTime(roundedDuration - Math.floor(currentTime), true);
+
+  /* ── Scrub ── */
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTime = Number(e.target.value);
+    setCurrentTime(newTime);
+    if (audioRef.current) audioRef.current.currentTime = newTime;
   };
 
   const toggleAction = (index: number) => {
@@ -129,285 +207,389 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({ onNavigate }) => {
   };
 
   const handleDownload = () => {
-    alert("Downloading recording...");
+    window.open(audioUrl, "_blank");
   };
+
+  const stats = [
+    { label: "Status", value: status },
+    { label: "Duration", value: duration },
+    { label: "Start date", value: startDate },
+    { label: "Type", value: callType },
+  ];
 
   return (
     <div
-      className="w-full max-w-full h-full flex flex-col bg-[var(--background)] overflow-x-hidden overflow-y-auto box-border"
       style={{
-        paddingTop: "max(env(safe-area-inset-top), 24px)",
-        paddingBottom: "max(env(safe-area-inset-bottom), 24px)",
+        width: "100%",
+        maxWidth: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "var(--background)",
+        overflowX: "hidden",
+        overflowY: "auto",
+        boxSizing: "border-box",
+        paddingTop: "max(env(safe-area-inset-top), 1.5rem)",
+        paddingBottom: "max(env(safe-area-inset-bottom), 1.5rem)",
       }}
     >
       {/* ── Header ── */}
-      <header className="px-4 py-4 flex flex-row items-center gap-4 flex-shrink-0">
+      <header
+        style={{
+          padding: "1rem",
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          gap: "clamp(0.75rem, 3vw, 1rem)",
+          flexShrink: 0,
+        }}
+      >
         <button
           type="button"
           onClick={() => onNavigate("agent-details")}
-          className="cursor-pointer"
-          style={{ color: "var(--foreground)" }}
+          style={{ color: "var(--foreground)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+          aria-label="Go back"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft
+            style={{
+              width: "clamp(1.1rem, 4.5vw, 1.25rem)",
+              height: "clamp(1.1rem, 4.5vw, 1.25rem)",
+            }}
+          />
         </button>
-        <h1 className="text-page-title-22 text-[var(--grey-1000)]">
+        <h1
+          style={{
+            fontSize: "clamp(1.1rem, 5vw, 1.375rem)",
+            fontWeight: 700,
+            color: "var(--grey-1000)",
+            margin: 0,
+          }}
+        >
           Transcript
         </h1>
       </header>
 
       {/* ── Agent info row ── */}
-      <div className="px-4 flex flex-row items-center gap-3 mb-4">
+      <div
+        style={{
+          padding: "0 1rem",
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          gap: "clamp(0.6rem, 3vw, 0.75rem)",
+          marginBottom: "1rem",
+          flexShrink: 0,
+        }}
+      >
         <div
-          className="relative flex-shrink-0 flex items-center justify-center bg-[var(--grey-200)]"
-          style={{ width: 40, height: 40, borderRadius: 8 }}
+          style={{
+            position: "relative",
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "var(--grey-200)",
+            width: "clamp(2rem, 9vw, 2.5rem)",
+            height: "clamp(2rem, 9vw, 2.5rem)",
+            borderRadius: 8,
+          }}
         >
-          <Bot size={20} style={{ color: "var(--muted-foreground)" }} />
+          <Bot
+            style={{
+              width: "clamp(1rem, 5vw, 1.25rem)",
+              height: "clamp(1rem, 5vw, 1.25rem)",
+              color: "var(--muted-foreground)",
+            }}
+          />
           {isOnline && (
             <span
-              className="absolute -top-0.5 -right-0.5 rounded-full bg-green-500 border-2 border-white"
-              style={{ width: 12, height: 12 }}
+              style={{
+                position: "absolute",
+                top: -2,
+                right: -2,
+                width: "clamp(8px, 2.5vw, 12px)",
+                height: "clamp(8px, 2.5vw, 12px)",
+                borderRadius: "50%",
+                backgroundColor: "#22c55e",
+                border: "2px solid white",
+              }}
             />
           )}
         </div>
         <div>
           <p
-            className="text-body-16-m text-[var(--grey-1000)] cursor-pointer"
+            style={{
+              fontSize: "clamp(0.85rem, 3.8vw, 1rem)",
+              fontWeight: 600,
+              color: "var(--grey-1000)",
+              margin: 0,
+              cursor: "pointer",
+            }}
             onClick={() => onNavigate("agent-details")}
           >
-            Revenue services
+            {agentTitle}
           </p>
-          <p className="text-captions-12 text-[var(--grey-700)]">
-            Leads qualifications
+          <p
+            style={{
+              fontSize: "clamp(0.7rem, 3vw, 0.75rem)",
+              color: "var(--grey-700)",
+              margin: 0,
+            }}
+          >
+            {agentSubtitle}
           </p>
         </div>
       </div>
 
       {/* ── Stats table ── */}
-      <div className="px-4 mb-4">
+      <div style={{ padding: "0 1rem", marginBottom: "1rem", flexShrink: 0 }}>
         <div
-          className="w-full rounded-2xl border border-[var(--grey-300)] bg-[var(--grey-100)] grid grid-cols-4 divide-x divide-[var(--grey-300)] text-center box-border"
-          style={{ height: 56 }}
+          style={{
+            width: "100%",
+            borderRadius: "1rem",
+            border: "1px solid var(--grey-300)",
+            backgroundColor: "var(--grey-100)",
+            display: "flex",
+            flexDirection: "row",
+            minHeight: "clamp(3rem, 12vw, 3.5rem)",
+            boxSizing: "border-box",
+            overflow: "hidden",
+          }}
         >
-          {[
-            { label: "Status", value: "Completed" },
-            { label: "Duration", value: "1m 30s" },
-            { label: "Start date", value: "30/06/26" },
-            { label: "Type", value: "Voice" },
-          ].map(({ label, value }) => (
-            <div key={label} className="flex flex-col justify-center">
-              <div className="text-captions-12 text-[var(--grey-500)] mb-1">{label}</div>
-              <div className="text-body-12-m text-[var(--grey-700)]">
-                {value}
-              </div>
-            </div>
+          {stats.map(({ label, value }, i) => (
+            <StatCell key={label} label={label} value={value} isLast={i === stats.length - 1} />
           ))}
         </div>
       </div>
 
-      {/* ── Tab bar ── */}
-      <div className="flex flex-row gap-8 px-4 border-b border-[var(--grey-200)] w-full mb-4">
-        {(["summary", "transcript"] as const).map((view) => (
-          <button
-            key={view}
-            type="button"
-            onClick={() => setActiveView(view)}
-            className={`text-body-14-m py-3 ${
-              activeView === view
-                ? "text-[var(--grey-1000)] border-b-2 border-[var(--purple-1000)] -mb-px"
-                : "text-[var(--grey-500)] border-b-2 border-transparent"
-            }`}
+      {/* ── Scrollable body (summary content only) ── */}
+      <div
+        style={{
+          flexGrow: 1,
+          width: "100%",
+          overflowX: "hidden",
+          overflowY: "auto",
+          padding: "0 1rem",
+          boxSizing: "border-box",
+          display: "flex",
+          flexDirection: "column",
+          gap: "1.25rem",
+        }}
+      >
+        {/* AI Summary */}
+        <section>
+          <SectionTitle>AI Summary</SectionTitle>
+          <p
+            style={{
+              fontSize: "clamp(0.7rem, 3vw, 0.75rem)",
+              color: "var(--grey-700)",
+              lineHeight: 1.6,
+              margin: 0,
+            }}
           >
-            {view.charAt(0).toUpperCase() + view.slice(1)}
-          </button>
-        ))}
-      </div>
+            {aiSummary}
+          </p>
+        </section>
 
-      {/* ── Scrollable body ── */}
-      <div className="flex-grow w-full overflow-x-hidden overflow-y-auto px-4 box-border">
-        {activeView === "summary" ? (
-          <div className="flex flex-col" style={{ gap: 16 }}>
-
-            {/* AI Summary */}
-            <section>
-              <h3 className="text-body-14-m text-[var(--grey-1000)] mb-2">
-                AI Summary
-              </h3>
-              <p className="text-captions-12 text-[var(--grey-700)] leading-relaxed">
-                The agent helped John clarke to generate the accounts documents and Emailed
-                them after generating it to the contacts of John clarke.
-              </p>
-            </section>
-
-            {/* Topics Covered */}
-            <section>
-              <h3 className="text-body-14-m text-[var(--grey-1000)] mb-2">
-                Topics Covered
-              </h3>
-              <div className="flex flex-row flex-wrap gap-2">
-                {topicTags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-captions-12 text-[var(--grey-700)] border border-[var(--grey-300)] bg-transparent px-3 py-1 rounded-xl"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </section>
-
-            {/* Agents Actions */}
-            <section>
-              <h3 className="text-body-14-m text-[var(--grey-1000)] mb-2">
-                Agents Actions
-              </h3>
-              <div className="flex flex-col gap-2">
-                {agentActions.map((action, idx) => {
-                  const checked = checkedActions.includes(idx);
-                  return (
-                    <div
-                      key={action}
-                      role="button"
-                      onClick={() => toggleAction(idx)}
-                      className="flex flex-row items-center gap-3 cursor-pointer active:scale-95 transition-transform"
-                    >
-                      <div
-                        className={`flex-shrink-0 flex items-center justify-center rounded border transition-colors ${
-                          checked
-                            ? "bg-[var(--purple-1000)] border-[var(--purple-1000)]"
-                            : "border-[var(--grey-1000)] bg-transparent"
-                        }`}
-                        style={{ width: 16, height: 16 }}
-                      >
-                        {checked && <Check size={10} className="text-white" />}
-                      </div>
-                      <span className="text-secondary-14 text-[var(--grey-700)]">
-                        {action}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* Call Recording */}
-            <section>
-              <h3 className="text-body-14-m text-[var(--grey-1000)] mb-2">
-                Call recording
-              </h3>
-
-              <div
-                className="w-full bg-[var(--purple-1000)] rounded-xl flex flex-row items-center justify-between"
-                style={{ height: 60, padding: "0 12px", boxSizing: "border-box" }}
+        {/* Topics Covered */}
+        <section>
+          <SectionTitle>Topics Covered</SectionTitle>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: "clamp(0.3rem, 1.5vw, 0.5rem)",
+            }}
+          >
+            {topicTags.map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  fontSize: "clamp(0.65rem, 2.8vw, 0.75rem)",
+                  color: "var(--grey-700)",
+                  border: "1px solid var(--grey-300)",
+                  backgroundColor: "transparent",
+                  padding: "clamp(0.2rem, 1vw, 0.25rem) clamp(0.5rem, 2vw, 0.75rem)",
+                  borderRadius: "0.75rem",
+                }}
               >
-                {/* Play / Pause button */}
-                <button
-                  type="button"
-                  onClick={() => setIsPlaying((s) => !s)}
-                  className="flex-shrink-0 flex items-center justify-center rounded-full bg-white"
-                  style={{ width: 40, height: 40 }}
-                  aria-label={isPlaying ? "Pause" : "Play"}
-                >
-                  {isPlaying ? (
-                    <Pause size={16} style={{ color: "var(--purple-1000)" }} />
-                  ) : (
-                    <Play size={16} style={{ color: "var(--purple-1000)" }} />
-                  )}
-                </button>
-
-                {/* Waveform + elapsed timer */}
-                <div
-                  className="flex-1 flex items-center justify-center overflow-hidden"
-                  style={{ gap: 12 }}
-                >
-                  <AudioWaveform isPlaying={isPlaying} />
-                  <span className="text-body-12-m text-white flex-shrink-0">
-                    {formatTime(elapsed)}
-                  </span>
-                </div>
-
-                {/* Download */}
-                <button
-                  type="button"
-                  onClick={handleDownload}
-                  className="flex-shrink-0 flex items-center justify-center cursor-pointer"
-                  aria-label="Download recording"
-                >
-                  <Download size={20} className="text-white" />
-                </button>
-              </div>
-            </section>
-
-            {/* Rate this call */}
-            <section>
-              <div
-                className="w-full rounded-xl px-4 py-3 flex flex-row justify-between items-center"
-                style={{ backgroundColor: "var(--grey-300)" }}
-              >
-                <span className="text-body-14-m text-[var(--grey-1000)]">
-                  Rate this call
-                </span>
-                <div className="flex flex-row gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => {
-                    const filled = i <= (hoverRating || rating);
-                    return (
-                      <button
-                        key={i}
-                        type="button"
-                        onMouseEnter={() => setHoverRating(i)}
-                        onMouseLeave={() => setHoverRating(0)}
-                        onClick={() => setRating(i)}
-                        className="cursor-pointer"
-                        aria-label={`Rate ${i} star${i > 1 ? "s" : ""}`}
-                      >
-                        <Star
-                          size={16}
-                          className="transition-colors"
-                          style={{
-                            color: filled ? "var(--purple-1000)" : "var(--grey-500)",
-                            fill: filled ? "var(--purple-1000)" : "transparent",
-                          }}
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </section>
-
-            {/* Call Again */}
-            <CallAgainButton />
-
+                {tag}
+              </span>
+            ))}
           </div>
-        ) : (
-          /* ── Transcript tab ── */
-          <div className="flex flex-col gap-4">
-            {transcriptBubbles.map((b, idx) => (
-              <div key={idx} className="w-full">
-                <div className="flex flex-row justify-between items-center mb-1.5">
-                  <span className="text-body-14-m text-[var(--grey-1000)]">
-                    {b.sender}
-                  </span>
-                  <span className="text-captions-12 text-[var(--grey-700)]">
-                    {b.time}
-                  </span>
-                </div>
+        </section>
+
+        {/* Agents Actions */}
+        <section>
+          <SectionTitle>Agents Actions</SectionTitle>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            {actionsProp.map((action, idx) => {
+              const checked = checkedActions.includes(idx);
+              return (
                 <div
-                  className="w-full rounded-xl px-4 py-2.5 flex items-center leading-relaxed text-secondary-14 text-[var(--grey-700)]"
+                  key={action}
+                  role="button"
+                  onClick={() => toggleAction(idx)}
                   style={{
-                    minHeight: 37,
-                    backgroundColor: "var(--grey-200)",
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    cursor: "pointer",
                   }}
                 >
-                  {b.text}
+                  <div
+                    style={{
+                      flexShrink: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "clamp(14px, 4vw, 16px)",
+                      height: "clamp(14px, 4vw, 16px)",
+                      borderRadius: "3px",
+                      border: `1.5px solid ${checked ? "var(--purple-1000)" : "var(--grey-1000)"}`,
+                      backgroundColor: checked ? "var(--purple-1000)" : "transparent",
+                      transition: "background 0.15s, border-color 0.15s",
+                    }}
+                  >
+                    {checked && (
+                      <Check
+                        style={{
+                          width: "clamp(8px, 2.5vw, 10px)",
+                          height: "clamp(8px, 2.5vw, 10px)",
+                          color: "white",
+                        }}
+                      />
+                    )}
+                  </div>
+                  <span
+                    style={{
+                      fontSize: "clamp(0.8rem, 3.5vw, 0.875rem)",
+                      color: "var(--grey-700)",
+                    }}
+                  >
+                    {action}
+                  </span>
                 </div>
-              </div>
-            ))}
-
-            {/* Call Again */}
-            <CallAgainButton />
+              );
+            })}
           </div>
-        )}
+        </section>
+
+        {/* Call Recording */}
+        <section className="flex flex-col justify-center w-full pt-[var(--spacing-label-top)]">
+          <span className="pb-[var(--spacing-label-bottom)] font-medium text-[var(--font-size-body-14-m)] leading-[var(--line-height-body-14-m)] text-[var(--grey-1000)]">
+            {LABEL_CALL_RECORDING}
+          </span>
+          <div
+            className="flex flex-row items-center w-full min-h-[var(--h-recording-container)] gap-[var(--layout-gap-12)] p-[var(--layout-gap-12)] rounded-lg bg-[var(--purple-1000)] box-border relative"
+          >
+            {/* Play / Pause */}
+            <button
+              type="button"
+              onClick={handlePlayPause}
+              className="flex-shrink-0 flex items-center justify-center rounded-full bg-white w-10 h-10 border-none cursor-pointer"
+              aria-label={isPlaying ? "Pause" : "Play"}
+            >
+              {isPlaying ? (
+                <Pause className="w-4 h-4 text-[var(--purple-1000)] fill-[var(--purple-1000)]" />
+              ) : (
+                <Play className="w-4 h-4 text-[var(--purple-1000)] fill-[var(--purple-1000)]" />
+              )}
+            </button>
+
+            {/* Waveform + timer (scrub overlay) */}
+            <div
+              className="flex-1 min-h-[var(--h-audio-waves)] w-full flex items-center justify-center overflow-hidden relative gap-3"
+            >
+              <input
+                type="range"
+                min={START_TIME}
+                max={audioDuration || START_TIME}
+                value={currentTime}
+                onChange={handleSeek}
+                className="absolute inset-0 z-10 opacity-0 cursor-pointer w-full"
+                aria-label="Seek audio"
+              />
+              <AudioWaveform
+                isPlaying={isPlaying}
+                progress={audioDuration > START_TIME ? currentTime / audioDuration : START_TIME}
+              />
+              <span className="text-sm font-semibold text-white flex-shrink-0">
+                {timerString}
+              </span>
+            </div>
+
+            {/* Download */}
+            <button
+              type="button"
+              onClick={handleDownload}
+              className="flex-shrink-0 flex items-center justify-center cursor-pointer p-0"
+              style={{ background: "none", border: "none" }}
+              aria-label="Download recording"
+            >
+              <Download className="w-5 h-5 text-white" />
+            </button>
+          </div>
+        </section>
+
+        {/* Rate this call */}
+        <section className="flex justify-center w-full">
+          <div
+            className="flex items-center justify-between w-full min-h-[var(--h-btn-rate-call)] rounded-lg px-4 bg-[var(--grey-300)] box-border"
+          >
+            <span className="text-body-14-m text-[var(--grey-1000)]">
+              {RATE_CALL_TEXT}
+            </span>
+            <div className="flex flex-row gap-1">
+              {[1, 2, 3, 4, 5].map((i) => {
+                const filled = i <= (hoverRating || rating);
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onMouseEnter={() => setHoverRating(i)}
+                    onMouseLeave={() => setHoverRating(DEFAULT_HOVER_RATING)}
+                    onClick={() => setRating(i)}
+                    className="cursor-pointer p-0.5"
+                    style={{ background: "none", border: "none" }}
+                    aria-label={`Rate ${i} star${i > 1 ? "s" : ""}`}
+                  >
+                    <Star
+                      className="w-4 h-4 transition-colors duration-150"
+                      style={{
+                        color: filled ? "var(--purple-1000)" : "var(--grey-500)",
+                        fill: filled ? "var(--purple-1000)" : "transparent",
+                      }}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* Call Again */}
+        <CallAgainButton />
       </div>
+
+      {/* ── Hidden audio element ── */}
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        preload="metadata"
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onTimeUpdate={() => {
+          if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
+        }}
+        onLoadedMetadata={() => {
+          if (audioRef.current) setAudioDuration(audioRef.current.duration);
+        }}
+        onEnded={handleEnded}
+        style={{ display: "none" }}
+      />
     </div>
   );
 };
