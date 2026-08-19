@@ -13,13 +13,14 @@ import OutputDetailScreen from "./components/OutputDetailScreen";
 import ApprovalsScreen from "./components/ApprovalsScreen";
 import TranscriptScreen from "./components/TranscriptScreen";
 import ApprovalDetailsScreen from "./components/ApprovalDetailsScreen";
+import NotificationsScreen from "./components/NotificationsScreen";
 import "./App.css";
 import "./theme.css";
 
 const SPLASH_DURATION = 2500;
 const SPLASH_FADE_DURATION = 800;
 
-type Screen = "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals" | "approval-details" | "transcript" | "output-details";
+type Screen = "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals" | "approval-details" | "transcript" | "output-details" | "notifications";
 
 type DocumentScreen = "signin" | "verify" | "terms" | "privacy";
 
@@ -99,6 +100,9 @@ const AppContent = () => {
       )}
       {currentScreen === "transcript" && (
         <TranscriptScreen onNavigate={handleNavigate} payload={transcriptPayload} />
+      )}
+      {currentScreen === "notifications" && (
+        <NotificationsScreen onNavigate={handleNavigate} />
       )}
 
       {/* Splash overlay sits on top of everything during startup */}

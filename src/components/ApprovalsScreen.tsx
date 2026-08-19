@@ -7,7 +7,7 @@ import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
 
 interface ApprovalsScreenProps {
-  onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "outputs" | "approvals" | "approval-details") => void;
+  onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "outputs" | "approvals" | "approval-details" | "notifications") => void;
 }
 
 const approvals = [
@@ -83,7 +83,7 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate }) => {
               </button>
               <button
                 type="button"
-                onClick={() => alert("Notifications clicked")}
+                onClick={() => onNavigate("notifications")}
                 className="p-2 cursor-pointer"
                 style={{ color: "var(--foreground)" }}
               >

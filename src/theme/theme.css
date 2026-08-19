@@ -115,7 +115,13 @@
     --layout-gap-12: 0.75rem; /* 12px padding/gap between player elements */
     --spacing-12: 0.75rem;    /* 12px standard spacing token */
     --spacing-16: 1rem;       /* 16px standard spacing token */
+    --spacing-4: 0.25rem;     /* 4px standard spacing token */
     --border-thin: max(1px, 0.0625rem); /* thin 1px separator line */
+
+    /* Recents Slide Panel Tokens */
+    --panel-overlay-gap: 2.5rem;     /* 40px gap left on the right edge */
+    --panel-max-w: 20.9375rem;       /* 335px max panel width */
+    --btn-size-36: 2.25rem;          /* 36px button size */
 
     /* Heights (Figma 'Hug' converted to min-heights in rem) */
     --h-recording-container: 3.75rem; /* 60px */

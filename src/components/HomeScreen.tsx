@@ -12,13 +12,49 @@ import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 
+// ── Recents Dummy Data ──────────────────────────────────────────────────────
+const recentItems = [
+  { id: 1, title: "Contract analysis", time: "2m ago" },
+  { id: 2, title: "Customer Support Ticket Summary...", time: "2m ago" },
+  { id: 3, title: "HR Candidate Screening", time: "2m ago" },
+  { id: 4, title: "Sales Lead Analysis", time: "2m ago" },
+  { id: 5, title: "Invoice Processing", time: "2m ago" },
+  { id: 6, title: "Marketing Campaign Ideas", time: "2m ago" },
+  { id: 7, title: "Employee Onboarding Workflow", time: "2m ago" },
+  { id: 8, title: "Quarterly Sales Report", time: "2m ago" },
+  { id: 9, title: "Vendor Comparison", time: "2m ago" },
+  { id: 10, title: "Expense Report Review", time: "2m ago" },
+  { id: 11, title: "Product Requirements Draft", time: "2m ago" },
+  { id: 12, title: "Project Status Update", time: "2m ago" },
+  { id: 13, title: "Lead Qualification", time: "2m ago" },
+  { id: 14, title: "Policy Document Summary", time: "2m ago" },
+  { id: 15, title: "Recruitment Pipeline Review", time: "2m ago" },
+  { id: 16, title: "Q3 Financial Review", time: "2m ago" },
+  { id: 17, title: "New Hire Onboarding Doc", time: "2m ago" },
+  { id: 18, title: "Sales Pitch Transcript", time: "2m ago" },
+  { id: 19, title: "Client Feedback Analysis", time: "2m ago" },
+  { id: 20, title: "Weekly Sync Notes", time: "2m ago" },
+  { id: 21, title: "Product Roadmap Update", time: "2m ago" },
+  { id: 22, title: "Legal Compliance Check", time: "2m ago" },
+  { id: 23, title: "Bug Triage Summary", time: "2m ago" },
+  { id: 24, title: "User Research Insights", time: "2m ago" },
+  { id: 25, title: "Marketing Copy Generation", time: "2m ago" },
+  { id: 26, title: "Competitor Analysis", time: "2m ago" },
+  { id: 27, title: "API Integration Docs", time: "2m ago" },
+  { id: 28, title: "Security Audit Report", time: "2m ago" },
+  { id: 29, title: "Social Media Strategy", time: "2m ago" },
+  { id: 30, title: "Design System Review", time: "2m ago" },
+];
+
 interface HomeScreenProps {
-  onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "outputs" | "approvals") => void;
+  onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "outputs" | "approvals" | "notifications") => void;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
   const [message, setMessage] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isRecentsOpen, setIsRecentsOpen] = useState(false);
  const [messages, setMessages] = useState
   < {
       id: string;
@@ -47,6 +83,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
     };
 
     setStatusBarTheme();
+  }, []);
+
+  // ── Visual Viewport API: detect mobile keyboard dynamically ──
+  useEffect(() => {
+    if (!window.visualViewport) return;
+
+    const handleResize = () => {
+      const isKeyboardOpen = window.visualViewport.height < window.innerHeight * 0.85;
+      setIsTyping(isKeyboardOpen);
+    };
+
+    window.visualViewport.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => {
+      window.visualViewport.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   const handleSend = () => {
@@ -91,7 +144,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
           aria-label="Open menu"
           onClick={(e) => {
             e.stopPropagation();
-            onNavigate?.("menu" as any);
+            setIsRecentsOpen(true);
           }}
           className="w-10 h-10 flex items-center justify-center rounded-xl text-[var(--foreground)] hover:bg-[var(--grey-100)] active:bg-[var(--grey-200)] cursor-pointer touch-manipulation z-30"
         >
@@ -103,7 +156,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
           aria-label="Notifications"
           onClick={(e) => {
             e.stopPropagation();
-            onNavigate?.("notifications" as any);
+            onNavigate?.("notifications");
           }}
           className="w-10 h-10 flex items-center justify-center rounded-xl text-[var(--foreground)] hover:bg-[var(--grey-100)] active:bg-[var(--grey-200)] cursor-pointer touch-manipulation z-30"
         >
@@ -192,11 +245,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
             setSelectedFiles={setSelectedFiles}
             fileInputRef={fileInputRef}
             handleSend={handleSend}
+            setIsTyping={setIsTyping}
           />
         </div>
       )}
 
       {/* ── Bottom Nav ── */}
+      {!isTyping && (
       <nav
         className="w-full flex flex-row items-center justify-between border-t border-[var(--grey-100)] bg-[var(--background)]"
         style={{ paddingBottom: "max(env(safe-area-inset-bottom), 16px)" }}
@@ -234,6 +289,61 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
           <span className="text-xs font-medium text-[var(--grey-700)]">Approvals</span>
         </button>
       </nav>
+      )}
+
+      {/* ── Recents Panel: Backdrop Overlay ── */}
+      <div
+        onClick={() => setIsRecentsOpen(false)}
+        className={`fixed inset-0 z-40 bg-[var(--grey-500)] transition-opacity duration-300 ease-in-out ${
+          isRecentsOpen ? 'opacity-50 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        role="presentation"
+      />
+
+      {/* ── Recents Panel: Left-to-Right Sliding Panel ── */}
+      <div
+        className={`fixed top-0 left-0 h-full z-50 bg-[var(--grey-100)] flex flex-col transition-transform duration-300 ease-in-out w-[calc(100vw-var(--panel-overlay-gap))] max-w-[var(--panel-max-w)] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] ${
+          isRecentsOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Recents"
+      >
+        {/* Header Container (315 Fill x 36 Hug equivalent) */}
+        <div className="flex items-center justify-between w-full min-h-[var(--btn-size-36)] pl-[var(--spacing-16)] pr-[var(--spacing-4)] shrink-0">
+          <h2 className="font-semibold text-[1.25rem] leading-[1.875rem] text-[var(--grey-1000)]">Recents</h2>
+
+          {/* Cross Button Container (36x36 Clickable) */}
+          <button
+            type="button"
+            onClick={() => setIsRecentsOpen(false)}
+            className="flex items-center justify-center w-[var(--btn-size-36)] h-[var(--btn-size-36)] shrink-0 text-[var(--grey-1000)] cursor-pointer touch-manipulation"
+          >
+            <span className="sr-only">Close</span>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Recents List Scrollable Container */}
+        <div className="flex-1 overflow-y-auto w-full mt-[var(--spacing-12)] pb-[var(--spacing-12)] flex flex-col gap-[var(--spacing-12)]">
+          {recentItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className="w-full flex items-center justify-between min-h-[2.5rem] py-2 px-[var(--spacing-16)] text-left active:bg-[var(--grey-100)] transition-colors duration-150 touch-manipulation"
+            >
+              <span className="font-normal text-sm leading-5 text-[var(--grey-1000)] truncate max-w-[75%]">
+                {item.title}
+              </span>
+              <span className="font-normal text-xs leading-[1.125rem] text-[var(--grey-500)] shrink-0">
+                {item.time}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
@@ -246,6 +356,7 @@ interface InputAreaProps {
   setSelectedFiles: React.Dispatch<React.SetStateAction<File[]>>;
   fileInputRef: React.MutableRefObject<HTMLInputElement | null>;
   handleSend: () => void;
+  setIsTyping: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const InputArea: React.FC<InputAreaProps> = ({
@@ -255,6 +366,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   setSelectedFiles,
   fileInputRef,
   handleSend,
+  setIsTyping,
 }) => (
   <div className="w-full px-4 py-3 bg-[var(--background)] border-t border-[var(--grey-100)]">
     <input
@@ -308,6 +420,8 @@ const InputArea: React.FC<InputAreaProps> = ({
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          onFocus={() => setIsTyping(true)}
+          onBlur={() => setIsTyping(false)}
           placeholder="Type a message..."
           className="w-full flex-1 bg-transparent border-none outline-none text-sm text-[var(--foreground)] placeholder:text-[var(--grey-500)] resize-none"
         />
