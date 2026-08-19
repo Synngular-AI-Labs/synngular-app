@@ -221,7 +221,7 @@ const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({
       </div>
 
       {/* ── History list (scrollable) ── */}
-      <div className="flex-1 overflow-y-auto px-4">
+      <div className="flex-1 overflow-y-auto px-4 pb-[var(--spacing-12)]">
         {historyItems.length > 0 ? (
           historyItems.map((item, idx) => (
             <HistoryRow
@@ -248,11 +248,7 @@ const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({
 
       {/* ── Call Again button ── */}
       <div
-        className="flex flex-col items-center flex-shrink-0"
-        style={{
-          padding: "1rem 1rem 0.5rem",
-          borderTop: "1px solid var(--grey-100)",
-        }}
+        className="w-full shrink-0 bg-white border-t-[length:var(--border-thin)] border-[var(--grey-300)] pt-[var(--spacing-12)] pb-[env(safe-area-inset-bottom,calc(1rem))] px-4"
       >
         <button
           type="button"

@@ -55,7 +55,7 @@ const DEFAULT_AGENT_ACTIONS = [
 ];
 
 const DEFAULT_AI_SUMMARY =
-  "The agent helped John Clarke to generate the accounts documents and emailed them after generating to the contacts of John Clarke.";
+  "The agent helped John Clarke to generate the accounts documents and emailed them after generating to the contacts of John Clarke.The discussion focused on improving overall revenue operations across billing, collections, and payment processing. The team reviewed the current state of the revenue cycle and identified key gaps causing delays in cash flow.Billing processes were flagged as inconsistent, with a push toward standardized electronic invoicing to reduce errors and speed up payment timelines. Collections were a major concern, particularly accounts overdue beyond 60–90 days, with a recommendation to introduce automated reminders and a dedicated follow-up team for high-value accounts.Payment processing improvements were discussed, including integrating multiple payment options and reducing manual reconciliation through automation. Compliance and regular auditing were also emphasized to ensure alignment with financial regulations.Key targets set during the session include improving the collection rate to over 90%, reducing Days Sales Outstanding (DSO) from 52 to 35 days, and bringing the claim denial rate below 5%.Overall, the consensus was to move from a reactive to a proactive revenue management approach — using automation and real-time dashboards to improve visibility, reduce leakage, and accelerate revenue growth.";
 
 /* ── Helpers ──────────────────────────────────────────────────────── */
 function formatTime(seconds: number, isNegative = false): string {
@@ -116,8 +116,7 @@ const CallAgainButton: React.FC = () => {
   const [hasCalled, setHasCalled] = useState(false);
 
   return (
-    <div className="flex flex-col items-center w-full pb-8">
-      <hr className="w-full border-0 border-t-[2px] border-[var(--grey-300)] mb-3" />
+    <div className="w-full shrink-0 bg-white border-t-[length:var(--border-thin)] border-[var(--grey-300)] pt-[var(--spacing-12)] pb-[env(safe-area-inset-bottom,calc(1rem))] px-4">
       <button
         onClick={() => setHasCalled(true)}
         className={`flex items-center justify-center w-full min-h-[var(--h-btn-call-again)] rounded-[var(--border-radius-btn)] font-medium transition-colors duration-200 ${hasCalled ? "bg-[var(--purple-1000)] text-white border border-[var(--purple-1000)]" : "bg-transparent text-[var(--purple-1000)] border border-[var(--purple-1000)]"}`}
@@ -219,18 +218,9 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({
 
   return (
     <div
+      className="flex flex-col w-full h-full bg-[var(--background)] box-border"
       style={{
-        width: "100%",
-        maxWidth: "100%",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: "var(--background)",
-        overflowX: "hidden",
-        overflowY: "auto",
-        boxSizing: "border-box",
         paddingTop: "max(env(safe-area-inset-top), 1.5rem)",
-        paddingBottom: "max(env(safe-area-inset-bottom), 1.5rem)",
       }}
     >
       {/* ── Header ── */}
@@ -364,17 +354,7 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({
 
       {/* ── Scrollable body (summary content only) ── */}
       <div
-        style={{
-          flexGrow: 1,
-          width: "100%",
-          overflowX: "hidden",
-          overflowY: "auto",
-          padding: "0 1rem",
-          boxSizing: "border-box",
-          display: "flex",
-          flexDirection: "column",
-          gap: "1.25rem",
-        }}
+        className="flex-1 overflow-x-hidden overflow-y-auto w-full px-4 box-border flex flex-col gap-5 pb-[var(--spacing-12)]"
       >
         {/* AI Summary */}
         <section>
@@ -478,7 +458,7 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({
         </section>
 
         {/* Call Recording */}
-        <section className="flex flex-col justify-center w-full pt-[var(--spacing-label-top)]">
+        <section className="flex flex-col justify-center w-full pt-[var(--spacing-16)]">
           <span className="pb-[var(--spacing-label-bottom)] font-medium text-[var(--font-size-body-14-m)] leading-[var(--line-height-body-14-m)] text-[var(--grey-1000)]">
             {LABEL_CALL_RECORDING}
           </span>
@@ -569,10 +549,10 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({
             </div>
           </div>
         </section>
-
-        {/* Call Again */}
-        <CallAgainButton />
       </div>
+
+      {/* ── Call Again (sticky footer) ── */}
+      <CallAgainButton />
 
       {/* ── Hidden audio element ── */}
       <audio

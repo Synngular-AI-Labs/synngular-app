@@ -113,6 +113,9 @@
 
     /* Padding & Gaps */
     --layout-gap-12: 0.75rem; /* 12px padding/gap between player elements */
+    --spacing-12: 0.75rem;    /* 12px standard spacing token */
+    --spacing-16: 1rem;       /* 16px standard spacing token */
+    --border-thin: max(1px, 0.0625rem); /* thin 1px separator line */
 
     /* Heights (Figma 'Hug' converted to min-heights in rem) */
     --h-recording-container: 3.75rem; /* 60px */
