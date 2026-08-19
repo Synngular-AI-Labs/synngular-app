@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { ArrowLeft, ArrowUpRight, ChevronRight } from "lucide-react";
 
 /* ── Layout Constants ─────────────────────────────────────────────── */
-const SAFE_AREA_TOP = "max(env(safe-area-inset-top), 1.5rem)";
-const SAFE_AREA_BOTTOM = "max(env(safe-area-inset-bottom), 1.5rem)";
 
 /* ── Labels ───────────────────────────────────────────────────────── */
 const LABELS = {
@@ -147,8 +145,7 @@ const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({
 
   return (
     <div
-      className="flex flex-col w-full h-full bg-[var(--background)]"
-      style={{ paddingTop: SAFE_AREA_TOP, paddingBottom: SAFE_AREA_BOTTOM }}
+      className="flex flex-col w-full h-full bg-[var(--background)] pt-[max(env(safe-area-inset-top),2.75rem)] pb-[max(env(safe-area-inset-bottom),2.125rem)]"
     >
       {/* ── Header ── */}
       <header
@@ -248,7 +245,7 @@ const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({
 
       {/* ── Call Again button ── */}
       <div
-        className="w-full shrink-0 bg-white border-t-[length:var(--border-thin)] border-[var(--grey-300)] pt-[var(--spacing-12)] pb-[env(safe-area-inset-bottom,calc(1rem))] px-4"
+        className="w-full shrink-0 bg-white border-t-[length:var(--border-thin)] border-[var(--grey-300)] pt-[var(--spacing-12)] pb-[max(env(safe-area-inset-bottom),2.125rem)] px-4"
       >
         <button
           type="button"

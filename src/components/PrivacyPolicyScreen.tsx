@@ -8,7 +8,7 @@ interface PrivacyPolicyScreenProps {
 
 const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, returnTo }) => {
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "var(--grey-100)" }}>
+    <div className="min-h-screen flex flex-col bg-[var(--grey-100)] pt-[max(env(safe-area-inset-top),2.75rem)] pb-[max(env(safe-area-inset-bottom),2.125rem)]">
       <header
         className="flex items-center justify-between px-6 py-4 border-b"
         style={{ background: "var(--card)", borderColor: "var(--border)" }}

@@ -116,7 +116,7 @@ const CallAgainButton: React.FC = () => {
   const [hasCalled, setHasCalled] = useState(false);
 
   return (
-    <div className="w-full shrink-0 bg-white border-t-[length:var(--border-thin)] border-[var(--grey-300)] pt-[var(--spacing-12)] pb-[env(safe-area-inset-bottom,calc(1rem))] px-4">
+    <div className="w-full shrink-0 bg-white border-t-[length:var(--border-thin)] border-[var(--grey-300)] pt-[var(--spacing-12)] pb-[max(env(safe-area-inset-bottom),2.125rem)] px-4">
       <button
         onClick={() => setHasCalled(true)}
         className={`flex items-center justify-center w-full min-h-[var(--h-btn-call-again)] rounded-[var(--border-radius-btn)] font-medium transition-colors duration-200 ${hasCalled ? "bg-[var(--purple-1000)] text-white border border-[var(--purple-1000)]" : "bg-transparent text-[var(--purple-1000)] border border-[var(--purple-1000)]"}`}
@@ -218,10 +218,7 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({
 
   return (
     <div
-      className="flex flex-col w-full h-full bg-[var(--background)] box-border"
-      style={{
-        paddingTop: "max(env(safe-area-inset-top), 1.5rem)",
-      }}
+      className="flex flex-col w-full h-full bg-[var(--background)] box-border pt-[max(env(safe-area-inset-top),2.75rem)]"
     >
       {/* ── Header ── */}
       <header

@@ -130,12 +130,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
 
   return (
     <div
-      className="min-h-screen flex flex-col"
-      style={{
-        background: "var(--background)",
-        paddingTop: "max(env(safe-area-inset-top), 24px)",
-        paddingBottom: "max(env(safe-area-inset-bottom), 24px)",
-      }}
+      className="min-h-screen flex flex-col bg-[var(--background)] pt-[max(env(safe-area-inset-top),2.75rem)] pb-[max(env(safe-area-inset-bottom),2.125rem)]"
     >
       {/* ── Header ── */}
       <header className="relative z-30 w-full px-6 py-4 flex flex-row items-center justify-between flex-shrink-0 bg-[var(--background)]">
@@ -253,8 +248,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
       {/* ── Bottom Nav ── */}
       {!isTyping && (
       <nav
-        className="w-full flex flex-row items-center justify-between border-t border-[var(--grey-100)] bg-[var(--background)]"
-        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 16px)" }}
+        className="w-full flex flex-row items-center justify-between border-t border-[var(--grey-100)] bg-[var(--background)] pb-[max(env(safe-area-inset-bottom),2.125rem)]"
       >
         <div className="relative flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer">
           <div className="absolute top-0 inset-x-0 h-px bg-[var(--purple-1000)]" />
@@ -302,46 +296,49 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
 
       {/* ── Recents Panel: Left-to-Right Sliding Panel ── */}
       <div
-        className={`fixed top-0 left-0 h-full z-50 bg-[var(--grey-100)] flex flex-col transition-transform duration-300 ease-in-out w-[calc(100vw-var(--panel-overlay-gap))] max-w-[var(--panel-max-w)] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] ${
+        className={`fixed top-0 left-0 bottom-0 h-[100dvh] z-50 w-[calc(100vw-var(--panel-overlay-gap))] max-w-[var(--panel-max-w)] bg-white transition-transform duration-300 ease-in-out ${
           isRecentsOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         role="dialog"
         aria-modal="true"
         aria-label="Recents"
       >
-        {/* Header Container (315 Fill x 36 Hug equivalent) */}
-        <div className="flex items-center justify-between w-full min-h-[var(--btn-size-36)] pl-[var(--spacing-16)] pr-[var(--spacing-4)] shrink-0">
-          <h2 className="font-semibold text-[1.25rem] leading-[1.875rem] text-[var(--grey-1000)]">Recents</h2>
+        {/* Inner content wrapper: safe-area padding + flex layout */}
+        <div className="flex flex-col w-full h-full pt-[max(env(safe-area-inset-top),2.75rem)] pb-[max(env(safe-area-inset-bottom),2.125rem)]">
+          {/* 1. Header (Recents Title & Close Button) */}
+          <div className="w-full flex items-center justify-between min-h-[3.5rem] pl-[var(--spacing-16)] pr-1 shrink-0">
+            <h2 className="font-semibold text-[1.25rem] leading-[1.875rem] text-[var(--grey-1000)]">Recents</h2>
 
-          {/* Cross Button Container (36x36 Clickable) */}
-          <button
-            type="button"
-            onClick={() => setIsRecentsOpen(false)}
-            className="flex items-center justify-center w-[var(--btn-size-36)] h-[var(--btn-size-36)] shrink-0 text-[var(--grey-1000)] cursor-pointer touch-manipulation"
-          >
-            <span className="sr-only">Close</span>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Recents List Scrollable Container */}
-        <div className="flex-1 overflow-y-auto w-full mt-[var(--spacing-12)] pb-[var(--spacing-12)] flex flex-col gap-[var(--spacing-12)]">
-          {recentItems.map((item) => (
+            {/* Cross Button Container (36x36 Clickable) */}
             <button
-              key={item.id}
               type="button"
-              className="w-full flex items-center justify-between min-h-[2.5rem] py-2 px-[var(--spacing-16)] text-left active:bg-[var(--grey-100)] transition-colors duration-150 touch-manipulation"
+              onClick={() => setIsRecentsOpen(false)}
+              className="flex items-center justify-center w-[var(--btn-size-36)] h-[var(--btn-size-36)] shrink-0 text-[var(--grey-1000)] cursor-pointer touch-manipulation"
             >
-              <span className="font-normal text-sm leading-5 text-[var(--grey-1000)] truncate max-w-[75%]">
-                {item.title}
-              </span>
-              <span className="font-normal text-xs leading-[1.125rem] text-[var(--grey-500)] shrink-0">
-                {item.time}
-              </span>
+              <span className="sr-only">Close</span>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
-          ))}
+          </div>
+
+          {/* 2. Scrollable List */}
+          <div className="flex-1 overflow-y-auto w-full mt-[var(--spacing-12)] pb-[var(--spacing-12)] flex flex-col gap-[var(--spacing-12)]">
+            {recentItems.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className="w-full flex items-center justify-between min-h-[2.5rem] py-2 px-[var(--spacing-16)] text-left active:bg-[var(--grey-100)] transition-colors duration-150 touch-manipulation"
+              >
+                <span className="font-normal text-sm leading-5 text-[var(--grey-1000)] truncate max-w-[75%]">
+                  {item.title}
+                </span>
+                <span className="font-normal text-xs leading-[1.125rem] text-[var(--grey-500)] shrink-0">
+                  {item.time}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

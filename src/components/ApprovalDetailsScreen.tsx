@@ -14,11 +14,7 @@ const ApprovalDetailsScreen: React.FC<ApprovalDetailsScreenProps> = ({ onNavigat
   const isTruncated = fullDescription.length > truncatedLength;
   return (
     <div
-      className="w-full h-full flex flex-col justify-between bg-[var(--background)]"
-      style={{
-        paddingTop: "max(env(safe-area-inset-top), 24px)",
-        paddingBottom: "max(env(safe-area-inset-bottom), 24px)",
-      }}
+      className="w-full h-full flex flex-col justify-between bg-[var(--background)] pt-[max(env(safe-area-inset-top),2.75rem)] pb-[max(env(safe-area-inset-bottom),2.125rem)]"
     >
       <header className="px-6 py-4 flex flex-row items-center gap-4 flex-shrink-0">
         <button

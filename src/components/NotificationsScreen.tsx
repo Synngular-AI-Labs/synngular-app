@@ -2,97 +2,78 @@ import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import TabToggle from "./common/TabToggle";
 
-/* ── Layout Constants ─────────────────────────────────────────────── */
-const SAFE_AREA_BOTTOM = "max(env(safe-area-inset-bottom), 1.5rem)";
-
 /* ── Types ────────────────────────────────────────────────────────── */
 
 interface NotificationsScreenProps {
   onNavigate: (screen: string, payload?: Record<string, unknown>) => void;
 }
 
-/* ── Dummy Data ───────────────────────────────────────────────────── */
-
 interface NotificationItem {
-  id: string;
+  id: number;
   title: string;
-  subtitle: string;
   time: string;
+  category: string;
   isUnread: boolean;
 }
-
-const notificationItems: NotificationItem[] = [
-  {
-    id: "1",
-    title: "Agent completed task",
-    subtitle: "Revenue services — Leads qualification finished successfully.",
-    time: "2m ago",
-    isUnread: true,
-  },
-  {
-    id: "2",
-    title: "Approval required",
-    subtitle: "Grant access to confidential customer records.",
-    time: "5m ago",
-    isUnread: true,
-  },
-  {
-    id: "3",
-    title: "Output generated",
-    subtitle: "New document ready for review.",
-    time: "1h ago",
-    isUnread: false,
-  },
-  {
-    id: "4",
-    title: "Agent failed task",
-    subtitle: "Sales pipeline — API timeout during lead processing.",
-    time: "2h ago",
-    isUnread: false,
-  },
-  {
-    id: "5",
-    title: "New transcript available",
-    subtitle: "Call recording from Marketing Agent is ready.",
-    time: "3h ago",
-    isUnread: false,
-  },
-  {
-    id: "6",
-    title: "System update",
-    subtitle: "Synngular has been updated to the latest version.",
-    time: "1d ago",
-    isUnread: false,
-  },
-];
-
-const notificationTabs = [
-  { label: "All (6)", value: "all" },
-  { label: "Unread (2)", value: "unread" },
-];
 
 /* ── Component ────────────────────────────────────────────────────── */
 
 const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState("all");
 
-  const filteredItems =
+  const [notifications, setNotifications] = useState<NotificationItem[]>([
+    { id: 1, title: "New comment on your output", time: "2m ago", category: "Today", isUnread: true },
+    { id: 2, title: "New team member added", time: "15m ago", category: "Today", isUnread: true },
+    { id: 3, title: "Task archived", time: "1h ago", category: "Today", isUnread: false },
+    { id: 4, title: "Project deadline updated", time: "3h ago", category: "Today", isUnread: false },
+    { id: 5, title: "New comment on your output", time: "1d ago", category: "Yesterday", isUnread: true },
+    { id: 6, title: "New team member added", time: "1d ago", category: "Yesterday", isUnread: false },
+    { id: 7, title: "Task archived", time: "1d ago", category: "Yesterday", isUnread: false },
+    { id: 8, title: "Weekly report generated", time: "1d ago", category: "Yesterday", isUnread: true },
+    { id: 9, title: "System update scheduled", time: "2d ago", category: "2 days ago", isUnread: true },
+    { id: 10, title: "Invoice processed successfully", time: "2d ago", category: "2 days ago", isUnread: false },
+    { id: 11, title: "Meeting notes uploaded", time: "2d ago", category: "2 days ago", isUnread: false },
+    { id: 12, title: "Quarterly review document shared", time: "3d ago", category: "3 days ago", isUnread: false },
+    { id: 13, title: "Security alert: New login", time: "3d ago", category: "3 days ago", isUnread: false },
+    { id: 14, title: "Performance metrics available", time: "3d ago", category: "3 days ago", isUnread: false },
+    { id: 15, title: "New comment on your output", time: "1w ago", category: "1 week ago", isUnread: true },
+    { id: 16, title: "Policy document updated", time: "1w ago", category: "1 week ago", isUnread: false },
+    { id: 17, title: "Task archived", time: "1w ago", category: "1 week ago", isUnread: false },
+    { id: 18, title: "Onboarding completed", time: "1w ago", category: "1 week ago", isUnread: false },
+  ]);
+
+  const markAsRead = (id: number) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isUnread: false } : n))
+    );
+  };
+
+  const filteredNotifications =
     activeTab === "unread"
-      ? notificationItems.filter((item) => item.isUnread)
-      : notificationItems;
+      ? notifications.filter((n) => n.isUnread)
+      : notifications;
+
+  const groupedNotifications = filteredNotifications.reduce(
+    (acc, curr) => {
+      if (!acc[curr.category]) acc[curr.category] = [];
+      acc[curr.category].push(curr);
+      return acc;
+    },
+    {} as Record<string, NotificationItem[]>
+  );
+
+  const notificationTabs = [
+    { label: `All (${notifications.length})`, value: "all" },
+    { label: `Unread (${notifications.filter((n) => n.isUnread).length})`, value: "unread" },
+  ];
 
   return (
     <div
-      className="w-full h-full flex flex-col"
-      style={{
-        background: "var(--card, #ffffff)",
-        paddingBottom: SAFE_AREA_BOTTOM,
-      }}
+      className="w-full h-full flex flex-col bg-[var(--card,#ffffff)] pb-[max(env(safe-area-inset-bottom),2.125rem)]"
     >
       {/* ── Navigation Header (375x52) ── */}
       <div
-        className="w-full h-[3.25rem] flex items-center px-[var(--spacing-16)]"
-        style={{ paddingTop: "env(safe-area-inset-top)" }}
+        className="w-full min-h-[3.25rem] flex items-center px-[var(--spacing-16)] pt-[max(env(safe-area-inset-top),2.75rem)]"
       >
         <div className="flex items-center gap-1">
           {/* Back icon button (36x36 container, 16x16 icon) */}
@@ -121,47 +102,40 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onNavigate })
         />
       </div>
 
-      {/* ── Notification List ── */}
-      <div className="flex-1 overflow-y-auto px-[var(--spacing-16)] pb-[var(--spacing-12)]">
-        {filteredItems.length > 0 ? (
-          <div className="flex flex-col gap-4">
-            {filteredItems.map((item, index) => (
-              <div
-                key={item.id}
-                className={`flex flex-row items-start gap-3 py-3 ${
-                  index < filteredItems.length - 1
-                    ? "border-b"
-                    : ""
-                }`}
-                style={{
-                  borderColor: "var(--grey-100)",
-                }}
-              >
-                {/* Dot indicator for unread */}
-                <div className="mt-2 w-2 h-2 rounded-full flex-shrink-0" style={{
-                  backgroundColor: item.isUnread ? "var(--purple-1000)" : "transparent",
-                }} />
+      {/* ── Grouped Notification List ── */}
+      <div className="flex-1 overflow-y-auto pb-[var(--spacing-12)]">
+        {Object.entries(groupedNotifications).length > 0 ? (
+          Object.entries(groupedNotifications).map(([category, items]) => (
+            <div key={category}>
+              {/* Category Header */}
+              <h2 className="text-sm text-[var(--grey-500)] pt-4 pb-2 px-[var(--spacing-16)] font-normal">
+                {category}
+              </h2>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <p
-                    className={`text-body-14-m ${item.isUnread ? "text-[var(--grey-1000)]" : "text-[var(--grey-700)]"}`}
-                    style={{
-                      fontWeight: item.isUnread ? 600 : 400,
-                    }}
+              {/* Notification Items */}
+              <div className="w-full flex flex-col">
+                {items.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => markAsRead(item.id)}
+                    className="w-full flex justify-between items-center py-3 px-[var(--spacing-16)] border-b border-[var(--grey-200)] last:border-b-0 active:bg-[var(--grey-100)] transition-colors text-left touch-manipulation"
                   >
-                    {item.title}
-                  </p>
-                  <p className="text-captions-12 text-[var(--grey-700)] mt-0.5 line-clamp-2">
-                    {item.subtitle}
-                  </p>
-                  <span className="text-captions-12 text-[var(--grey-500)] mt-1 inline-block">
-                    {item.time}
-                  </span>
-                </div>
+                    <span
+                      className={`text-sm text-[var(--grey-1000)] truncate pr-4 ${
+                        item.isUnread ? "font-semibold" : "font-normal"
+                      }`}
+                    >
+                      {item.title}
+                    </span>
+                    <span className="text-xs text-[var(--grey-400)] shrink-0">
+                      {item.time}
+                    </span>
+                  </button>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))
         ) : (
           <div className="flex flex-col items-center justify-center py-12">
             <p className="text-body-14-m text-[var(--grey-500)]">
