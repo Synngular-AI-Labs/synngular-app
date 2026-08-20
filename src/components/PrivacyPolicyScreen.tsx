@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { X } from "lucide-react";
 
 interface PrivacyPolicyScreenProps {
@@ -7,17 +7,32 @@ interface PrivacyPolicyScreenProps {
 }
 
 const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, returnTo }) => {
+  const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (headerRef.current) {
+        const height = headerRef.current.getBoundingClientRect().height;
+        document.documentElement.style.setProperty("--header-height", height + "px");
+      }
+    };
+    updateHeaderHeight();
+    window.addEventListener("resize", updateHeaderHeight);
+    return () => window.removeEventListener("resize", updateHeaderHeight);
+  }, []);
+
   return (
     <div
       className="flex flex-col min-h-screen w-full"
       style={{
-        paddingTop: "calc(var(--spacing-base, 0.5rem) + env(safe-area-inset-top))",
-        paddingLeft: "calc(var(--spacing-horizontal, 1rem) + env(safe-area-inset-left))",
-        paddingRight: "calc(var(--spacing-horizontal, 1rem) + env(safe-area-inset-right))"
+        background: "var(--background)",
+        paddingLeft: "env(safe-area-inset-left)",
+        paddingRight: "env(safe-area-inset-right)"
       }}
     >
       <header
-        className="sticky top-0 z-10 w-full bg-background flex items-center justify-between px-4 sm:px-6 pb-2 sm:pb-3 border-b"
+        ref={headerRef}
+        className="sticky top-0 z-10 w-full flex items-center justify-between px-4 sm:px-6 pb-2 sm:pb-3 border-b backdrop-blur-sm"
         style={{
           paddingTop: "calc(var(--spacing-base, 1rem) + env(safe-area-inset-top))",
           background: "var(--background)",
@@ -39,17 +54,16 @@ const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, r
       </header>
 
       <div
-        className="flex-1 overflow-y-auto px-4 sm:px-6 pt-4 sm:pt-5"
+        className="flex-1 overflow-y-auto px-4 sm:px-6"
         style={{
-          paddingBottom: "calc(var(--spacing-base, 1.5rem) + env(safe-area-inset-bottom))",
-          paddingLeft: "calc(var(--spacing-horizontal, 1rem) + env(safe-area-inset-left))",
-          paddingRight: "calc(var(--spacing-horizontal, 1rem) + env(safe-area-inset-right))"
+          paddingTop: "var(--spacing-base, 1.25rem)",
+          paddingBottom: "calc(var(--spacing-base, 1.5rem) + env(safe-area-inset-bottom))"
         }}
       >
         <section className="mb-6">
           <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
             1. Our Commitment
-            </h2>
+          </h2>
           <p className="leading-7 text-sm sm:text-base" style={{ color: "var(--muted-foreground)" }}>
             At Synngular, we believe that privacy is a fundamental right. This Privacy Policy explains how we collect, use, protect, and share your personal information when you use our AI-powered backend development platform. We are committed to being transparent about our data practices and giving you control over your information.
           </p>
@@ -58,7 +72,7 @@ const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, r
         <section className="mb-6">
           <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
             2. Information We Collect
-            </h2>
+          </h2>
           <ul
             className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base"
             style={{ color: "var(--muted-foreground)" }}
@@ -73,7 +87,7 @@ const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, r
         <section className="mb-6">
           <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
             3. How We Use Your Information
-            </h2>
+          </h2>
           <ul
             className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base"
             style={{ color: "var(--muted-foreground)" }}
@@ -85,10 +99,11 @@ const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, r
             <li>Security: To protect our platform and users from fraud, abuse, and security threats.</li>
           </ul>
         </section>
+
         <section className="mb-6">
           <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
             4. Data Sharing and Disclosure
-            </h2>
+          </h2>
           <ul
             className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base"
             style={{ color: "var(--muted-foreground)" }}
@@ -100,10 +115,11 @@ const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, r
             <li>Anonymized Data: We may share aggregated, anonymized data for research, analytics, or industry insights.</li>
           </ul>
         </section>
+
         <section className="mb-6">
           <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
             5. Data Security
-            </h2>
+          </h2>
           <ul
             className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base"
             style={{ color: "var(--muted-foreground)" }}
@@ -115,10 +131,11 @@ const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, r
             <li>Incident Response: We have comprehensive incident response procedures in place to address any potential security breaches.</li>
           </ul>
         </section>
+
         <section className="mb-6">
           <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
             6. Your Rights and Choices
-            </h2>
+          </h2>
           <ul
             className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base"
             style={{ color: "var(--muted-foreground)" }}
@@ -131,10 +148,11 @@ const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, r
             <li>Account Controls: You can manage your privacy settings and data preferences through your account dashboard.</li>
           </ul>
         </section>
+
         <section className="mb-6">
           <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
             7. Cookies and Tracking
-            </h2>
+          </h2>
           <ul
             className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base"
             style={{ color: "var(--muted-foreground)" }}
@@ -146,10 +164,11 @@ const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, r
             <li>Third-party Tracking: We may use third-party analytics and tracking services, subject to their privacy policies.</li>
           </ul>
         </section>
+
         <section className="mb-6">
           <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
             8. Data Retention
-            </h2>
+          </h2>
           <ul
             className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base"
             style={{ color: "var(--muted-foreground)" }}
@@ -161,10 +180,11 @@ const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, r
             <li>Deletion Requests: Upon account deletion, we will remove your personal data within 30 days, except where retention is legally required.</li>
           </ul>
         </section>
+
         <section className="mb-6">
           <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
             9. International Data Transfers
-            </h2>
+          </h2>
           <ul
             className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base"
             style={{ color: "var(--muted-foreground)" }}
@@ -179,7 +199,7 @@ const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, r
         <section className="mb-6">
           <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
             10. Children's Privacy
-            </h2>
+          </h2>
           <ul
             className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base"
             style={{ color: "var(--muted-foreground)" }}
@@ -187,13 +207,13 @@ const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, r
             <li>Age Restrictions: Our services are not intended for individuals under the age of 13, and we do not knowingly collect personal information from children under 13.</li>
             <li>Parental Consent: If we become aware that we have collected personal information from a child under 13, we will take steps to delete such information.</li>
             <li>Teen Users: Users between 13 and 18 should have parental consent before using our services.</li>
-            </ul>
+          </ul>
         </section>
 
         <section className="mb-6">
           <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
             11. Changes to This Policy
-            </h2>
+          </h2>
           <ul
             className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base"
             style={{ color: "var(--muted-foreground)" }}
@@ -202,13 +222,13 @@ const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, r
             <li>Notification: We will notify users of material changes through email or prominent notices on our platform.</li>
             <li>Effective Date: Changes become effective on the date specified in the updated policy.</li>
             <li>Review Frequency: We recommend reviewing this policy periodically to stay informed about our privacy practices.</li>
-            </ul>
+          </ul>
         </section>
 
         <section className="mb-6">
           <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
             12. Third-Party Integrations and AI Providers
-            </h2>
+          </h2>
           <ul
             className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base"
             style={{ color: "var(--muted-foreground)" }}
@@ -218,21 +238,21 @@ const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, r
             <li>Bring Your Own LLM (BYO LLM): Synngular operates on a Bring Your Own LLM (BYO LLM) model. Users are responsible for configuring and connecting their preferred AI provider (such as OpenAI, Anthropic, Google, Azure OpenAI, or other supported providers). Synngular does not provide, host, own, or operate any Large Language Models.</li>
             <li>When a user chooses to connect an external LLM provider: Requests are transmitted only as necessary to fulfill the user's instructions. The collection, processing, storage, retention, and use of data by the selected LLM provider are governed exclusively by the agreement, privacy policy, and terms between the user and that provider. Synngular does not control or assume responsibility for how third-party LLM providers process or retain user data. Users are responsible for reviewing and accepting the privacy and data handling practices of their chosen LLM provider before enabling the integration.</li>
             <li>Data Responsibility: Synngular acts solely as the platform that facilitates communication between your configured AI agents, connected services, and your selected LLM provider. Except as required to deliver the requested functionality, Synngular does not process, retain, or repurpose connector data or AI requests for its own benefit, including for AI training, model improvement, or commercial analytics.</li>
-            </ul>
+          </ul>
         </section>
+
         <section className="mb-6">
           <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
             13. Questions About Your Privacy?
-            </h2>
+          </h2>
           <ul
             className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base"
             style={{ color: "var(--muted-foreground)" }}
           >
             <li>If you have any questions about this Privacy Policy or our data practices, please don't hesitate to contact us. We're here to help and ensure your privacy concerns are addressed.</li>
             <li>Contact us: privacy@synngular.com</li>
-            </ul>
+          </ul>
         </section>
-        
       </div>
     </div>
   );
