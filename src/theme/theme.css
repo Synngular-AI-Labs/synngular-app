@@ -52,6 +52,8 @@
     --btn-disabled-text: #aaaaaa;
 
     /* ── Grey Scale ── */
+    --grey-50: #FAFAFA;
+
     --grey-100: #FFFFFF;
     --grey-200: #F7F7F8;
     --grey-300: #ECECF1;
@@ -200,6 +202,8 @@
     --btn-disabled-text: #666666;
 
     /* ── Grey Scale ── */
+    --grey-50: #FAFAFA;
+
     --grey-100: #FFFFFF;
     --grey-200: #F7F7F8;
     --grey-300: #ECECF1;

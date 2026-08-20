@@ -6,6 +6,8 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "m3:default"
+    "m3:default",
+    "core:window:allow-set-decorations",
+    "core:webview:allow-set-webview-size"
   ]
 }

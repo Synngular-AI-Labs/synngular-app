@@ -29,6 +29,7 @@ const AppContent = () => {
   const [previousScreen, setPreviousScreen] = useState<DocumentScreen>("signin");
   const [userEmail, setUserEmail] = useState("");
   const [selectedOutput, setSelectedOutput] = useState<any | null>(null);
+  const [screenData, setScreenData] = useState<any>(null);
   const [transcriptPayload, setTranscriptPayload] = useState<Record<string, unknown> | null>(null);
 
   // Splash overlay state: sits on top of everything during startup
@@ -41,6 +42,9 @@ const AppContent = () => {
     }
     if (screen === "transcript" && payload) {
       setTranscriptPayload(payload);
+    }
+    if (payload) {
+      setScreenData(payload);
     }
     setCurrentScreen(screen);
   };
@@ -96,7 +100,7 @@ const AppContent = () => {
         <ApprovalsScreen onNavigate={handleNavigate} />
       )}
       {currentScreen === "approval-details" && (
-        <ApprovalDetailsScreen onNavigate={handleNavigate} />
+        <ApprovalDetailsScreen onNavigate={handleNavigate} approvalData={screenData} />
       )}
       {currentScreen === "transcript" && (
         <TranscriptScreen onNavigate={handleNavigate} payload={transcriptPayload} />

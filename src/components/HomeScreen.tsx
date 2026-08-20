@@ -12,7 +12,7 @@ import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 
-// ── Recents Dummy Data ──────────────────────────────────────────────────────
+// â”€â”€ Recents Dummy Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const recentItems = [
   { id: 1, title: "Contract analysis", time: "2m ago" },
   { id: 2, title: "Customer Support Ticket Summary...", time: "2m ago" },
@@ -47,7 +47,18 @@ const recentItems = [
 ];
 
 interface HomeScreenProps {
-  onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "outputs" | "approvals" | "notifications") => void;
+  onNavigate: (
+    screen:
+      | "signin"
+      | "verify"
+      | "terms"
+      | "privacy"
+      | "home"
+      | "agents"
+      | "outputs"
+      | "approvals"
+      | "notifications"
+  ) => void;
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
@@ -55,8 +66,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isRecentsOpen, setIsRecentsOpen] = useState(false);
- const [messages, setMessages] = useState
-  < {
+  const [messages, setMessages] = useState<
+    {
       id: string;
       text: string;
       isUser: boolean;
@@ -66,6 +77,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileUrlsRef = useRef<string[]>([]);
 
+  // Clean up object URLs on unmount
   useEffect(() => {
     return () => {
       fileUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
@@ -73,24 +85,26 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
     };
   }, []);
 
+  // Set Tauri status bar theme
   useEffect(() => {
-    const setStatusBarTheme = async () => {
+    const configureStatusBar = async () => {
       try {
         await M3.setBarColor("dark");
+        await M3.setStatusBarTranslucent(true);
       } catch (error) {
-        console.error("M3 status bar color error:", error);
+        console.error("M3 status bar error:", error);
       }
     };
-
-    setStatusBarTheme();
+    configureStatusBar();
   }, []);
 
-  // ── Visual Viewport API: detect mobile keyboard dynamically ──
+  // Detect mobile software keyboard via Visual Viewport API
   useEffect(() => {
     if (!window.visualViewport) return;
 
     const handleResize = () => {
-      const isKeyboardOpen = window.visualViewport.height < window.innerHeight * 0.85;
+      const isKeyboardOpen =
+        window.visualViewport!.height < window.innerHeight * 0.85;
       setIsTyping(isKeyboardOpen);
     };
 
@@ -98,7 +112,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
     handleResize();
 
     return () => {
-      window.visualViewport.removeEventListener("resize", handleResize);
+      window.visualViewport!.removeEventListener("resize", handleResize);
     };
   }, []);
 
@@ -108,11 +122,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
     const fileData = selectedFiles.map((file) => {
       const url = URL.createObjectURL(file);
       fileUrlsRef.current.push(url);
-      return {
-        url,
-        type: file.type,
-        name: file.name,
-      };
+      return { url, type: file.type, name: file.name };
     });
 
     setMessages((current) => [
@@ -129,10 +139,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
   };
 
   return (
+    /*
+     * Root shell:
+     * - Uses 100dvh so it fills the visual viewport on every device.
+     * - Padding respects safe-area insets for notches / home indicators.
+     * - overflow-hidden prevents any child from accidentally expanding past the viewport.
+     */
     <div
-      className="min-h-screen flex flex-col bg-[var(--background)] pt-[max(env(safe-area-inset-top),2.75rem)] pb-[max(env(safe-area-inset-bottom),2.125rem)]"
+      className="flex flex-col bg-[var(--background)] overflow-hidden"
+      style={{
+        height: "100dvh",
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
     >
-      {/* ── Header ── */}
+      {/* â”€â”€ Header â”€â”€ */}
       <header className="relative z-30 w-full px-6 py-4 flex flex-row items-center justify-between flex-shrink-0 bg-[var(--background)]">
         <button
           type="button"
@@ -159,28 +180,31 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
         </button>
       </header>
 
-      {/* ── Body ── */}
+      {/* â”€â”€ Body â”€â”€ */}
       {messages.length === 0 ? (
-        // ── Empty state ──
-        <div className="flex flex-col flex-1 w-full">
-
-          {/* Hero — grows to fill space and centers content */}
-          <main className="flex-1 flex flex-col items-center justify-center w-full px-6">
+        // â”€â”€ Empty / welcome state â”€â”€
+        <div className="flex flex-col flex-1 w-full min-h-0">
+          <main className="flex-1 flex flex-col items-center justify-center w-full px-6 min-h-0">
             <img
               src={logoAsset}
               alt="Logo"
               className="w-[10vw] aspect-[71/70.01] max-w-[100px] min-w-[72px] object-contain mx-auto mb-4"
             />
-            <h1 className="text-4xl font-semibold mb-2" style={{ color: "var(--foreground)" }}>
+            <h1
+              className="text-4xl font-semibold mb-2"
+              style={{ color: "var(--foreground)" }}
+            >
               Welcome back
             </h1>
-            <p className="text-lg font-medium" style={{ color: "var(--muted-foreground)" }}>
+            <p
+              className="text-lg font-medium"
+              style={{ color: "var(--muted-foreground)" }}
+            >
               What do you want to achieve, today?
             </p>
           </main>
 
-          {/* Input — mt-auto pushes it to the bottom */}
-          <div className="w-full mt-auto">
+          <div className="w-full mt-auto flex-shrink-0">
             <InputArea
               message={message}
               setMessage={setMessage}
@@ -188,12 +212,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
               setSelectedFiles={setSelectedFiles}
               fileInputRef={fileInputRef}
               handleSend={handleSend}
+              setIsTyping={setIsTyping}
             />
           </div>
         </div>
       ) : (
-        // ── Chat state ──
-        <div className="flex flex-col flex-1 w-full overflow-hidden">
+        // â”€â”€ Active chat state â”€â”€
+        <div className="flex flex-col flex-1 w-full min-h-0 overflow-hidden">
           <div className="flex-1 overflow-y-auto w-full px-6 py-4 flex flex-col gap-4">
             {messages.map((msg) => (
               <div
@@ -217,12 +242,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
                           key={`${file.name}-${index}`}
                           className="w-16 h-16 rounded bg-[var(--card)] flex flex-col items-center justify-center truncate p-1 text-[var(--foreground)]"
                         >
-                          📄
+                          ðŸ“„
                           <span className="mt-1 text-center truncate text-[0.5rem]">
                             {file.name}
                           </span>
                         </div>
-                      ),
+                      )
                     )}
                   </div>
                 )}
@@ -233,111 +258,178 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
             ))}
           </div>
 
-          <InputArea
-            message={message}
-            setMessage={setMessage}
-            selectedFiles={selectedFiles}
-            setSelectedFiles={setSelectedFiles}
-            fileInputRef={fileInputRef}
-            handleSend={handleSend}
-            setIsTyping={setIsTyping}
-          />
+          <div className="flex-shrink-0">
+            <InputArea
+              message={message}
+              setMessage={setMessage}
+              selectedFiles={selectedFiles}
+              setSelectedFiles={setSelectedFiles}
+              fileInputRef={fileInputRef}
+              handleSend={handleSend}
+              setIsTyping={setIsTyping}
+            />
+          </div>
         </div>
       )}
 
-      {/* ── Bottom Nav ── */}
+      {/* â”€â”€ Bottom Nav â”€â”€ */}
       {!isTyping && (
-      <nav
-        className="w-full flex flex-row items-center justify-between border-t border-[var(--grey-100)] bg-[var(--background)] pb-[max(env(safe-area-inset-bottom),2.125rem)]"
-      >
-        <div className="relative flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer">
-          <div className="absolute top-0 inset-x-0 h-px bg-[var(--purple-1000)]" />
-          <MessageSquareTextIcon size={24} style={{ color: "var(--purple-1000)" }} />
-          <span className="text-xs font-medium text-[var(--purple-1000)]">Chat</span>
-        </div>
+        <nav className="w-full flex flex-row items-center justify-between border-t border-[var(--grey-100)] bg-[var(--background)] flex-shrink-0">
+          {/* Active: Chat */}
+          <div className="relative flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer">
+            <div className="absolute top-0 inset-x-0 h-px bg-[var(--purple-1000)]" />
+            <MessageSquareTextIcon
+              size={24}
+              style={{ color: "var(--purple-1000)" }}
+            />
+            <span className="text-xs font-medium text-[var(--purple-1000)]">
+              Chat
+            </span>
+          </div>
 
-        <button
-          type="button"
-          onClick={() => onNavigate("agents")}
-          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
-        >
-          <Bot size={24} strokeWidth={1.5} style={{ color: "var(--grey-700)" }} />
-          <span className="text-xs font-medium text-[var(--grey-700)]">Agent</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => onNavigate("agents")}
+            className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
+          >
+            <Bot
+              size={24}
+              strokeWidth={1.5}
+              style={{ color: "var(--grey-700)" }}
+            />
+            <span className="text-xs font-medium text-[var(--grey-700)]">
+              Agent
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => onNavigate("outputs")}
-          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
-        >
-          <FileOutputIcon size={24} style={{ color: "var(--grey-700)" }} />
-          <span className="text-xs font-medium text-[var(--grey-700)]">Outputs</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => onNavigate("outputs")}
+            className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
+          >
+            <FileOutputIcon size={24} style={{ color: "var(--grey-700)" }} />
+            <span className="text-xs font-medium text-[var(--grey-700)]">
+              Outputs
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => onNavigate("approvals")}
-          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
-        >
-          <UserRoundCheckIcon size={24} style={{ color: "var(--grey-700)" }} />
-          <span className="text-xs font-medium text-[var(--grey-700)]">Approvals</span>
-        </button>
-      </nav>
+          <button
+            type="button"
+            onClick={() => onNavigate("approvals")}
+            className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
+          >
+            <UserRoundCheckIcon size={24} style={{ color: "var(--grey-700)" }} />
+            <span className="text-xs font-medium text-[var(--grey-700)]">
+              Approvals
+            </span>
+          </button>
+        </nav>
       )}
 
-      {/* ── Recents Panel: Backdrop Overlay ── */}
+      {/* â”€â”€ Backdrop Overlay â”€â”€ */}
       <div
-        onClick={() => setIsRecentsOpen(false)}
-        className={`fixed inset-0 z-40 bg-[var(--grey-500)] transition-opacity duration-300 ease-in-out ${
-          isRecentsOpen ? 'opacity-50 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        className={`fixed inset-0 z-40 bg-[var(--grey-500)] transition-opacity duration-300 ${
+          isRecentsOpen
+            ? "opacity-50 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
         }`}
-        role="presentation"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsRecentsOpen(false);
+        }}
       />
 
-      {/* ── Recents Panel: Left-to-Right Sliding Panel ── */}
+      {/*
+       * â”€â”€ Recents Side Panel â”€â”€
+       *
+       * KEY FIX: The panel is anchored with fixed positioning to the true
+       * viewport edges (top:0, left:0, height:100dvh).  It does NOT inherit
+       * the parent's safe-area padding, so it always fills edge-to-edge on
+       * every device size regardless of notch / home-indicator geometry.
+       *
+       * Internal padding is applied explicitly inside the panel so content
+       * is still clear of hardware-level safe zones.
+       */}
       <div
-        className={`fixed top-0 left-0 bottom-0 h-[100dvh] z-50 w-[calc(100vw-var(--panel-overlay-gap))] max-w-[var(--panel-max-w)] bg-white transition-transform duration-300 ease-in-out ${
-          isRecentsOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-        role="dialog"
         aria-modal="true"
+        role="dialog"
         aria-label="Recents"
+        className={`fixed top-0 left-0 z-50 h-[100dvh] bg-white transition-transform duration-300 ease-in-out ${
+          isRecentsOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        style={{
+          // Panel takes up all-but a configurable right gap so the user can
+          // tap the exposed backdrop to dismiss.  Uses CSS custom properties
+          // when defined, otherwise falls back to a sensible fixed value.
+          width:
+            "min(calc(100vw - var(--panel-overlay-gap, 3.5rem)), var(--panel-max-w, 20rem))",
+        }}
       >
-        {/* Inner content wrapper: safe-area padding + flex layout */}
-        <div className="flex flex-col w-full h-full pt-[max(env(safe-area-inset-top),2.75rem)] pb-[max(env(safe-area-inset-bottom),2.125rem)]">
-          {/* 1. Header (Recents Title & Close Button) */}
-          <div className="w-full flex items-center justify-between min-h-[3.5rem] pl-[var(--spacing-16)] pr-1 shrink-0">
-            <h2 className="font-semibold text-[1.25rem] leading-[1.875rem] text-[var(--grey-1000)]">Recents</h2>
-
-            {/* Cross Button Container (36x36 Clickable) */}
+        {/*
+         * Inner wrapper handles safe-area padding independently from the
+         * app shell.  pt accounts for status-bar / notch; pb accounts for
+         * home indicator.  Both use max() so there is always at least a
+         * comfortable minimum clearance.
+         */}
+        <div
+          className="flex flex-col w-full h-full"
+          style={{
+            paddingTop: "env(safe-area-inset-top)",
+            paddingBottom: "env(safe-area-inset-bottom)",
+          }}
+        >
+          {/* Panel Header */}
+          <div className="w-full flex items-center justify-between min-h-[3.5rem] px-4 flex-shrink-0">
+            <h2 className="font-semibold text-[1.25rem] leading-[1.875rem] text-[var(--grey-1000)]">
+              Recents
+            </h2>
             <button
               type="button"
-              onClick={() => setIsRecentsOpen(false)}
-              className="flex items-center justify-center w-[var(--btn-size-36)] h-[var(--btn-size-36)] shrink-0 text-[var(--grey-1000)] cursor-pointer touch-manipulation"
+              aria-label="Close recents"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsRecentsOpen(false);
+              }}
+              className="w-9 h-9 flex items-center justify-center shrink-0 active:bg-[var(--grey-100)] rounded-full transition-colors"
             >
-              <span className="sr-only">Close</span>
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path
+                  d="M13 1L1 13M1 1L13 13"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </button>
           </div>
 
-          {/* 2. Scrollable List */}
-          <div className="flex-1 overflow-y-auto w-full mt-[var(--spacing-12)] pb-[var(--spacing-12)] flex flex-col gap-[var(--spacing-12)]">
-            {recentItems.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className="w-full flex items-center justify-between min-h-[2.5rem] py-2 px-[var(--spacing-16)] text-left active:bg-[var(--grey-100)] transition-colors duration-150 touch-manipulation"
-              >
-                <span className="font-normal text-sm leading-5 text-[var(--grey-1000)] truncate max-w-[75%]">
-                  {item.title}
-                </span>
-                <span className="font-normal text-xs leading-[1.125rem] text-[var(--grey-500)] shrink-0">
-                  {item.time}
-                </span>
-              </button>
-            ))}
+          {/* Scrollable Recents List */}
+          <div className="flex-1 overflow-y-auto w-full">
+            <ul className="flex flex-col py-3">
+              {recentItems.map((item) => (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between min-h-[2.5rem] py-2 px-4 text-left active:bg-[var(--grey-100)] transition-colors duration-150 touch-manipulation"
+                  >
+                    <span className="font-normal text-sm leading-5 text-[var(--grey-1000)] truncate max-w-[75%]">
+                      {item.title}
+                    </span>
+                    <span className="font-normal text-xs leading-[1.125rem] text-[var(--grey-500)] shrink-0 ml-2">
+                      {item.time}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
@@ -345,7 +437,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
   );
 };
 
-// ── InputArea ──────────────────────────────────────────────────────────────
+// â”€â”€ InputArea â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface InputAreaProps {
   message: string;
   setMessage: React.Dispatch<React.SetStateAction<string>>;
@@ -366,6 +458,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   setIsTyping,
 }) => (
   <div className="w-full px-4 py-3 bg-[var(--background)] border-t border-[var(--grey-100)]">
+    {/* Hidden native file picker */}
     <input
       type="file"
       ref={fileInputRef}
@@ -373,37 +466,39 @@ const InputArea: React.FC<InputAreaProps> = ({
       multiple
       onChange={(e) => {
         if (e.target.files) {
-          const files = Array.from(e.target.files).slice(0, 10);
-          setSelectedFiles(files);
+          setSelectedFiles(Array.from(e.target.files).slice(0, 10));
         }
       }}
     />
 
+    {/* Staged file previews */}
     {selectedFiles.length > 0 && (
       <div className="flex flex-row gap-2 overflow-x-auto pb-2">
         {selectedFiles.map((file, index) => (
           <div
             key={`${file.name}-${index}`}
-            className="relative w-10 h-10 rounded bg-[var(--grey-100)] flex items-center justify-center p-1"
+            className="relative w-10 h-10 rounded bg-[var(--grey-100)] flex items-center justify-center p-1 flex-shrink-0"
           >
             <span className="text-[10px] text-[var(--foreground)] text-center truncate">
               {file.name}
             </span>
             <button
               type="button"
-              className="absolute top-0 right-0 text-[8px]"
-              style={{ color: "var(--foreground)" }}
+              aria-label={`Remove ${file.name}`}
+              className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[var(--grey-500)] text-white flex items-center justify-center text-[10px] leading-none"
               onClick={() =>
-                setSelectedFiles((current) => current.filter((_, i) => i !== index))
+                setSelectedFiles((current) =>
+                  current.filter((_, i) => i !== index)
+                )
               }
             >
-              ×
+              Ã—
             </button>
           </div>
         ))}
         <button
           type="button"
-          className="text-[10px] font-bold"
+          className="text-[10px] font-bold self-center flex-shrink-0"
           style={{ color: "var(--foreground)" }}
           onClick={() => setSelectedFiles([])}
         >
@@ -412,7 +507,8 @@ const InputArea: React.FC<InputAreaProps> = ({
       </div>
     )}
 
-    <div className="w-full px-4 mb-4 flex-shrink-0">
+    {/* Compose box */}
+    <div className="w-full mb-1">
       <div className="w-full min-h-24 border border-[var(--grey-300)] rounded-2xl bg-white flex flex-col justify-between p-3 shadow-sm">
         <textarea
           value={message}
@@ -420,6 +516,7 @@ const InputArea: React.FC<InputAreaProps> = ({
           onFocus={() => setIsTyping(true)}
           onBlur={() => setIsTyping(false)}
           placeholder="Type a message..."
+          rows={3}
           className="w-full flex-1 bg-transparent border-none outline-none text-sm text-[var(--foreground)] placeholder:text-[var(--grey-500)] resize-none"
         />
 
@@ -437,11 +534,15 @@ const InputArea: React.FC<InputAreaProps> = ({
             type="button"
             aria-label="Send message"
             className="p-1.5 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
-            onClick={() => { if (message.trim().length > 0) handleSend(); }}
+            onClick={() => {
+              if (message.trim().length > 0) handleSend();
+            }}
           >
             <Send
               className={`w-5 h-5 transition-colors duration-200 ${
-                message.trim().length > 0 ? "text-[var(--purple-1000)]" : "text-[var(--grey-500)]"
+                message.trim().length > 0
+                  ? "text-[var(--purple-1000)]"
+                  : "text-[var(--grey-500)]"
               }`}
             />
           </button>
