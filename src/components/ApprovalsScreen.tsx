@@ -189,7 +189,7 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate }) => {
     <div className="w-full h-[100dvh] flex flex-col bg-[var(--background)] overflow-hidden">
 
       {/* ── Header ── */}
-      <header className="flex-shrink-0 px-4 sm:px-6 pt-[max(env(safe-area-inset-top),2.75rem)] pb-3">
+      <header className="flex-shrink-0 px-[var(--spacing-16)] pt-[max(env(safe-area-inset-top),2.75rem)] pb-3">
         {!isSearchActive ? (
           <div className="flex flex-row justify-between items-center">
             <h1
@@ -231,7 +231,7 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate }) => {
       </header>
 
       {/* ── Tab Toggle ── */}
-      <div className="flex-shrink-0 flex justify-center px-4 sm:px-6 py-2">
+      <div className="flex-shrink-0 flex justify-center px-[var(--spacing-16)] py-2">
         <div className="flex flex-row items-center rounded-full p-1 bg-[var(--muted)]">
           <button
             type="button"
@@ -259,7 +259,7 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate }) => {
       </div>
 
       {/* ── Approvals List ── */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 min-h-0">
+      <div className="flex-1 overflow-y-auto px-[var(--spacing-16)] min-h-0">
         {filteredApprovals.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full">
             <p className="text-sm text-[var(--muted-foreground)]">

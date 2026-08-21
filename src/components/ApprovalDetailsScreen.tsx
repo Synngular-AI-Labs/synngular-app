@@ -1,6 +1,6 @@
 import { useState } from 'react';
+import { ArrowLeft, Bot, Check } from 'lucide-react';
 
-// ── Dynamic Data Interfaces ──
 export interface ApprovalOption {
   id: string | number;
   label: string;
@@ -17,18 +17,11 @@ export interface ApprovalData {
   title: string;
   description: string;
   type?: 'select' | 'text' | 'info';
-
-  // Backward compatibility for single group payloads
   selectionType?: 'single' | 'multiple';
   options?: ApprovalOption[];
-
-  // New grouped options payload
   optionGroups?: OptionGroup[];
-
-  // Text input payload
   textInputPlaceholder?: string;
   textInputMaxLength?: number;
-
   jobDescription: string;
   isUrgent?: boolean;
   agentName: string;
@@ -36,23 +29,7 @@ export interface ApprovalData {
 }
 
 interface ApprovalDetailsScreenProps {
-  onNavigate: (
-    screen:
-      | "signin"
-      | "verify"
-      | "terms"
-      | "privacy"
-      | "home"
-      | "agents"
-      | "agent-details"
-      | "outputs"
-      | "approvals"
-      | "approval-details"
-      | "transcript"
-      | "output-details"
-      | "notifications",
-    data?: any,
-  ) => void;
+  onNavigate: (screen: string, data?: any) => void;
   approvalData?: ApprovalData;
 }
 
@@ -92,6 +69,7 @@ export default function ApprovalDetailsScreen({
   const [optionInputs, setOptionInputs] = useState<Record<string | number, string>>({});
   const [mainTextInput, setMainTextInput] = useState('');
   const [showError, setShowError] = useState(false);
+  const [activeModal, setActiveModal] = useState<'none' | 'description' | 'job'>('none');
 
   const toggleOption = (groupIdx: number, optionId: string | number, isSingle: boolean) => {
     setShowError(false);
@@ -160,38 +138,30 @@ export default function ApprovalDetailsScreen({
     <div className="flex flex-col w-full h-[100dvh] bg-[var(--grey-50)]">
 
       {/* ── Header ── */}
-      <header className="sticky top-0 z-20 w-full bg-[var(--grey-50)] pt-[max(env(safe-area-inset-top),2.75rem)] pb-4 px-4 sm:px-6 flex items-center gap-4">
+      <header className="sticky top-0 z-20 w-full bg-[var(--grey-50)] pt-[max(env(safe-area-inset-top),2.75rem)] pb-4 px-[var(--spacing-16)] flex items-center gap-4">
         <button
           onClick={() => onNavigate('approvals')}
           className="w-9 h-9 flex items-center justify-center active:bg-[var(--grey-200)] rounded-full transition-colors"
           aria-label="Back"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
+          <ArrowLeft size={24} />
         </button>
         <h1 className="font-semibold text-lg text-[var(--grey-1000)]">Approvals</h1>
       </header>
 
       {/* ── Main Scrollable Area ── */}
-      <main className="flex-1 overflow-y-auto px-4 sm:px-6 flex flex-col min-h-0">
+      <main className="flex-1 overflow-y-auto px-[var(--spacing-16)] flex flex-col min-h-0">
 
         {/* Agent Info */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-white border border-[var(--grey-200)] rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--grey-600)]">
-              <rect x="3" y="11" width="18" height="10" rx="2" />
-              <circle cx="12" cy="5" r="2" />
-              <path d="M12 7v4" />
-              <line x1="8" y1="16" x2="8" y2="16" />
-              <line x1="16" y1="16" x2="16" y2="16" />
-            </svg>
+          <div className="w-10 h-10 rounded-xl bg-[var(--grey-200)] flex items-center justify-center shrink-0">
+            <Bot size={20} strokeWidth={1.5} className="text-[var(--grey-700)]" />
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-sm text-[var(--grey-1000)] truncate">
+            <span className="font-medium text-base leading-6 text-[var(--grey-1000)] truncate">
               {approvalData.agentName}
             </span>
-            <span className="text-xs text-[var(--grey-500)] truncate">
+            <span className="font-normal text-sm leading-[1.3125rem] text-[var(--grey-500)] truncate">
               {approvalData.agentTask}
             </span>
           </div>
@@ -204,13 +174,20 @@ export default function ApprovalDetailsScreen({
               Urgent
             </span>
           )}
-          <h2 className="font-semibold text-base leading-snug text-[var(--grey-1000)] mb-2">
+          <h2 className="font-medium text-base leading-6 text-[var(--grey-1000)] mb-2">
             {approvalData.title}
           </h2>
-          <p className="text-sm text-[var(--grey-600)] leading-relaxed mb-4 line-clamp-2">
-            {approvalData.description}
-            <button className="text-[var(--primary)] font-medium ml-1 underline">View more</button>
-          </p>
+          <div className="flex flex-col items-start gap-1 mb-4">
+            <p className="font-normal text-sm leading-[1.3125rem] text-[var(--grey-700)] line-clamp-2">
+              {approvalData.description}
+            </p>
+            <button
+              onClick={() => setActiveModal('description')}
+              className="font-normal text-sm leading-[1.3125rem] text-[var(--purple-1000)] underline active:opacity-70 touch-manipulation"
+            >
+              View more
+            </button>
+          </div>
 
           {/* DYNAMIC CONTENT BLOCK */}
           {displayType !== 'info' && (
@@ -222,7 +199,7 @@ export default function ApprovalDetailsScreen({
                   <h3 className="font-medium text-sm text-[var(--grey-1000)] mb-3">
                     Write your input
                   </h3>
-                  <div className="flex flex-col w-full relative">
+                  <div className="flex flex-col w-full">
                     <textarea
                       value={mainTextInput}
                       onChange={(e) => {
@@ -231,11 +208,11 @@ export default function ApprovalDetailsScreen({
                       }}
                       maxLength={approvalData.textInputMaxLength || 500}
                       placeholder={approvalData.textInputPlaceholder || 'Type here'}
-                      className="w-full min-h-[8rem] bg-[var(--grey-50)] border border-[var(--grey-200)] rounded-lg p-3 pb-8 text-sm text-[var(--grey-1000)] resize-none focus:outline-none focus:border-[var(--purple-1000)] transition-colors"
+                      className="w-full min-h-[8rem] bg-[var(--grey-50)] border border-[var(--grey-200)] rounded-lg p-3 text-sm text-[var(--grey-1000)] resize-none focus:outline-none focus:border-[var(--purple-1000)] transition-colors"
                     />
-                    <span className="absolute bottom-3 right-3 text-xs text-[var(--grey-400)]">
+                    <p className="w-full text-right text-xs text-[var(--grey-400)] mt-1">
                       {mainTextInput.length}/{approvalData.textInputMaxLength || 500}
-                    </span>
+                    </p>
                   </div>
                   {showError && (
                     <p className="text-[var(--error-600)] text-xs font-medium mt-2">
@@ -252,7 +229,7 @@ export default function ApprovalDetailsScreen({
                     const isSingle = group.selectionType === 'single';
                     return (
                       <div key={groupIdx} className="flex flex-col w-full">
-                        <h3 className="font-medium text-sm text-[var(--grey-1000)] mb-3">
+                        <h3 className="font-medium text-sm leading-[1.3125rem] text-[var(--grey-1000)] mb-3">
                           {group.heading || (isSingle ? 'Choose an option' : 'Choose options')}
                         </h3>
                         <div className="flex flex-col gap-3">
@@ -266,17 +243,26 @@ export default function ApprovalDetailsScreen({
                                   onClick={() => toggleOption(groupIdx, option.id, isSingle)}
                                   className="flex items-center gap-3 text-left touch-manipulation group w-full"
                                 >
-                                  <div className={`w-5 h-5 flex items-center justify-center shrink-0 transition-colors border ${isSingle ? 'rounded-full' : 'rounded-[4px]'} ${isSelected ? 'bg-[var(--purple-1000)] border-[var(--purple-1000)]' : 'border-[var(--grey-400)] group-active:bg-[var(--grey-100)]'}`}>
-                                    {isSelected && !isSingle && (
-                                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                        <polyline points="20 6 9 17 4 12" />
-                                      </svg>
-                                    )}
-                                    {isSelected && isSingle && (
-                                      <div className="w-2 h-2 bg-white rounded-full" />
-                                    )}
-                                  </div>
-                                  <span className="text-sm text-[var(--grey-800)]">
+                                  {isSingle ? (
+                                    isSelected ? (
+                                      <div className="w-5 h-5 shrink-0 rounded-full border-2 border-[var(--purple-1000)] flex items-center justify-center">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-[var(--purple-1000)]" />
+                                      </div>
+                                    ) : (
+                                      <div className="w-5 h-5 shrink-0 rounded-full border-2 border-[var(--grey-300)] bg-white" />
+                                    )
+                                  ) : (
+                                    <div className={`w-5 h-5 shrink-0 flex items-center justify-center transition-colors border rounded-[4px] ${
+                                      isSelected 
+                                        ? 'bg-[var(--purple-1000)] border-[var(--purple-1000)]' 
+                                        : 'border-[var(--grey-400)] group-active:bg-[var(--grey-100)]'
+                                    }`}>
+                                      {isSelected && (
+                                        <Check size={12} strokeWidth={3} className="text-white" />
+                                      )}
+                                    </div>
+                                  )}
+                                  <span className="font-normal text-sm leading-5 text-[var(--grey-1000)]">
                                     {option.label}
                                   </span>
                                 </button>
@@ -297,15 +283,18 @@ export default function ApprovalDetailsScreen({
                                       placeholder="Type here"
                                       className="w-full min-h-[4rem] bg-[var(--grey-50)] border border-[var(--grey-200)] rounded-lg p-3 text-sm text-[var(--grey-1000)] resize-none focus:outline-none focus:border-[var(--purple-1000)] transition-colors"
                                     />
-                                    <div className="w-full text-right text-xs text-[var(--grey-400)] mt-1">
+                                    <p className="w-full text-right text-xs text-[var(--grey-400)] mt-1">
                                       {(optionInputs[option.id] || '').length}/100
-                                    </div>
+                                    </p>
                                   </div>
                                 )}
                               </div>
                             );
                           })}
                         </div>
+                        {groupIdx < groups.length - 1 && (
+                          <div className="w-full h-px bg-[var(--grey-300)] mt-6" />
+                        )}
                       </div>
                     );
                   })}
@@ -321,21 +310,28 @@ export default function ApprovalDetailsScreen({
         </div>
 
         {/* Job Details Card */}
-        <div className="bg-white border border-[var(--grey-200)] rounded-xl p-5 mb-6 shadow-sm flex flex-col">
+        <div className="w-full bg-white border border-[var(--grey-200)] rounded-xl p-5 mb-6 shadow-sm flex flex-col">
           <h3 className="font-semibold text-base text-[var(--grey-1000)] mb-2">Job</h3>
-          <p className="text-sm text-[var(--grey-600)] leading-relaxed line-clamp-3">
-            {approvalData.jobDescription}
-            <button className="text-[var(--primary)] font-medium ml-1 underline">View more</button>
-          </p>
+          <div className="flex flex-col items-start gap-1">
+            <p className="font-normal text-sm leading-[1.3125rem] text-[var(--grey-700)] line-clamp-3">
+              {approvalData.jobDescription}
+            </p>
+            <button
+              onClick={() => setActiveModal('job')}
+              className="font-normal text-sm leading-[1.3125rem] text-[var(--purple-1000)] underline active:opacity-70 touch-manipulation"
+            >
+              View more
+            </button>
+          </div>
         </div>
       </main>
 
       {/* ── Dynamic Footer ── */}
-      <footer className="flex-shrink-0 w-full bg-white border-t border-[var(--grey-200)] px-4 sm:px-6 py-4 pb-[max(env(safe-area-inset-bottom),2.125rem)] flex gap-3 z-20">
+      <footer className="w-full bg-white border-t border-[var(--grey-200)] px-[var(--spacing-16)] py-4 pb-[max(env(safe-area-inset-bottom),2.125rem)] flex gap-3 z-20">
         {displayType === 'info' ? (
           <button
             onClick={handleApprove}
-            className="w-full h-12 rounded-xl bg-[var(--purple-1000)] text-white font-semibold text-sm flex items-center justify-center active:bg-[var(--purple-900)] transition-colors"
+            className="w-full h-[3rem] rounded-xl bg-[var(--purple-1000)] text-white font-semibold text-sm flex items-center justify-center active:bg-[var(--purple-900)] transition-colors"
           >
             Got It
           </button>
@@ -343,19 +339,40 @@ export default function ApprovalDetailsScreen({
           <>
             <button
               onClick={() => onNavigate('approvals')}
-              className="flex-1 h-12 rounded-xl border border-[var(--purple-1000)] text-[var(--purple-1000)] font-semibold text-sm flex items-center justify-center active:bg-[var(--purple-100)] transition-colors"
+              className="flex-1 h-[3rem] rounded-xl border border-[var(--purple-1000)] text-[var(--purple-1000)] font-semibold text-sm flex items-center justify-center active:bg-[var(--purple-100)] transition-colors"
             >
               Reject
             </button>
             <button
               onClick={handleApprove}
-              className="flex-1 h-12 rounded-xl bg-[var(--purple-1000)] text-white font-semibold text-sm flex items-center justify-center active:bg-[var(--purple-900)] transition-colors"
+              className="flex-1 h-[3rem] rounded-xl bg-[var(--purple-1000)] text-white font-semibold text-sm flex items-center justify-center active:bg-[var(--purple-900)] transition-colors"
             >
               Approve
             </button>
           </>
         )}
       </footer>
+
+      {/* ── Bottom Sheet Modal ── */}
+      <div
+        className={`fixed inset-0 z-40 bg-[var(--grey-500)] transition-opacity duration-300 ${activeModal !== 'none' ? "opacity-50 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        onClick={() => setActiveModal('none')}
+      />
+      <div
+        className={`fixed bottom-0 left-0 w-full z-50 bg-white rounded-t-[1.25rem] transition-transform duration-300 ease-in-out flex flex-col max-h-[85dvh] shadow-2xl ${activeModal !== 'none' ? "translate-y-0" : "translate-y-full"}`}
+      >
+        <div className="w-full flex justify-center pt-3 pb-4 touch-none" onClick={() => setActiveModal('none')}>
+          <div className="w-8 h-1 shrink-0 bg-[var(--grey-200)] rounded-full"></div>
+        </div>
+        <div className="flex-1 w-full overflow-y-auto px-[var(--spacing-16)] pb-[max(env(safe-area-inset-bottom),2.125rem)] flex flex-col">
+          <h2 className="font-semibold text-base leading-6 text-[var(--grey-1000)] mb-3 break-words">
+            {activeModal === 'description' ? approvalData.title : 'Job'}
+          </h2>
+          <p className="text-sm leading-[1.3125rem] text-[var(--grey-600)] whitespace-pre-wrap break-words">
+            {activeModal === 'description' ? approvalData.description : approvalData.jobDescription}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
