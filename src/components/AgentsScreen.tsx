@@ -8,6 +8,7 @@ import FilterBottomSheet from "./FilterBottomSheet";
 
 interface AgentsScreenProps {
   onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals") => void;
+  isKeyboardOpen: boolean;
 }
 
 const agents = [
@@ -20,7 +21,7 @@ const agents = [
   { initials: "DG", title: "Design guide", subtitle: "Creative strategy", time: "2mon ago" },
 ];
 
-const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate }) => {
+const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'favourites'>('all');
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,7 +93,7 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate }) => {
         </button>
       </div>
 
-      <div className="flex-grow overflow-y-auto px-6 mt-4">
+      <div className="flex-grow overflow-y-auto px-6 mt-4 pb-[calc(4rem+max(env(safe-area-inset-bottom),1.25rem))]">
         {filteredAgents.map((agent) => (
           <button
             key={agent.title}
@@ -124,7 +125,7 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate }) => {
       />
 
       <nav
-        className="w-full flex flex-row items-center justify-between border-t border-[var(--grey-100)] bg-[var(--background)] pb-[max(env(safe-area-inset-bottom),2.125rem)]"
+        className={`fixed bottom-0 left-0 w-full bg-white border-t border-[var(--grey-200)] z-40 pt-3 pb-[max(env(safe-area-inset-bottom),1.25rem)] px-6 flex justify-between items-center transition-transform duration-200 ${isKeyboardOpen ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
       >
         <button
           type="button"

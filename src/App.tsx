@@ -48,6 +48,25 @@ const AppContent = () => {
   const [splashVisible, setSplashVisible] = useState(true);
   const [splashFading, setSplashFading] = useState(false);
 
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    const handleFocus = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') setIsKeyboardOpen(true);
+    };
+    const handleBlur = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') setIsKeyboardOpen(false);
+    };
+    document.addEventListener('focusin', handleFocus);
+    document.addEventListener('focusout', handleBlur);
+    return () => {
+      document.removeEventListener('focusin', handleFocus);
+      document.removeEventListener('focusout', handleBlur);
+    };
+  }, []);
+
   const handleNavigate = (screen: Screen, payload?: any) => {
     if (
       currentScreen === "signin" ||
@@ -78,7 +97,9 @@ const AppContent = () => {
   }, []);
 
   return (
-    <>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", overflow: "hidden" }}>
+      <div id="safe-area-top" />
+      <div id="safe-area-bottom" />
       {currentScreen === "signin" && (
         <SignInScreen
           onNavigateToVerify={() => handleNavigate("verify")}
@@ -97,10 +118,10 @@ const AppContent = () => {
         <PrivacyPolicyScreen onNavigate={handleNavigate} returnTo={previousScreen} />
       )}
       {currentScreen === "home" && (
-        <HomeScreen onNavigate={handleNavigate} />
+        <HomeScreen onNavigate={handleNavigate} isKeyboardOpen={isKeyboardOpen} />
       )}
       {currentScreen === "agents" && (
-        <AgentsScreen onNavigate={handleNavigate} />
+        <AgentsScreen onNavigate={handleNavigate} isKeyboardOpen={isKeyboardOpen} />
       )}
       {currentScreen === "agent-details" && (
         <AgentDetailsScreen onNavigate={handleNavigate} />
@@ -112,6 +133,7 @@ const AppContent = () => {
             setSelectedOutput(o);
             setCurrentScreen("output-details");
           }}
+          isKeyboardOpen={isKeyboardOpen}
         />
       )}
       {currentScreen === "output-details" && (
@@ -121,7 +143,7 @@ const AppContent = () => {
         />
       )}
       {currentScreen === "approvals" && (
-        <ApprovalsScreen onNavigate={handleNavigate} />
+        <ApprovalsScreen onNavigate={handleNavigate} isKeyboardOpen={isKeyboardOpen} />
       )}
       {currentScreen === "approval-details" && (
         <ApprovalDetailsScreen
@@ -137,7 +159,7 @@ const AppContent = () => {
       )}
 
       {splashVisible && <SplashScreen isFading={splashFading} />}
-    </>
+    </div>
   );
 };
 

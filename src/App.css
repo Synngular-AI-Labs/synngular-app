@@ -20,6 +20,7 @@ body,
   padding: 0;
   height: 100%;
   width: 100%;
+  overflow: hidden;
 }
 
 html,
@@ -248,3 +249,26 @@ body,
     @apply font-sans;
   }
 }
+
+/* ── Safe Area Bars ── */
+#safe-area-top,
+#safe-area-bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+#safe-area-top {
+  top: 0;
+  height: env(safe-area-inset-top, 0px);
+  background-color: inherit;
+}
+
+#safe-area-bottom {
+  bottom: 0;
+  height: env(safe-area-inset-bottom, 0px);
+  background-color: inherit;
+}
+

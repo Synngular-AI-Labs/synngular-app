@@ -16,6 +16,7 @@ interface OutputItem {
 interface OutputsScreenProps {
   onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals") => void;
   setSelectedOutput?: (output: OutputItem) => void;
+  isKeyboardOpen: boolean;
 }
 
 const outputs: OutputItem[] = [
@@ -45,7 +46,7 @@ const outputs: OutputItem[] = [
   },
 ];
 
-const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOutput }) => {
+const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOutput, isKeyboardOpen }) => {
   const [activeFilter, setActiveFilter] = useState("All");
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -119,7 +120,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
         ))}
       </div>
 
-      <div className="flex-grow overflow-y-auto px-6 mt-2 flex flex-col gap-6">
+      <div className="flex-grow overflow-y-auto px-6 mt-2 pb-[calc(4rem+max(env(safe-area-inset-bottom),1.25rem))] flex flex-col gap-6">
         {filteredOutputs.map((output) => {
           let Icon;
           let iconColor;
@@ -181,7 +182,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
       />
 
       <nav
-        className="w-full flex flex-row items-center justify-between border-t border-[var(--grey-100)] bg-[var(--background)] pb-[max(env(safe-area-inset-bottom),2.125rem)]"
+        className={`fixed bottom-0 left-0 w-full bg-white border-t border-[var(--grey-200)] z-40 pt-3 pb-[max(env(safe-area-inset-bottom),1.25rem)] px-6 flex justify-between items-center transition-transform duration-200 ${isKeyboardOpen ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
       >
         <button
           type="button"

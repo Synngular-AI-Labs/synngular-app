@@ -59,9 +59,10 @@ interface HomeScreenProps {
       | "approvals"
       | "notifications"
   ) => void;
+  isKeyboardOpen: boolean;
 }
 
-const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
+const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) => {
   const [message, setMessage] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -184,7 +185,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
       {messages.length === 0 ? (
         // â”€â”€ Empty / welcome state â”€â”€
         <div className="flex flex-col flex-1 w-full min-h-0">
-          <main className="flex-1 flex flex-col items-center justify-center w-full px-6 min-h-0">
+          <main className="flex-1 flex flex-col items-center justify-center w-full px-6 pb-[calc(4rem+max(env(safe-area-inset-bottom),1.25rem))] min-h-0">
             <img
               src={logoAsset}
               alt="Logo"
@@ -219,7 +220,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
       ) : (
         // â”€â”€ Active chat state â”€â”€
         <div className="flex flex-col flex-1 w-full min-h-0 overflow-hidden">
-          <div className="flex-1 overflow-y-auto w-full px-6 py-4 flex flex-col gap-4">
+          <div className="flex-1 overflow-y-auto w-full px-6 py-4 pb-[calc(4rem+max(env(safe-area-inset-bottom),1.25rem))] flex flex-col gap-4">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -274,7 +275,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
 
       {/* â”€â”€ Bottom Nav â”€â”€ */}
       {!isTyping && (
-        <nav className="w-full flex flex-row items-center justify-between border-t border-[var(--grey-100)] bg-[var(--background)] flex-shrink-0">
+        <nav className={`fixed bottom-0 left-0 w-full bg-white border-t border-[var(--grey-200)] z-40 pt-3 pb-[max(env(safe-area-inset-bottom),1.25rem)] px-6 flex justify-between items-center transition-transform duration-200 ${isKeyboardOpen ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
           {/* Active: Chat */}
           <div className="relative flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer">
             <div className="absolute top-0 inset-x-0 h-px bg-[var(--purple-1000)]" />

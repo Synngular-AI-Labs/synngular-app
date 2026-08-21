@@ -25,6 +25,7 @@ interface ApprovalsScreenProps {
       | "notifications",
     data?: any,
   ) => void;
+  isKeyboardOpen: boolean;
 }
 
 const approvals: Array<{
@@ -167,7 +168,7 @@ const approvals: Array<{
   },
 ];
 
-const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate }) => {
+const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate, isKeyboardOpen }) => {
   const [activeTab, setActiveTab] = useState<"all" | "urgent">("all");
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -259,7 +260,7 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate }) => {
       </div>
 
       {/* ── Approvals List ── */}
-      <div className="flex-1 overflow-y-auto px-[var(--spacing-16)] min-h-0">
+      <div className="flex-1 overflow-y-auto px-[var(--spacing-16)] pb-[calc(4rem+max(env(safe-area-inset-bottom),1.25rem))] min-h-0">
         {filteredApprovals.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full">
             <p className="text-sm text-[var(--muted-foreground)]">
@@ -321,7 +322,7 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate }) => {
       />
 
       {/* ── Bottom Navigation ── */}
-      <nav className="flex-shrink-0 w-full flex flex-row items-center justify-between border-t border-[var(--grey-100)] bg-[var(--background)] pb-[max(env(safe-area-inset-bottom),2.125rem)]">
+      <nav className={`fixed bottom-0 left-0 w-full bg-white border-t border-[var(--grey-200)] z-40 pt-3 pb-[max(env(safe-area-inset-bottom),1.25rem)] px-6 flex justify-between items-center transition-transform duration-200 ${isKeyboardOpen ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
         <button
           type="button"
           onClick={() => onNavigate("home")}
