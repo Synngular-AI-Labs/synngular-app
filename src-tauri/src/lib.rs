@@ -1,4 +1,3 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
@@ -16,11 +15,8 @@ pub fn run() {
                 app.get_webview_window("main")
                     .unwrap()
                     .with_webview(|webview| {
-                        #[cfg(target_os = "android")]
-                        {
-                            use jni::objects::JValue;
-                            let env = webview.env();
-                            let activity = webview.activity();
+                        use jni::objects::JValue;
+                        webview.jni_handle().exec(|env, activity, _webview| {
                             env.call_method(
                                 activity,
                                 "getWindow",
@@ -36,7 +32,7 @@ pub fn run() {
                                 )
                             })
                             .ok();
-                        }
+                        });
                     })
                     .ok();
             }

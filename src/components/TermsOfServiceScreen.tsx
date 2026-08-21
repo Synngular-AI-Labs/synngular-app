@@ -1,5 +1,4 @@
-import React, { useRef, useEffect } from "react";
-import { X } from "lucide-react";
+import React from "react";
 
 interface TermsOfServiceScreenProps {
   onNavigate: (screen: "signin" | "verify" | "terms" | "privacy") => void;
@@ -7,250 +6,215 @@ interface TermsOfServiceScreenProps {
 }
 
 const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({ onNavigate, returnTo }) => {
-  const headerRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const updateHeaderHeight = () => {
-      if (headerRef.current) {
-        const height = headerRef.current.getBoundingClientRect().height;
-        document.documentElement.style.setProperty("--header-height", height + "px");
-      }
-    };
-    updateHeaderHeight();
-    window.addEventListener("resize", updateHeaderHeight);
-    return () => window.removeEventListener("resize", updateHeaderHeight);
-  }, []);
-
   return (
-    <>
-      {/* Bug fix: inject global styles so html/body/#root never expose browser-default white
-          behind safe-area zones. All values use CSS variables â€” no hardcoded colours. */}
-      <style>{`
-        html, body, #root {
-          background: var(--background);
-        }
-      `}</style>
-
-      <div
-        className="flex flex-col min-h-screen w-full"
+    <div
+      className="flex flex-col min-h-screen w-full"
+      style={{
+        background: "var(--background)",
+        paddingLeft: "env(safe-area-inset-left)",
+        paddingRight: "env(safe-area-inset-right)"
+      }}
+    >
+      <header
+        className="sticky top-0 z-10 w-full h-[3.25rem] flex items-center px-4 sm:px-6 border-b backdrop-blur-sm"
         style={{
-          /* Bug fix: outer wrapper now carries the theme background so the
-             safe-area zone at the top is never transparent over browser white. */
+          paddingTop: "calc(var(--spacing-base, 0.5rem) + env(safe-area-inset-top))",
+          paddingBottom: "calc(var(--spacing-base, 0.5rem) + env(safe-area-inset-top))",
           background: "var(--background)",
-          paddingLeft: "calc(var(--spacing-horizontal, 1rem) + env(safe-area-inset-left))",
-          paddingRight: "calc(var(--spacing-horizontal, 1rem) + env(safe-area-inset-right))"
+          borderColor: "var(--border)"
         }}
       >
-        <header
-          ref={headerRef}
-          className="sticky top-0 z-10 w-full flex items-center justify-between px-4 sm:px-6 pb-2 sm:pb-3 border-b backdrop-blur-sm"
-          style={{
-            /* The sticky header owns the top safe-area padding entirely. */
-            paddingTop: "calc(var(--spacing-base, 1rem) + env(safe-area-inset-top))",
-            background: "var(--background)",
-            borderColor: "var(--border)"
-          }}
+        <h1 className="text-[20px] leading-[30px] font-semibold flex-1" style={{ color: "var(--foreground)" }}>
+          Terms of Service
+        </h1>
+        <button
+          type="button"
+          onClick={() => onNavigate(returnTo)}
+          className="inline-flex items-center justify-center rounded-full w-8 h-8 flex-shrink-0"
+          style={{ color: "var(--foreground)" }}
+          aria-label="Close terms of service"
         >
-          <h1 className="text-lg font-bold" style={{ color: "var(--foreground)" }}>
-            Terms of Service
-          </h1>
-          <button
-            type="button"
-            onClick={() => onNavigate(returnTo)}
-            className="inline-flex items-center justify-center rounded-md p-2"
-            style={{ color: "var(--foreground)" }}
-            aria-label="Close terms of service"
-          >
-            <X size={20} />
-          </button>
-        </header>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </header>
 
-        <div
-          className="flex-1 overflow-y-auto"
-          style={{
-            /* Bug fix: paddingTop removed from here. The sticky header already
-               accounts for the top safe-area. Adding it again created a visible
-               double-padding gap between the header and the content. */
-            paddingBottom: "calc(var(--spacing-base, 1.5rem) + env(safe-area-inset-bottom))",
-            paddingLeft: "calc(var(--spacing-horizontal, 1rem) + env(safe-area-inset-left))",
-            paddingRight: "calc(var(--spacing-horizontal, 1rem) + env(safe-area-inset-right))"
-          }}
-        >
-          <section className="mb-6">
-            <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
-              1. Agreement Overview
-            </h2>
-            <p className="leading-7 text-sm sm:text-base" style={{ color: "var(--muted-foreground)" }}>
-              These Terms and Conditions ("Terms") govern your use of Synngular's AI-powered backend development platform and services. By using our platform, you agree to comply with and be bound by these terms. Please read them carefully as they contain important information about your rights and obligations.
-            </p>
-          </section>
+      <div
+        className="flex-1 overflow-y-auto px-4 sm:px-6"
+        style={{
+          paddingTop: "var(--spacing-base, 1.25rem)",
+          paddingBottom: "calc(var(--spacing-base, 1.5rem) + env(safe-area-inset-bottom))"
+        }}
+      >
+        <section className="mb-6">
+          <h2 className="mb-2 text-[16px] leading-[24px] font-semibold" style={{ color: "var(--foreground)" }}>
+            1. Agreement Overview
+          </h2>
+          <p className="text-[14px] leading-[21px]" style={{ color: "var(--muted-foreground)" }}>
+            By accessing or using the Synngular platform, you agree to be bound by these Terms of Service. These terms govern your use of our AI-powered backend development platform and its related services. Please read them carefully. If you do not agree with any part of these terms, you must not use our services.
+          </p>
+        </section>
 
-          <section className="mb-6">
-            <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
-              2. Acceptance of Terms
-            </h2>
-            <ul className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base" style={{ color: "var(--muted-foreground)" }}>
-              <li>By accessing and using Synngular's AI-powered backend development platform, you accept and agree to be bound by the terms and provision of this agreement.</li>
-              <li>If you do not agree to abide by the above, please do not use this service.</li>
-              <li>These Terms of Service may be updated by us from time to time without notice to you.</li>
-              <li>Your continued use of the platform following any changes indicates your acceptance of the new terms.</li>
-            </ul>
-          </section>
+        <section className="mb-6">
+          <h2 className="mb-2 text-[16px] leading-[24px] font-semibold" style={{ color: "var(--foreground)" }}>
+            2. Acceptable Use
+          </h2>
+          <ul className="list-disc pl-5 space-y-2 text-[14px] leading-[21px]" style={{ color: "var(--muted-foreground)" }}>
+            <li>You agree to use our platform only for lawful purposes and in accordance with these terms.</li>
+            <li>You must not use our services to generate, distribute, or facilitate illegal content, harmful code, or unauthorized access to systems.</li>
+            <li>You are responsible for ensuring your AI-generated code meets applicable legal, security, and quality standards.</li>
+            <li>You must not attempt to reverse engineer, decompile, or extract source code from our platform.</li>
+            <li>You agree not to use automated tools or scripts to access our platform in ways that exceed the stated usage limits.</li>
+          </ul>
+        </section>
 
-          <section className="mb-6">
-            <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
-              3. Service Description
-            </h2>
-            <ul className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base" style={{ color: "var(--muted-foreground)" }}>
-              <li>Synngular provides an AI-powered platform for automated backend development, including but not limited to code generation, testing, deployment, and monitoring services.</li>
-              <li>Our AI agents assist in building, maintaining, and scaling backend systems according to user specifications.</li>
-              <li>The platform includes features for project management, code collaboration, and automated DevOps processes.</li>
-              <li>We reserve the right to modify, suspend, or discontinue any part of our service at any time with reasonable notice.</li>
-            </ul>
-          </section>
+        <section className="mb-6">
+          <h2 className="mb-2 text-[16px] leading-[24px] font-semibold" style={{ color: "var(--foreground)" }}>
+            3. User Accounts and Security
+          </h2>
+          <ul className="list-disc pl-5 space-y-2 text-[14px] leading-[21px]" style={{ color: "var(--muted-foreground)" }}>
+            <li>You must create an account to access certain features of our platform. You are responsible for maintaining the confidentiality of your account credentials.</li>
+            <li>You agree to notify us immediately of any unauthorized access or security breach.</li>
+            <li>We reserve the right to suspend or terminate accounts that violate these terms or engage in suspicious activity.</li>
+            <li>You may not share your account credentials or allow others to access your account.</li>
+            <li>You are responsible for all activities that occur under your account.</li>
+          </ul>
+        </section>
 
-          <section className="mb-6">
-            <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
-              4. User Accounts and Responsibilities
-            </h2>
-            <ul className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base" style={{ color: "var(--muted-foreground)" }}>
-              <li>You must create an account to access certain features of our platform. You are responsible for maintaining the confidentiality of your account credentials.</li>
-              <li>You agree to provide accurate, current, and complete information during the registration process and to update such information as necessary.</li>
-              <li>You are responsible for all activities that occur under your account and for ensuring that your use of the service complies with all applicable laws and regulations.</li>
-              <li>You must notify us immediately of any unauthorized use of your account or any other breach of security.</li>
-              <li>We reserve the right to suspend or terminate accounts that violate these terms or engage in suspicious or harmful activities.</li>
-            </ul>
-          </section>
+        <section className="mb-6">
+          <h2 className="mb-2 text-[16px] leading-[24px] font-semibold" style={{ color: "var(--foreground)" }}>
+            4. Intellectual Property Rights
+          </h2>
+          <ul className="list-disc pl-5 space-y-2 text-[14px] leading-[21px]" style={{ color: "var(--muted-foreground)" }}>
+            <li>Our platform, including its design, text, graphics, logos, and software, is protected by intellectual property laws.</li>
+            <li>You retain ownership of the code and projects you create using our platform, subject to your chosen open-source licenses.</li>
+            <li>We grant you a limited, non-exclusive, non-transferable license to use our platform for your development needs.</li>
+            <li>You may not reproduce, modify, or distribute our proprietary tools, templates, or platform components without explicit permission.</li>
+            <li>You agree to respect the intellectual property rights of others and not infringe on third-party rights through your use of our services.</li>
+          </ul>
+        </section>
+        <section className="mb-6">
+          <h2 className="mb-2 text-[16px] leading-[24px] font-semibold" style={{ color: "var(--foreground)" }}>
+            5. Service Availability and Modifications
+          </h2>
+          <ul className="list-disc pl-5 space-y-2 text-[14px] leading-[21px]" style={{ color: "var(--muted-foreground)" }}>
+            <li>We aim to provide reliable access to our platform but do not guarantee uninterrupted or error-free service.</li>
+            <li>We may modify, suspend, or discontinue parts of our service with or without notice to maintain, upgrade, or improve our platform.</li>
+            <li>We reserve the right to update these terms at any time. Continued use of our services constitutes acceptance of modified terms.</li>
+            <li>We will notify users of significant changes through email or platform announcements.</li>
+          </ul>
+        </section>
 
-          <section className="mb-6">
-            <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
-              5. Acceptable Use Policy
-            </h2>
-            <ul className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base" style={{ color: "var(--muted-foreground)" }}>
-              <li>You agree not to use our platform for any unlawful purpose or in any way that could damage, disable, or impair our services.</li>
-              <li>Prohibited activities include but are not limited to: generating malicious code, attempting to hack or breach security systems, or violating intellectual property rights.</li>
-              <li>You may not use our service to create content that is harmful, threatening, abusive, defamatory, or otherwise objectionable.</li>
-              <li>Reverse engineering, decompiling, or attempting to extract our proprietary algorithms or AI models is strictly prohibited.</li>
-              <li>You agree not to interfere with or disrupt our services or servers connected to our platform.</li>
-            </ul>
-          </section>
+        <section className="mb-6">
+          <h2 className="mb-2 text-[16px] leading-[24px] font-semibold" style={{ color: "var(--foreground)" }}>
+            6. AI-Generated Content and Responsibility
+          </h2>
+          <ul className="list-disc pl-5 space-y-2 text-[14px] leading-[21px]" style={{ color: "var(--muted-foreground)" }}>
+            <li>You are solely responsible for reviewing, testing, and validating any AI-generated code before deploying it to production.</li>
+            <li>Our AI agents may generate code that contains errors, vulnerabilities, or performance issues. You must ensure generated code meets your project's quality standards.</li>
+            <li>You are responsible for obtaining necessary licenses, permissions, and compliance approvals for your AI-generated content.</li>
+            <li>You agree not to use our AI services to generate content that violates intellectual property rights, privacy laws, or applicable regulations.</li>
+            <li>You maintain full responsibility for the legal compliance and ethical use of AI-generated code in your projects.</li>
+          </ul>
+        </section>
 
-          <section className="mb-6">
-            <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
-              6. Intellectual Property Rights
-            </h2>
-            <ul className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base" style={{ color: "var(--muted-foreground)" }}>
-              <li>Synngular owns all intellectual property rights in our platform, including our AI models, algorithms, software, and proprietary technologies.</li>
-              <li>You retain ownership of the code and projects you create using our platform, subject to our license to provide the service.</li>
-              <li>By using our service, you grant us a license to use, process, and analyze your project data to improve our AI models and services (in anonymized form).</li>
-              <li>You represent and warrant that you have all necessary rights to any content, code, or data you upload to our platform.</li>
-              <li>We respect intellectual property rights and will respond to valid DMCA takedown notices.</li>
-            </ul>
-          </section>
+        <section className="mb-6">
+          <h2 className="mb-2 text-[16px] leading-[24px] font-semibold" style={{ color: "var(--foreground)" }}>
+            7. Third-Party Integrations and AI Providers
+          </h2>
+          <ul className="list-disc pl-5 space-y-2 text-[14px] leading-[21px]" style={{ color: "var(--muted-foreground)" }}>
+            <li>Our platform integrates with third-party services and allows you to connect your own LLM providers for AI agent functionality.</li>
+            <li>Your use of third-party integrations is subject to the terms and conditions of those respective providers.</li>
+            <li>We are not responsible for the availability, accuracy, or security of third-party services you connect to our platform.</li>
+            <li>Bring Your Own LLM (BYO LLM): Users are responsible for configuring and connecting their preferred AI provider. Synngular does not provide, host, own, or operate any Large Language Models.</li>
+            <li>Data transmitted to your connected LLM provider is subject to that provider's terms, privacy policy, and data handling practices.</li>
+          </ul>
+        </section>
 
-          <section className="mb-6">
-            <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
-              7. Payment Terms and Billing
-            </h2>
-            <ul className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base" style={{ color: "var(--muted-foreground)" }}>
-              <li>Certain features of our platform require payment of fees. All fees are non-refundable unless explicitly stated otherwise.</li>
-              <li>Subscription fees are billed in advance on a monthly or annual basis, depending on your chosen plan.</li>
-              <li>You authorize us to charge your designated payment method for all applicable fees and taxes.</li>
-              <li>Price changes will be communicated with at least 30 days' notice for existing subscribers.</li>
-              <li>Failure to pay fees may result in suspension or termination of your account and access to our services.</li>
-            </ul>
-          </section>
+        <section className="mb-6">
+          <h2 className="mb-2 text-[16px] leading-[24px] font-semibold" style={{ color: "var(--foreground)" }}>
+            8. Limitation of Liability
+          </h2>
+          <ul className="list-disc pl-5 space-y-2 text-[14px] leading-[21px]" style={{ color: "var(--muted-foreground)" }}>
+            <li>To the maximum extent permitted by law, Synngular shall not be liable for any indirect, incidental, special, consequential, or punitive damages.</li>
+            <li>We are not liable for damages resulting from your use of AI-generated code, including data loss, business interruption, or security breaches.</li>
+            <li>Our liability shall not exceed the amount you paid us in the 12 months preceding the claim, if applicable.</li>
+            <li>We are not responsible for delays, errors, or failures caused by third-party services, internet connectivity, or user equipment.</li>
+          </ul>
+        </section>
 
-          <section className="mb-6">
-            <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
-              8. Data Protection and Privacy
-            </h2>
-            <ul className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base" style={{ color: "var(--muted-foreground)" }}>
-              <li>Your privacy is important to us. Our collection and use of personal information is governed by our Privacy Policy.</li>
-              <li>We implement appropriate technical and organizational measures to protect your data against unauthorized access, alteration, disclosure, or destruction.</li>
-              <li>You acknowledge that data transmission over the internet is not completely secure, and we cannot guarantee the security of data during transmission.</li>
-              <li>We comply with applicable data protection laws, including GDPR and other regional privacy regulations.</li>
-              <li>You have the right to access, correct, or delete your personal data as outlined in our Privacy Policy.</li>
-            </ul>
-          </section>
+        <section className="mb-6">
+          <h2 className="mb-2 text-[16px] leading-[24px] font-semibold" style={{ color: "var(--foreground)" }}>
+            9. Data Processing and Third-Party Services
+          </h2>
+          <ul className="list-disc pl-5 space-y-2 text-[14px] leading-[21px]" style={{ color: "var(--muted-foreground)" }}>
+            <li>We use third-party services for essential platform operations, analytics, and service improvement.</li>
+            <li>Data transmitted to these services is governed by their respective privacy policies and terms.</li>
+            <li>We ensure third-party providers meet industry-standard security and data protection requirements.</li>
+            <li>You acknowledge that certain data processing occurs through these trusted third-party providers.</li>
+          </ul>
+        </section>
 
-          <section className="mb-6">
-            <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
-              9. Service Availability and Support
-            </h2>
-            <ul className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base" style={{ color: "var(--muted-foreground)" }}>
-              <li>We strive to maintain high availability of our services but do not guarantee uninterrupted or error-free operation.</li>
-              <li>Scheduled maintenance will be announced in advance when possible, though emergency maintenance may occur without notice.</li>
-              <li>Support is provided according to your subscription level, with response times varying based on the nature and urgency of the issue.</li>
-              <li>We reserve the right to impose usage limits and restrictions to ensure fair use and optimal performance for all users.</li>
-              <li>Service level agreements (SLAs) are available for enterprise customers and are defined in separate agreements.</li>
-            </ul>
-          </section>
+        <section className="mb-6">
+          <h2 className="mb-2 text-[16px] leading-[24px] font-semibold" style={{ color: "var(--foreground)" }}>
+            10. Indemnification
+          </h2>
+          <ul className="list-disc pl-5 space-y-2 text-[14px] leading-[21px]" style={{ color: "var(--muted-foreground)" }}>
+            <li>You agree to indemnify and hold harmless Synngular, its officers, directors, employees, and agents from any claims, damages, or expenses arising from your use of our services.</li>
+            <li>This includes liability for your violation of these terms, infringement of third-party rights, or misuse of AI-generated content.</li>
+            <li>You agree to cooperate in our defense of any such claims and cover reasonable legal costs.</li>
+          </ul>
+        </section>
 
-          <section className="mb-6">
-            <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
-              10. Limitation of Liability
-            </h2>
-            <ul className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base" style={{ color: "var(--muted-foreground)" }}>
-              <li>Our liability to you is limited to the greatest extent permitted by applicable law.</li>
-              <li>We shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of our service.</li>
-              <li>Our total liability for any claims arising from or related to these terms shall not exceed the amount paid by you for our services in the 12 months preceding the claim.</li>
-              <li>We do not warrant that our service will be uninterrupted, error-free, or meet your specific requirements.</li>
-              <li>You acknowledge that AI-generated code may contain errors and should be reviewed and tested before production use.</li>
-            </ul>
-          </section>
+        <section className="mb-6">
+          <h2 className="mb-2 text-[16px] leading-[24px] font-semibold" style={{ color: "var(--foreground)" }}>
+            11. Beta and Experimental Features
+          </h2>
+          <ul className="list-disc pl-5 space-y-2 text-[14px] leading-[21px]" style={{ color: "var(--muted-foreground)" }}>
+            <li>Our platform may include beta, experimental, or preview features that are still under development.</li>
+            <li>These features are provided 'as is' without warranties and may not work as expected or may change without notice.</li>
+            <li>You participate in beta programs at your own risk and agree to provide feedback when requested.</li>
+            <li>Beta features may have limited support and different terms of use.</li>
+            <li>We may discontinue beta features at any time without liability.</li>
+          </ul>
+        </section>
 
-          <section className="mb-6">
-            <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
-              11. Beta and Experimental Features
-            </h2>
-            <ul className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base" style={{ color: "var(--muted-foreground)" }}>
-              <li>Our platform may include beta, experimental, or preview features that are still under development.</li>
-              <li>These features are provided 'as is' without warranties and may not work as expected or may change without notice.</li>
-              <li>You participate in beta programs at your own risk and agree to provide feedback when requested.</li>
-              <li>Beta features may have limited support and different terms of use.</li>
-              <li>We may discontinue beta features at any time without liability.</li>
-            </ul>
-          </section>
+        <section className="mb-6">
+          <h2 className="mb-2 text-[16px] leading-[24px] font-semibold" style={{ color: "var(--foreground)" }}>
+            12. Termination
+          </h2>
+          <ul className="list-disc pl-5 space-y-2 text-[14px] leading-[21px]" style={{ color: "var(--muted-foreground)" }}>
+            <li>You may terminate your account at any time by following the account closure process in your account settings.</li>
+            <li>We may suspend or terminate your account immediately if you violate these terms or engage in activities that harm our platform or other users.</li>
+            <li>Upon termination, your right to use our services ceases immediately, though certain provisions of these terms will survive termination.</li>
+            <li>We will provide reasonable notice before termination except in cases of material breach or legal requirements.</li>
+            <li>You remain responsible for all charges incurred prior to termination.</li>
+          </ul>
+        </section>
 
-          <section className="mb-6">
-            <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
-              12. Termination
-            </h2>
-            <ul className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base" style={{ color: "var(--muted-foreground)" }}>
-              <li>You may terminate your account at any time by following the account closure process in your account settings.</li>
-              <li>We may suspend or terminate your account immediately if you violate these terms or engage in activities that harm our platform or other users.</li>
-              <li>Upon termination, your right to use our services ceases immediately, though certain provisions of these terms will survive termination.</li>
-              <li>We will provide reasonable notice before termination except in cases of material breach or legal requirements.</li>
-              <li>You remain responsible for all charges incurred prior to termination.</li>
-            </ul>
-          </section>
+        <section className="mb-6">
+          <h2 className="mb-2 text-[16px] leading-[24px] font-semibold" style={{ color: "var(--foreground)" }}>
+            13. Dispute Resolution
+          </h2>
+          <ul className="list-disc pl-5 space-y-2 text-[14px] leading-[21px]" style={{ color: "var(--muted-foreground)" }}>
+            <li>Any disputes arising from these terms will be resolved through binding arbitration rather than in court, except where prohibited by law.</li>
+            <li>The arbitration will be conducted by a neutral arbitrator in accordance with established arbitration rules.</li>
+            <li>You agree to waive your right to participate in class action lawsuits or class-wide arbitrations.</li>
+            <li>This agreement is governed by the laws of [Jurisdiction], without regard to conflict of law provisions.</li>
+            <li>If any provision of these terms is found to be unenforceable, the remaining provisions will continue to be valid and enforceable.</li>
+          </ul>
+        </section>
 
-          <section className="mb-6">
-            <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
-              13. Dispute Resolution
-            </h2>
-            <ul className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base" style={{ color: "var(--muted-foreground)" }}>
-              <li>Any disputes arising from these terms will be resolved through binding arbitration rather than in court, except where prohibited by law.</li>
-              <li>The arbitration will be conducted by a neutral arbitrator in accordance with established arbitration rules.</li>
-              <li>You agree to waive your right to participate in class action lawsuits or class-wide arbitrations.</li>
-              <li>This agreement is governed by the laws of [Jurisdiction], without regard to conflict of law provisions.</li>
-              <li>If any provision of these terms is found to be unenforceable, the remaining provisions will continue to be valid and enforceable.</li>
-            </ul>
-          </section>
-
-          <section className="mb-6">
-            <h2 className="mb-2 text-sm sm:text-base font-bold" style={{ color: "var(--foreground)" }}>
-              14. Questions About These Terms?
-            </h2>
-            <ul className="list-disc pl-4 sm:pl-5 space-y-2 sm:space-y-3 leading-7 text-sm sm:text-base" style={{ color: "var(--muted-foreground)" }}>
-              <li>If you have any questions about these Terms and Conditions or need clarification on any provisions, please contact our legal team. We're here to help you understand your rights and obligations.</li>
-              <li>Contact us: legal@synngular.com</li>
-            </ul>
-          </section>
-        </div>
+        <section className="mb-6">
+          <h2 className="mb-2 text-[16px] leading-[24px] font-semibold" style={{ color: "var(--foreground)" }}>
+            14. Questions About These Terms?
+          </h2>
+          <ul className="list-disc pl-5 space-y-2 text-[14px] leading-[21px]" style={{ color: "var(--muted-foreground)" }}>
+            <li>If you have any questions about these Terms and Conditions or need clarification on any provisions, please contact our legal team. We're here to help you understand your rights and obligations.</li>
+            <li>Contact us: legal@synngular.com</li>
+          </ul>
+        </section>
       </div>
-    </>
+    </div>
   );
 };
 
