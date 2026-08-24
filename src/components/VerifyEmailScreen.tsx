@@ -137,7 +137,7 @@ const VerifyEmailScreen: React.FC<{
             </label>
             <Input
               id="otp"
-              type="text"
+              type="tel"
               placeholder={PLACEHOLDER_OTP}
               value={otp}
               onChange={handleOtpChange}
