@@ -283,6 +283,15 @@
   }
 }
 
+/* ── Hide Scrollbar Utility ── */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── Figma Typography Utility Classes ── */
 
 /* Figma: page title 48 (48px size, 72px line-height, Bold) */

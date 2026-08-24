@@ -102,7 +102,11 @@ const VerifyEmailScreen: React.FC<{
 
       {/* Container 2: OTP Verification Card */}
       <div
-        className="w-full flex-1 rounded-t-[2.5rem] -mt-8 relative z-30 px-6 pt-8 pb-6 flex flex-col bg-[var(--grey-100)]"
+        className="w-full flex-1 rounded-t-[2.5rem] -mt-8 relative z-30 flex flex-col bg-[var(--grey-100)]"
+style={{
+  padding: "clamp(1.25rem, 5vw, 2rem)",
+  paddingBottom: "max(env(safe-area-inset-bottom), clamp(1.25rem, 5vw, 2rem))",
+}}
       >
         {/* Back Button */}
         <button
@@ -114,7 +118,16 @@ const VerifyEmailScreen: React.FC<{
         </button>
 
         {/* Heading */}
-        <h1 className="font-semibold text-[var(--font-size-card-title-20)] leading-[var(--line-height-card-title-20)] mt-6 text-[var(--grey-1000)]">
+<h1
+  className="font-semibold text-[var(--grey-1000)]"
+  style={{
+    fontFamily: "Inter, sans-serif",
+    fontSize: "clamp(1rem, 5vw, 1.25rem)",
+    lineHeight: "1.875rem",
+    letterSpacing: "0%",
+    marginTop: "clamp(0.75rem, 3vw, 1.5rem)",
+  }}
+>
           {HEADING_TEXT_VERIFY}
         </h1>
 
@@ -201,8 +214,11 @@ const VerifyEmailScreen: React.FC<{
         </div>{/* end gap-4 content block */}
 
         {/* Terms pushed to bottom with mt-auto mb-8 (32px) */}
-        <div className="mt-auto mb-8 w-full text-center px-4">
-          <p className="text-xs leading-relaxed text-[var(--muted-foreground)]">
+        <div className="mt-auto w-full text-center">
+          <p
+    className="leading-relaxed text-[var(--muted-foreground)]"
+    style={{ fontSize: "clamp(0.65rem, 3vw, 0.75rem)" }}
+  >
             {TEXT_AGREE_PREAMBLE}
             <a
               href="#terms"
