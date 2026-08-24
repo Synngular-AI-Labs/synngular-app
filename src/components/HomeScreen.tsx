@@ -63,6 +63,7 @@ interface HomeScreenProps {
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) => {
   const [message, setMessage] = useState("");
   const [attachment, setAttachment] = useState<{ url: string; loading: boolean } | null>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [isRecentsOpen, setIsRecentsOpen] = useState(false);
   const [messages, setMessages] = useState<
@@ -241,9 +242,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
           />
 
           {/* Chat Input Container */}
-          {/* Added dynamic bottom margin to sit exactly 16px (1rem) above the 75px (4.6875rem) nav bar */}
-          <div className="w-full px-[var(--spacing-16)] mb-[calc(4.6875rem+max(env(safe-area-inset-bottom),0.75rem)+1rem)] mt-auto flex-shrink-0 relative z-20">
-            <div className="w-full bg-white border border-[var(--grey-200)] rounded-[1.25rem] px-[0.75rem] py-[0.5rem] flex flex-col shadow-sm transition-all duration-200">
+          <div 
+            className={`w-full px-[var(--spacing-16)] mt-auto flex-shrink-0 relative z-20 transition-all duration-200 ${
+              isInputFocused 
+                ? 'mb-[1rem]' 
+                : 'mb-[calc(4.6875rem+max(env(safe-area-inset-bottom),0.75rem)+1rem)]'
+            }`}
+          >
+            <div className="w-full bg-[var(--grey-100)] border border-[var(--grey-300)] rounded-[1rem] p-[1rem] flex flex-col shadow-sm transition-all duration-200">
 
               {/* Attachment Preview — expands upward inside the box */}
               {attachment && (
@@ -291,9 +297,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
                   ref={textareaRef}
                   value={message}
                   onChange={handleInput}
+                  onFocus={() => setIsInputFocused(true)}
+                  onBlur={() => setIsInputFocused(false)}
                   rows={1}
-                  placeholder="Type a message here..."
-                  className="flex-1 max-h-[8rem] bg-transparent resize-none py-[0.375rem] text-[0.875rem] leading-[1.3125rem] text-[var(--grey-1000)] focus:outline-none placeholder:text-[var(--grey-400)] overflow-y-auto self-center"
+                  placeholder="Type for reply message ......"
+                  className="flex-1 max-h-[8rem] bg-transparent resize-none py-[0.3125rem] text-[0.875rem] leading-[1.3125rem] text-[var(--grey-1000)] focus:outline-none placeholder:text-[var(--grey-400)] overflow-y-auto"
                 />
 
                 {/* Send Button */}
@@ -359,7 +367,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
           />
 
           {/* Chat Input Container - Clear nav bar with 1rem gap */}
-          <div className="w-full px-[var(--spacing-16)] mb-[calc(4.6875rem+max(env(safe-area-inset-bottom),0.75rem)+1rem)] mt-auto flex-shrink-0 relative z-20">
+          <div 
+            className={`w-full px-[var(--spacing-16)] mt-auto flex-shrink-0 relative z-20 transition-all duration-200 ${
+              isInputFocused 
+                ? 'mb-[1rem]' 
+                : 'mb-[calc(4.6875rem+max(env(safe-area-inset-bottom),0.75rem)+1rem)]'
+            }`}
+          >
             <div className="w-full bg-white border border-[var(--grey-200)] rounded-[1.25rem] px-[0.75rem] py-[0.5rem] flex flex-col shadow-sm transition-all duration-200">
 
               {/* Attachment Preview — expands upward inside the box */}
@@ -408,6 +422,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
                   ref={textareaRef}
                   value={message}
                   onChange={handleInput}
+                  onFocus={() => setIsInputFocused(true)}
+                  onBlur={() => setIsInputFocused(false)}
                   rows={1}
                   placeholder="Type a message here......"
                   className="flex-1 max-h-[8rem] bg-transparent resize-none py-1.5 text-[0.875rem] leading-[1.3125rem] text-[var(--grey-1000)] focus:outline-none placeholder:text-[var(--grey-400)] overflow-y-auto self-center"
