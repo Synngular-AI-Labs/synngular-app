@@ -4,8 +4,6 @@ import { M3 } from "tauri-plugin-m3";
 import {
   Menu,
   Bell,
-  Paperclip,
-  Send,
   Bot,
 } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
@@ -64,7 +62,7 @@ interface HomeScreenProps {
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) => {
   const [message, setMessage] = useState("");
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [attachment, setAttachment] = useState<{ url: string; loading: boolean } | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [isRecentsOpen, setIsRecentsOpen] = useState(false);
   const [messages, setMessages] = useState<
@@ -75,6 +73,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
       files?: { url: string; type: string; name: string }[];
     }[]
   >([]);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileUrlsRef = useRef<string[]>([]);
 
@@ -118,13 +117,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
   }, []);
 
   const handleSend = () => {
-    if (!message.trim() && selectedFiles.length === 0) return;
+    if (!message.trim() && !attachment) return;
 
-    const fileData = selectedFiles.map((file) => {
-      const url = URL.createObjectURL(file);
-      fileUrlsRef.current.push(url);
-      return { url, type: file.type, name: file.name };
-    });
+    const fileData: { url: string; type: string; name: string }[] = [];
+
+    if (attachment) {
+      fileData.push({ url: attachment.url, type: "image/*", name: "attachment" });
+    }
 
     setMessages((current) => [
       ...current,
@@ -136,7 +135,32 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
       },
     ]);
     setMessage("");
-    setSelectedFiles([]);
+    setAttachment(null);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
+  };
+
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 128)}px`;
+    }
+  };
+
+  const handleAttachClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setAttachment({ url, loading: true });
+    setTimeout(() => {
+      setAttachment(prev => prev ? { ...prev, loading: false } : null);
+    }, 2000);
   };
 
   const navHidden = isKeyboardOpen || isTyping;
@@ -207,67 +231,201 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
             </p>
           </main>
 
-          <InputArea
-            message={message}
-            setMessage={setMessage}
-            selectedFiles={selectedFiles}
-            setSelectedFiles={setSelectedFiles}
-            fileInputRef={fileInputRef}
-            handleSend={handleSend}
-            setIsTyping={setIsTyping}
+          {/* Hidden file input */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*,application/pdf"
+            onChange={handleFileChange}
           />
+
+          {/* Chat Input Container */}
+          {/* Added dynamic bottom margin to sit exactly 16px (1rem) above the 75px (4.6875rem) nav bar */}
+          <div className="w-full px-[var(--spacing-16)] mb-[calc(4.6875rem+max(env(safe-area-inset-bottom),0.75rem)+1rem)] mt-auto flex-shrink-0 relative z-20">
+            <div className="w-full bg-white border border-[var(--grey-200)] rounded-[1.25rem] px-[0.75rem] py-[0.5rem] flex flex-col shadow-sm transition-all duration-200">
+
+              {/* Attachment Preview — expands upward inside the box */}
+              {attachment && (
+                <div className="pt-1 pb-2 relative w-[4.5rem] h-[4.5rem] ml-1 animate-in fade-in zoom-in duration-200">
+                  <img
+                    src={attachment.url}
+                    alt="Attachment"
+                    className="w-full h-full object-cover rounded-xl border border-[var(--grey-200)]"
+                  />
+                  {attachment.loading && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl">
+                      <svg className="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setAttachment(null)}
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center shadow-md touch-manipulation hover:bg-black transition-colors z-10"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Text Input Row - Hugs content, minimum 32px height */}
+              <div className="flex items-end gap-2 w-full min-h-[2rem]">
+
+                {/* Plus (Attach) Button */}
+                <button
+                  onClick={handleAttachClick}
+                  className="w-8 h-8 shrink-0 flex items-center justify-center text-[var(--grey-500)] mb-[0.125rem] active:bg-[var(--grey-100)] rounded-full transition-colors touch-manipulation"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                </button>
+
+                {/* Auto-resizing Textarea */}
+                <textarea
+                  ref={textareaRef}
+                  value={message}
+                  onChange={handleInput}
+                  rows={1}
+                  placeholder="Type a message here..."
+                  className="flex-1 max-h-[8rem] bg-transparent resize-none py-[0.375rem] text-[0.875rem] leading-[1.3125rem] text-[var(--grey-1000)] focus:outline-none placeholder:text-[var(--grey-400)] overflow-y-auto self-center"
+                />
+
+                {/* Send Button */}
+                <button
+                  onClick={handleSend}
+                  className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center mb-[0.125rem] transition-colors touch-manipulation text-white ${(message.trim().length > 0 || attachment) ? 'bg-[var(--purple-1000)]' : 'bg-[#643388]'}`}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="19" x2="12" y2="5" />
+                    <polyline points="5 12 12 5 19 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       ) : (
         // â”€â”€ Active chat state â”€â”€
         <div className="flex flex-col flex-1 w-full min-h-0 overflow-hidden">
           <div className="flex-1 overflow-y-auto w-full px-6 py-4 pb-[calc(4rem+max(env(safe-area-inset-bottom),1.25rem))] flex flex-col gap-4">
             {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className="self-end max-w-[85%] rounded-2xl px-4 py-3"
-                style={{ background: "var(--purple-1000)" }}
-              >
-                {msg.files && msg.files.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {msg.files.map((file, index) =>
-                      file.type.startsWith("image/") ? (
-                        <img
-                          key={`${file.name}-${index}`}
-                          src={file.url}
-                          alt={file.name}
-                          className="w-16 h-16 rounded object-cover border"
-                          style={{ borderColor: "var(--grey-100)" }}
-                        />
-                      ) : (
-                        <div
-                          key={`${file.name}-${index}`}
-                          className="w-16 h-16 rounded bg-[var(--card)] flex flex-col items-center justify-center truncate p-1 text-[var(--foreground)]"
-                        >
+              <div key={msg.id} className="flex w-full justify-end mb-4 px-[var(--spacing-16)]">
+                <div className="max-w-[85%] bg-[#F9F9FA] text-[var(--grey-900)] rounded-[1rem] px-[0.75rem] py-[0.6875rem] shadow-sm">
+                  <p className="text-[0.875rem] leading-[1.3125rem] break-words whitespace-pre-wrap font-normal">
+                    {msg.text}
+                  </p>
+                  {msg.files && msg.files.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {msg.files.map((file, index) =>
+                        file.type.startsWith("image/") ? (
+                          <img
+                            key={`${file.name}-${index}`}
+                            src={file.url}
+                            alt={file.name}
+                            className="w-16 h-16 rounded-lg object-cover border border-[var(--grey-200)]"
+                          />
+                        ) : (
+                          <div
+                            key={`${file.name}-${index}`}
+                            className="w-16 h-16 rounded-lg bg-[var(--grey-100)] flex flex-col items-center justify-center truncate p-1 text-[var(--grey-900)]"
+                          >
                           ðŸ“„
                           <span className="mt-1 text-center truncate text-[0.5rem]">
                             {file.name}
                           </span>
                         </div>
-                      )
-                    )}
-                  </div>
-                )}
-                <span className="text-sm" style={{ color: "var(--background)" }}>
-                  {msg.text}
-                </span>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
 
-          <InputArea
-            message={message}
-            setMessage={setMessage}
-            selectedFiles={selectedFiles}
-            setSelectedFiles={setSelectedFiles}
-            fileInputRef={fileInputRef}
-            handleSend={handleSend}
-            setIsTyping={setIsTyping}
+          {/* Hidden file input */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*,application/pdf"
+            onChange={handleFileChange}
           />
+
+          {/* Chat Input Container - Clear nav bar with 1rem gap */}
+          <div className="w-full px-[var(--spacing-16)] mb-[calc(4.6875rem+max(env(safe-area-inset-bottom),0.75rem)+1rem)] mt-auto flex-shrink-0 relative z-20">
+            <div className="w-full bg-white border border-[var(--grey-200)] rounded-[1.25rem] px-[0.75rem] py-[0.5rem] flex flex-col shadow-sm transition-all duration-200">
+
+              {/* Attachment Preview — expands upward inside the box */}
+              {attachment && (
+                <div className="pt-1 pb-2 relative w-[4.5rem] h-[4.5rem] ml-1 animate-in fade-in zoom-in duration-200">
+                  <img
+                    src={attachment.url}
+                    alt="Attachment"
+                    className="w-full h-full object-cover rounded-xl border border-[var(--grey-200)]"
+                  />
+                  {attachment.loading && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl">
+                      <svg className="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setAttachment(null)}
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center shadow-md touch-manipulation hover:bg-black transition-colors z-10"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Text Input Row - Hugs content, minimum 32px height */}
+              <div className="flex items-end gap-2 w-full min-h-[2rem]">
+
+                {/* Plus (Attach) Button */}
+                <button
+                  onClick={handleAttachClick}
+                  className="w-8 h-8 shrink-0 flex items-center justify-center text-[var(--grey-500)] mb-[0.125rem] active:bg-[var(--grey-100)] rounded-full transition-colors touch-manipulation"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                </button>
+
+                {/* Auto-resizing Textarea */}
+                <textarea
+                  ref={textareaRef}
+                  value={message}
+                  onChange={handleInput}
+                  rows={1}
+                  placeholder="Type a message here......"
+                  className="flex-1 max-h-[8rem] bg-transparent resize-none py-1.5 text-[0.875rem] leading-[1.3125rem] text-[var(--grey-1000)] focus:outline-none placeholder:text-[var(--grey-400)] overflow-y-auto self-center"
+                />
+
+                {/* Send Button */}
+                <button
+                  onClick={handleSend}
+                  className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center mb-[0.125rem] transition-colors touch-manipulation ${(message.trim().length > 0 || attachment) ? 'bg-[var(--purple-1000)]' : 'bg-[#643388]'} text-white`}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="19" x2="12" y2="5" />
+                    <polyline points="5 12 12 5 19 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -427,120 +585,5 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
     </div>
   );
 };
-
-// â”€â”€ InputArea â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-interface InputAreaProps {
-  message: string;
-  setMessage: React.Dispatch<React.SetStateAction<string>>;
-  selectedFiles: File[];
-  setSelectedFiles: React.Dispatch<React.SetStateAction<File[]>>;
-  fileInputRef: React.MutableRefObject<HTMLInputElement | null>;
-  handleSend: () => void;
-  setIsTyping: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-const InputArea: React.FC<InputAreaProps> = ({
-  message,
-  setMessage,
-  selectedFiles,
-  setSelectedFiles,
-  fileInputRef,
-  handleSend,
-  setIsTyping,
-}) => (
-  <div className="fixed bottom-[calc(3.5rem+max(env(safe-area-inset-bottom),1.25rem))] w-full z-30 px-4 py-3 bg-[var(--background)] border-t border-[var(--grey-100)]">
-    {/* Hidden native file picker */}
-    <input
-      type="file"
-      ref={fileInputRef}
-      className="hidden"
-      multiple
-      onChange={(e) => {
-        if (e.target.files) {
-          setSelectedFiles(Array.from(e.target.files).slice(0, 10));
-        }
-      }}
-    />
-
-    {/* Staged file previews */}
-    {selectedFiles.length > 0 && (
-      <div className="flex flex-row gap-2 overflow-x-auto pb-2">
-        {selectedFiles.map((file, index) => (
-          <div
-            key={`${file.name}-${index}`}
-            className="relative w-10 h-10 rounded bg-[var(--grey-100)] flex items-center justify-center p-1 flex-shrink-0"
-          >
-            <span className="text-[10px] text-[var(--foreground)] text-center truncate">
-              {file.name}
-            </span>
-            <button
-              type="button"
-              aria-label={`Remove ${file.name}`}
-              className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[var(--grey-500)] text-white flex items-center justify-center text-[10px] leading-none"
-              onClick={() =>
-                setSelectedFiles((current) =>
-                  current.filter((_, i) => i !== index)
-                )
-              }
-            >
-              Ã—
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          className="text-[10px] font-bold self-center flex-shrink-0"
-          style={{ color: "var(--foreground)" }}
-          onClick={() => setSelectedFiles([])}
-        >
-          Clear
-        </button>
-      </div>
-    )}
-
-    {/* Compose box */}
-    <div className="w-full mb-1">
-      <div className="w-full min-h-24 border border-[var(--grey-300)] rounded-2xl bg-white flex flex-col justify-between p-3 shadow-sm">
-        <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onFocus={() => setIsTyping(true)}
-          onBlur={() => setIsTyping(false)}
-          placeholder="Type a message..."
-          rows={3}
-          className="w-full flex-1 bg-transparent border-none outline-none text-sm text-[var(--foreground)] placeholder:text-[var(--grey-500)] resize-none"
-        />
-
-        <div className="flex flex-row items-center justify-end gap-2 w-full mt-2">
-          <button
-            type="button"
-            aria-label="Attach file"
-            className="p-1.5 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
-            onClick={() => fileInputRef?.current?.click()}
-          >
-            <Paperclip className="w-5 h-5 text-[var(--grey-700)]" />
-          </button>
-
-          <button
-            type="button"
-            aria-label="Send message"
-            className="p-1.5 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
-            onClick={() => {
-              if (message.trim().length > 0) handleSend();
-            }}
-          >
-            <Send
-              className={`w-5 h-5 transition-colors duration-200 ${
-                message.trim().length > 0
-                  ? "text-[var(--purple-1000)]"
-                  : "text-[var(--grey-500)]"
-              }`}
-            />
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
 export default HomeScreen;
