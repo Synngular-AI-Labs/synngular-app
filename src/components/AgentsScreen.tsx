@@ -124,40 +124,48 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen 
         onApply={() => setIsFilterOpen(false)}
       />
 
-      <nav
-        className={`fixed bottom-0 left-0 w-full bg-white border-t border-[var(--grey-200)] z-40 pt-3 pb-[max(env(safe-area-inset-bottom),1.25rem)] px-6 flex justify-between items-center transition-transform duration-200 ${isKeyboardOpen ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}
-      >
+      <nav className={`fixed bottom-0 left-0 w-full bg-white border-t border-[var(--grey-200)] z-40 flex px-[0.75rem] gap-[0.75rem] pt-[0.75rem] pb-[max(env(safe-area-inset-bottom),0.75rem)] transition-transform duration-200 ${isKeyboardOpen ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
         <button
-          type="button"
-          onClick={() => onNavigate("home")}
-          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
+          onClick={() => onNavigate('home')}
+          className="flex-1 h-[2.75rem] flex flex-col items-center justify-between relative touch-manipulation group"
         >
-          <MessageSquareTextIcon size={24} style={{ color: "var(--grey-700)" }} />
-          <span className="text-xs font-medium text-[var(--grey-700)]">Chat</span>
-        </button>
-
-        <div className="relative flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer">
-          <div className="absolute top-0 inset-x-0 h-[2px] bg-[var(--purple-1000)]" />
-          <Bot size={24} strokeWidth={1.5} style={{ color: "var(--purple-1000)" }} />
-          <span className="text-xs font-medium text-[var(--purple-1000)]">Agent</span>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => onNavigate("outputs")}
-          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
-        >
-          <FileOutputIcon size={24} style={{ color: "var(--grey-700)" }} />
-          <span className="text-xs font-medium text-[var(--grey-700)]">Outputs</span>
+          <div className="w-6 h-6 flex items-center justify-center">
+            <MessageSquareTextIcon size={24} style={{ color: 'var(--grey-500)' }} />
+          </div>
+          <span className="text-[0.625rem] leading-[0.75rem] font-medium text-[var(--grey-500)]">Chat</span>
         </button>
 
         <button
-          type="button"
-          onClick={() => onNavigate("approvals")}
-          className="flex-1 flex flex-col items-center pt-3 pb-1 cursor-pointer transition-colors"
+          onClick={() => onNavigate('agents')}
+          className="flex-1 h-[2.75rem] flex flex-col items-center justify-between relative touch-manipulation group"
         >
-          <UserRoundCheckIcon size={24} style={{ color: "var(--grey-700)" }} />
-          <span className="text-xs font-medium text-[var(--grey-700)]">Approvals</span>
+          {true && (
+            <div className="absolute top-[-0.75rem] left-0 w-full h-[0.125rem] bg-[var(--purple-1000)] rounded-b-sm" />
+          )}
+          <div className="w-6 h-6 flex items-center justify-center">
+            <Bot size={24} strokeWidth={1.5} style={{ color: 'var(--purple-1000)' }} />
+          </div>
+          <span className="text-[0.625rem] leading-[0.75rem] font-medium text-[var(--purple-1000)]">Agent</span>
+        </button>
+
+        <button
+          onClick={() => onNavigate('outputs')}
+          className="flex-1 h-[2.75rem] flex flex-col items-center justify-between relative touch-manipulation group"
+        >
+          <div className="w-6 h-6 flex items-center justify-center">
+            <FileOutputIcon size={24} style={{ color: 'var(--grey-500)' }} />
+          </div>
+          <span className="text-[0.625rem] leading-[0.75rem] font-medium text-[var(--grey-500)]">Outputs</span>
+        </button>
+
+        <button
+          onClick={() => onNavigate('approvals')}
+          className="flex-1 h-[2.75rem] flex flex-col items-center justify-between relative touch-manipulation group"
+        >
+          <div className="w-6 h-6 flex items-center justify-center">
+            <UserRoundCheckIcon size={24} style={{ color: 'var(--grey-500)' }} />
+          </div>
+          <span className="text-[0.625rem] leading-[0.75rem] font-medium text-[var(--grey-500)]">Approvals</span>
         </button>
       </nav>
     </div>

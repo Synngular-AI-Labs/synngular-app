@@ -24,9 +24,6 @@
       "csp": null
     }
   },
-  "android": {
-    "edgeToEdge": true
-  },
   "bundle": {
     "active": true,
     "targets": "all",
