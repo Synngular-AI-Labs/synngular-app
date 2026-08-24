@@ -10,7 +10,7 @@ import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 
-// â”€â”€ Recents Dummy Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€ Recents Dummy Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const recentItems = [
   { id: 1, title: "Contract analysis", time: "2m ago" },
   { id: 2, title: "Customer Support Ticket Summary...", time: "2m ago" },
@@ -167,12 +167,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
   const navHidden = isKeyboardOpen || isTyping;
 
   return (
-    /*
-     * Root shell:
-     * - Uses 100dvh so it fills the visual viewport on every device.
-     * - Padding respects safe-area insets for notches / home indicators.
-     * - overflow-hidden prevents any child from accidentally expanding past the viewport.
-     */
     <div
       className="flex flex-col bg-[var(--background)] overflow-hidden"
       style={{
@@ -212,21 +206,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
       {messages.length === 0 ? (
         // â”€â”€ Empty / welcome state â”€â”€
         <div className="flex flex-col flex-1 w-full min-h-0">
-          <main className="flex-1 flex flex-col items-center justify-center w-full px-6 pb-[calc(4rem+max(env(safe-area-inset-bottom),1.25rem))] min-h-0">
+          <main className="flex-1 flex flex-col items-center justify-center w-full px-4 pb-[calc(4rem+max(env(safe-area-inset-bottom),1.25rem))] min-h-0">
             <img
               src={logoAsset}
               alt="Logo"
               className="w-[10vw] aspect-[71/70.01] max-w-[100px] min-w-[72px] object-contain mx-auto mb-4"
             />
+            {/* Inter Semi Bold 30/45 â€” matches Figma "page title 30 SB" */}
             <h1
-              className="text-4xl font-semibold mb-2"
-              style={{ color: "var(--foreground)" }}
+              className="text-[1.875rem] font-semibold leading-[2.8125rem] mb-1 text-center"
+              style={{ color: "var(--grey-1000)" }}
             >
               Welcome back
             </h1>
+            {/* Inter Medium 16/24 â€” matches Figma "body 16 M" */}
             <p
-              className="text-lg font-medium"
-              style={{ color: "var(--muted-foreground)" }}
+              className="text-[1rem] font-medium leading-[1.5rem] text-center"
+              style={{ color: "var(--grey-700)" }}
             >
               What do you want to achieve, today?
             </p>
@@ -242,16 +238,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
           />
 
           {/* Chat Input Container */}
-          <div 
-            className={`w-full px-[var(--spacing-16)] mt-auto flex-shrink-0 relative z-20 transition-all duration-200 ${
-              isInputFocused 
-                ? 'mb-[1rem]' 
-                : 'mb-[calc(4.6875rem+max(env(safe-area-inset-bottom),0.75rem)+1rem)]'
+          <div
+            className={`w-full px-4 mt-auto flex-shrink-0 relative z-20 transition-all duration-200 ${
+              isInputFocused
+                ? "mb-[1rem]"
+                : "mb-[calc(4.6875rem+max(env(safe-area-inset-bottom),0.75rem)+1rem)]"
             }`}
           >
             <div className="w-full bg-[var(--grey-100)] border border-[var(--grey-300)] rounded-[1rem] p-[1rem] flex flex-col shadow-sm transition-all duration-200">
 
-              {/* Attachment Preview — expands upward inside the box */}
+              {/* Attachment Preview */}
               {attachment && (
                 <div className="pt-1 pb-2 relative w-[4.5rem] h-[4.5rem] ml-1 animate-in fade-in zoom-in duration-200">
                   <img
@@ -272,15 +268,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
                     className="absolute -top-1 -right-1 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center shadow-md touch-manipulation hover:bg-black transition-colors z-10"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 6L6 18M6 6l12 12"/>
+                      <path d="M18 6L6 18M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
               )}
 
-              {/* Text Input Row - Hugs content, minimum 32px height */}
+              {/* Text Input Row */}
               <div className="flex items-end gap-2 w-full min-h-[2rem]">
-
                 {/* Plus (Attach) Button */}
                 <button
                   onClick={handleAttachClick}
@@ -307,7 +302,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
                 {/* Send Button */}
                 <button
                   onClick={handleSend}
-                  className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center mb-[0.125rem] transition-colors touch-manipulation text-white ${(message.trim().length > 0 || attachment) ? 'bg-[var(--purple-1000)]' : 'bg-[#643388]'}`}
+                  className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center mb-[0.125rem] transition-colors touch-manipulation text-white ${
+                    message.trim().length > 0 || attachment ? "bg-[var(--purple-1000)]" : "bg-[#643388]"
+                  }`}
                 >
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="12" y1="19" x2="12" y2="5" />
@@ -323,7 +320,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
         <div className="flex flex-col flex-1 w-full min-h-0 overflow-hidden">
           <div className="flex-1 overflow-y-auto w-full px-6 py-4 pb-[calc(4rem+max(env(safe-area-inset-bottom),1.25rem))] flex flex-col gap-4">
             {messages.map((msg) => (
-              <div key={msg.id} className="flex w-full justify-end mb-4 px-[var(--spacing-16)]">
+              <div key={msg.id} className="flex w-full justify-end mb-4 px-4">
                 <div className="max-w-[85%] bg-[#F9F9FA] text-[var(--grey-900)] rounded-[1rem] px-[0.75rem] py-[0.6875rem] shadow-sm">
                   <p className="text-[0.875rem] leading-[1.3125rem] break-words whitespace-pre-wrap font-normal">
                     {msg.text}
@@ -343,11 +340,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
                             key={`${file.name}-${index}`}
                             className="w-16 h-16 rounded-lg bg-[var(--grey-100)] flex flex-col items-center justify-center truncate p-1 text-[var(--grey-900)]"
                           >
-                          ðŸ“„
-                          <span className="mt-1 text-center truncate text-[0.5rem]">
-                            {file.name}
-                          </span>
-                        </div>
+                            ðŸ“„
+                            <span className="mt-1 text-center truncate text-[0.5rem]">
+                              {file.name}
+                            </span>
+                          </div>
                         )
                       )}
                     </div>
@@ -366,17 +363,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
             onChange={handleFileChange}
           />
 
-          {/* Chat Input Container - Clear nav bar with 1rem gap */}
-          <div 
-            className={`w-full px-[var(--spacing-16)] mt-auto flex-shrink-0 relative z-20 transition-all duration-200 ${
-              isInputFocused 
-                ? 'mb-[1rem]' 
-                : 'mb-[calc(4.6875rem+max(env(safe-area-inset-bottom),0.75rem)+1rem)]'
+          {/* Chat Input Container - Active state */}
+          <div
+            className={`w-full px-4 mt-auto flex-shrink-0 relative z-20 transition-all duration-200 ${
+              isInputFocused
+                ? "mb-[1rem]"
+                : "mb-[calc(4.6875rem+max(env(safe-area-inset-bottom),0.75rem)+1rem)]"
             }`}
           >
             <div className="w-full bg-white border border-[var(--grey-200)] rounded-[1.25rem] px-[0.75rem] py-[0.5rem] flex flex-col shadow-sm transition-all duration-200">
 
-              {/* Attachment Preview — expands upward inside the box */}
+              {/* Attachment Preview */}
               {attachment && (
                 <div className="pt-1 pb-2 relative w-[4.5rem] h-[4.5rem] ml-1 animate-in fade-in zoom-in duration-200">
                   <img
@@ -397,15 +394,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
                     className="absolute -top-1 -right-1 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center shadow-md touch-manipulation hover:bg-black transition-colors z-10"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 6L6 18M6 6l12 12"/>
+                      <path d="M18 6L6 18M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
               )}
 
-              {/* Text Input Row - Hugs content, minimum 32px height */}
+              {/* Text Input Row */}
               <div className="flex items-end gap-2 w-full min-h-[2rem]">
-
                 {/* Plus (Attach) Button */}
                 <button
                   onClick={handleAttachClick}
@@ -432,7 +428,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
                 {/* Send Button */}
                 <button
                   onClick={handleSend}
-                  className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center mb-[0.125rem] transition-colors touch-manipulation ${(message.trim().length > 0 || attachment) ? 'bg-[var(--purple-1000)]' : 'bg-[#643388]'} text-white`}
+                  className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center mb-[0.125rem] transition-colors touch-manipulation text-white ${
+                    message.trim().length > 0 || attachment ? "bg-[var(--purple-1000)]" : "bg-[#643388]"
+                  }`}
                 >
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="12" y1="19" x2="12" y2="5" />
@@ -446,46 +444,44 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
       )}
 
       {/* â”€â”€ Bottom Nav â”€â”€ */}
-      <nav className={`fixed bottom-0 left-0 w-full bg-white border-t border-[var(--grey-200)] z-40 flex px-[0.75rem] gap-[0.75rem] pt-[0.75rem] pb-[max(env(safe-area-inset-bottom),0.75rem)] transition-transform duration-200 ${navHidden ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
+      <nav className={`fixed bottom-0 left-0 w-full bg-white border-t border-[var(--grey-200)] z-40 flex px-[0.75rem] gap-[0.75rem] pt-[0.75rem] pb-[max(env(safe-area-inset-bottom),0.75rem)] transition-transform duration-200 ${navHidden ? "translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"}`}>
         <button
-          onClick={() => onNavigate('home')}
+          onClick={() => onNavigate("home")}
           className="flex-1 h-[2.75rem] flex flex-col items-center justify-between relative touch-manipulation group"
         >
-          {true && (
-            <div className="absolute top-[-0.75rem] left-0 w-full h-[0.125rem] bg-[var(--purple-1000)] rounded-b-sm" />
-          )}
+          <div className="absolute top-[-0.75rem] left-0 w-full h-[0.125rem] bg-[var(--purple-1000)] rounded-b-sm" />
           <div className="w-6 h-6 flex items-center justify-center">
-            <MessageSquareTextIcon size={24} style={{ color: 'var(--purple-1000)' }} />
+            <MessageSquareTextIcon size={24} style={{ color: "var(--purple-1000)" }} />
           </div>
           <span className="text-[0.625rem] leading-[0.75rem] font-medium text-[var(--purple-1000)]">Chat</span>
         </button>
 
         <button
-          onClick={() => onNavigate('agents')}
+          onClick={() => onNavigate("agents")}
           className="flex-1 h-[2.75rem] flex flex-col items-center justify-between relative touch-manipulation group"
         >
           <div className="w-6 h-6 flex items-center justify-center">
-            <Bot size={24} strokeWidth={1.5} style={{ color: 'var(--grey-500)' }} />
+            <Bot size={24} strokeWidth={1.5} style={{ color: "var(--grey-500)" }} />
           </div>
           <span className="text-[0.625rem] leading-[0.75rem] font-medium text-[var(--grey-500)]">Agent</span>
         </button>
 
         <button
-          onClick={() => onNavigate('outputs')}
+          onClick={() => onNavigate("outputs")}
           className="flex-1 h-[2.75rem] flex flex-col items-center justify-between relative touch-manipulation group"
         >
           <div className="w-6 h-6 flex items-center justify-center">
-            <FileOutputIcon size={24} style={{ color: 'var(--grey-500)' }} />
+            <FileOutputIcon size={24} style={{ color: "var(--grey-500)" }} />
           </div>
           <span className="text-[0.625rem] leading-[0.75rem] font-medium text-[var(--grey-500)]">Outputs</span>
         </button>
 
         <button
-          onClick={() => onNavigate('approvals')}
+          onClick={() => onNavigate("approvals")}
           className="flex-1 h-[2.75rem] flex flex-col items-center justify-between relative touch-manipulation group"
         >
           <div className="w-6 h-6 flex items-center justify-center">
-            <UserRoundCheckIcon size={24} style={{ color: 'var(--grey-500)' }} />
+            <UserRoundCheckIcon size={24} style={{ color: "var(--grey-500)" }} />
           </div>
           <span className="text-[0.625rem] leading-[0.75rem] font-medium text-[var(--grey-500)]">Approvals</span>
         </button>
@@ -494,9 +490,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
       {/* â”€â”€ Backdrop Overlay â”€â”€ */}
       <div
         className={`fixed inset-0 z-40 bg-[var(--grey-500)] transition-opacity duration-300 ${
-          isRecentsOpen
-            ? "opacity-50 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
+          isRecentsOpen ? "opacity-50 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         onClick={(e) => {
           e.stopPropagation();
@@ -504,17 +498,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
         }}
       />
 
-      {/*
-       * â”€â”€ Recents Side Panel â”€â”€
-       *
-       * KEY FIX: The panel is anchored with fixed positioning to the true
-       * viewport edges (top:0, left:0, height:100dvh).  It does NOT inherit
-       * the parent's safe-area padding, so it always fills edge-to-edge on
-       * every device size regardless of notch / home-indicator geometry.
-       *
-       * Internal padding is applied explicitly inside the panel so content
-       * is still clear of hardware-level safe zones.
-       */}
+      {/* â”€â”€ Recents Side Panel â”€â”€ */}
       <div
         aria-modal="true"
         role="dialog"
@@ -523,19 +507,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
           isRecentsOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{
-          // Panel takes up all-but a configurable right gap so the user can
-          // tap the exposed backdrop to dismiss.  Uses CSS custom properties
-          // when defined, otherwise falls back to a sensible fixed value.
-          width:
-            "min(calc(100vw - var(--panel-overlay-gap, 3.5rem)), var(--panel-max-w, 20rem))",
+          width: "min(calc(100vw - var(--panel-overlay-gap, 3.5rem)), var(--panel-max-w, 20rem))",
         }}
       >
-        {/*
-         * Inner wrapper handles safe-area padding independently from the
-         * app shell.  pt accounts for status-bar / notch; pb accounts for
-         * home indicator.  Both use max() so there is always at least a
-         * comfortable minimum clearance.
-         */}
         <div
           className="flex flex-col w-full h-full"
           style={{
@@ -557,21 +531,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
               }}
               className="w-9 h-9 flex items-center justify-center shrink-0 active:bg-[var(--grey-100)] rounded-full transition-colors"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-              >
-                <path
-                  d="M13 1L1 13M1 1L13 13"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M13 1L1 13M1 1L13 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
           </div>
