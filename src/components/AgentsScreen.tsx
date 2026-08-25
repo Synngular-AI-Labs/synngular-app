@@ -39,12 +39,12 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen 
 
   return (
     <div
-      className="w-full h-full flex flex-col bg-[var(--background)] pt-[max(var(--safe-top),2.75rem)] pb-[max(var(--safe-bottom),2.125rem)]"
+      className="w-full h-full flex flex-col bg-[var(--background)] pb-[max(var(--safe-bottom),2.125rem)]"
     >
-      <header className="px-6 py-4">
+      <header className="px-[var(--spacing-16)] pt-[max(var(--safe-top),2.75rem)] pb-3">
         {!isSearchActive ? (
           <div className="flex flex-row justify-between items-center">
-            <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>
+            <h1 className="text-card-title-20" style={{ color: "var(--foreground)" }}>
               Agents
             </h1>
             <div className="flex items-center gap-3">

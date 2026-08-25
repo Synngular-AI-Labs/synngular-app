@@ -195,7 +195,7 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate, isKeyboar
         {!isSearchActive ? (
           <div className="flex flex-row justify-between items-center">
             <h1
-              className="text-xl sm:text-2xl font-bold"
+              className="text-card-title-20"
               style={{ color: "var(--foreground)" }}
             >
               Approvals

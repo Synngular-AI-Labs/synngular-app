@@ -16,10 +16,12 @@ const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({ onNavigate,
       }}
     >
       <header
-        className="sticky top-0 z-10 w-full h-[3.25rem] flex items-center px-4 sm:px-6 border-b backdrop-blur-sm"
+        className="sticky top-0 z-10 w-full h-[3.25rem] flex items-center gap-2 border-b backdrop-blur-sm"
         style={{
-          paddingTop: "calc(var(--spacing-base, 0.5rem) + var(--safe-top))",
-          paddingBottom: "var(--spacing-base, 0.5rem)",
+          paddingLeft: "var(--spacing-16)",
+          paddingRight: 0,
+          paddingTop: "calc(var(--spacing-4) + var(--safe-top))",
+          paddingBottom: 0,
           background: "var(--background)",
           borderColor: "var(--border)"
         }}

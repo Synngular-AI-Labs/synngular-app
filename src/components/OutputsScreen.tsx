@@ -47,7 +47,6 @@ const outputs: OutputItem[] = [
 ];
 
 const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOutput, isKeyboardOpen }) => {
-  const [activeFilter, setActiveFilter] = useState("All");
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -56,26 +55,22 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
   const handleDownload = (itemName: string) => alert(`Downloading: ${itemName}`);
 
   const filteredOutputs = useMemo(() => {
-    return outputs.filter((output) => {
-      const matchesTab =
-        activeFilter === "All" ||
-        output.type === activeFilter.toLowerCase();
-      const query = searchQuery.toLowerCase();
-      const matchesSearch =
+    const query = searchQuery.toLowerCase();
+    return outputs.filter(
+      (output) =>
         output.title.toLowerCase().includes(query) ||
-        output.subtitle.toLowerCase().includes(query);
-      return matchesTab && matchesSearch;
-    });
-  }, [activeFilter, searchQuery]);
+        output.subtitle.toLowerCase().includes(query)
+    );
+  }, [searchQuery]);
 
   return (
     <div
-      className="w-full h-full flex flex-col bg-[var(--background)] pt-[max(var(--safe-top),2.75rem)] pb-[max(var(--safe-bottom),2.125rem)]"
+      className="w-full h-full flex flex-col bg-[var(--background)] pb-[max(var(--safe-bottom),2.125rem)]"
     >
-      <header className="px-6 py-4">
+      <header className="px-[var(--spacing-16)] pt-[max(var(--safe-top),2.75rem)] pb-3">
         {!isSearchActive ? (
           <div className="flex flex-row justify-between items-center">
-            <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>
+            <h1 className="text-card-title-20" style={{ color: "var(--foreground)" }}>
               Outputs
             </h1>
             <div className="flex items-center gap-3">
@@ -97,28 +92,6 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
           />
         )}
       </header>
-
-      <div className="px-6 py-2 my-3 flex flex-row gap-2 overflow-x-auto whitespace-nowrap hide-scrollbar">
-        {[
-          { label: "All", key: "All" },
-          { label: "Pdf", key: "Pdf" },
-          { label: "Codes", key: "Codes" },
-          { label: "Spreadsheet", key: "Spreadsheet" },
-        ].map((filter) => (
-          <button
-            type="button"
-            key={filter.key}
-            onClick={() => setActiveFilter(filter.key)}
-            className={`px-4 py-1.5 rounded-xl text-sm font-medium border ${
-              activeFilter === filter.key
-                ? "border-[var(--purple-1000)] text-[var(--purple-1000)] bg-transparent"
-                : "border-[var(--border)] text-[var(--muted-foreground)] bg-transparent"
-            }`}
-          >
-            {filter.label}
-          </button>
-        ))}
-      </div>
 
       <div className="flex-grow overflow-y-auto px-6 mt-2 pb-[calc(4rem+max(var(--safe-bottom),1.25rem))] flex flex-col gap-6">
         {filteredOutputs.map((output) => {
