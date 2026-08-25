@@ -100,21 +100,15 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onNavigate })
                     onClick={() => markAsRead(item.id)}
                     className={`relative w-full flex items-start justify-between gap-3 text-left rounded-2xl px-3 py-2.5 transition-colors touch-manipulation ${
                       item.isUnread
-                        ? "bg-[var(--purple-100)] active:bg-[var(--purple-200)]"
+                        ? "bg-[var(--grey-200)] active:bg-[var(--grey-300)]"
                         : "bg-transparent active:bg-[var(--grey-200)]"
                     }`}
                   >
                     <div className="min-w-0 flex-1">
-                      <p
-                        className={`text-sm leading-snug ${
-                          item.isUnread
-                            ? "font-semibold text-[var(--grey-1000)]"
-                            : "font-normal text-[var(--grey-900)]"
-                        }`}
-                      >
+                      <p className="text-sm leading-5 font-normal text-[var(--grey-1000)]">
                         {item.title}
                       </p>
-                      <p className="text-xs text-[var(--grey-500)] mt-0.5">
+                      <p className="text-xs leading-[1.125rem] font-normal text-[var(--grey-500)] mt-0.5">
                         {item.subtitle}
                       </p>
                     </div>
@@ -125,7 +119,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onNavigate })
                     {item.isUnread && (
                       <span
                         aria-hidden="true"
-                        className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[var(--purple-800)] ring-2 ring-[var(--card,#ffffff)]"
+                        className="absolute top-2 right-2 w-3 h-3 rounded-full bg-[var(--purple-800)]"
                       />
                     )}
                   </button>

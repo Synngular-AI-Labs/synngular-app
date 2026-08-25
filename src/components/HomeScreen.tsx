@@ -115,7 +115,6 @@ interface ChatInputProps {
 const ChatInput: React.FC<ChatInputProps> = ({
   message,
   attachments,
-  isMultiline,
   textareaRef,
   fileInputRef,
   onInput,
@@ -126,25 +125,127 @@ const ChatInput: React.FC<ChatInputProps> = ({
   onFileChange,
   onRemoveAttachment,
 }) => {
-  const hasContent = message.trim().length > 0 || attachments.length > 0;
+  const [isExpanded, setIsExpanded] = React.useState(false);
 
-  // Attach and send buttons are shared between the single-row and stacked layouts.
+  const hasContent =
+    message.trim().length > 0 || attachments.length > 0;
+
+  /*
+   * Determines whether the textarea needs more than one line.
+   *
+   * This is based on the actual rendered textarea width and
+   * scrollHeight, so wrapping caused by different mobile widths
+   * is handled automatically.
+   */
+  const updateTextareaLayout = React.useCallback(() => {
+    const textarea = textareaRef.current;
+
+    if (!textarea) {
+      return;
+    }
+
+    /*
+     * Reset first so the textarea can shrink when text is deleted.
+     */
+    textarea.style.height = "auto";
+
+    /*
+     * When height is auto, scrollHeight tells us whether the
+     * content requires more than the initial row.
+     */
+    const requiresMultipleLines =
+      textarea.scrollHeight > textarea.clientHeight + 1;
+
+    setIsExpanded(requiresMultipleLines);
+
+    /*
+     * Only explicitly grow the textarea after it has become
+     * multiline. The initial state remains naturally one line.
+     */
+    if (requiresMultipleLines) {
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [textareaRef]);
+
+  /*
+   * Recalculate after React has rendered the latest message.
+   *
+   * This is important for:
+   * - typing
+   * - deleting
+   * - pasted text
+   * - different mobile widths
+   * - orientation changes
+   */
+  React.useLayoutEffect(() => {
+    updateTextareaLayout();
+  }, [message, updateTextareaLayout]);
+
+  /*
+   * Recalculate when the available width changes.
+   *
+   * This handles mobile orientation changes and responsive
+   * layout changes without relying on device-specific sizes.
+   */
+  React.useEffect(() => {
+    const textarea = textareaRef.current;
+
+    if (!textarea || typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver(() => {
+      updateTextareaLayout();
+    });
+
+    observer.observe(textarea);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [textareaRef, updateTextareaLayout]);
+
+  const handleInput = (
+    event: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    /*
+     * Let the parent update the message.
+     * The useLayoutEffect above will measure the new content
+     * after React renders it.
+     */
+    onInput(event);
+  };
+
   const attachButton = (
     <button
+      type="button"
       onClick={onAttachClick}
       disabled={attachments.length >= MAX_ATTACHMENTS}
       aria-label="Attach file"
-      className={`shrink-0 flex items-center justify-center rounded-full p-1 sm:p-0.5 transition-colors touch-manipulation ${
-        attachments.length >= MAX_ATTACHMENTS
-          ? "text-gray-300 cursor-not-allowed"
-          : "text-gray-500 active:bg-gray-100 hover:bg-gray-100"
-      }`}
+      className={`
+        shrink-0
+        flex
+        items-center
+        justify-center
+        rounded-full
+        p-2
+        touch-manipulation
+        transition-colors
+        ${
+          attachments.length >= MAX_ATTACHMENTS
+            ? "text-gray-300 cursor-not-allowed"
+            : "text-gray-500 hover:bg-gray-100 active:bg-gray-100"
+        }
+      `}
     >
       <svg
-        viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2.5"
-        strokeLinecap="round" strokeLinejoin="round"
-        className="w-5 h-5 sm:w-6 sm:h-6"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="size-5"
       >
         <line x1="12" y1="5" x2="12" y2="19" />
         <line x1="5" y1="12" x2="19" y2="12" />
@@ -154,17 +255,36 @@ const ChatInput: React.FC<ChatInputProps> = ({
 
   const sendButton = (
     <button
+      type="button"
       onClick={onSend}
+      disabled={!hasContent}
       aria-label="Send message"
-      className={`shrink-0 flex items-center justify-center rounded-full p-2 sm:p-2.5 transition-all touch-manipulation text-white bg-[var(--send-button-color)] ${
-        hasContent ? "opacity-100 hover:opacity-90 shadow-sm cursor-pointer" : "opacity-40 cursor-default"
-      }`}
+      className={`
+        shrink-0
+        flex
+        items-center
+        justify-center
+        rounded-full
+        p-2
+        text-white
+        bg-[var(--send-button-color)]
+        transition-all
+        touch-manipulation
+        ${
+          hasContent
+            ? "opacity-100 hover:opacity-90 shadow-sm cursor-pointer"
+            : "opacity-40 cursor-default"
+        }
+      `}
     >
       <svg
-        viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2.5"
-        strokeLinecap="round" strokeLinejoin="round"
-        className="w-4 h-4 sm:w-5 sm:h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="size-4"
       >
         <line x1="12" y1="19" x2="12" y2="5" />
         <polyline points="5 12 12 5 19 12" />
@@ -172,27 +292,218 @@ const ChatInput: React.FC<ChatInputProps> = ({
     </button>
   );
 
-  // In stacked mode the wrapping row is a flex item (flex:1, min-height:0) inside the
-  // max-height-capped card, so it — not a hardcoded height guess — clips/scrolls the
-  // textarea once the toolbar row below has taken its own (Hug-sized) share of the space.
   const textarea = (
     <textarea
       ref={textareaRef}
       value={message}
-      onChange={onInput}
+      onChange={handleInput}
       onFocus={onFocus}
       onBlur={onBlur}
       rows={1}
       placeholder="Type a message here..."
-      className="w-full bg-transparent resize-none focus:outline-none placeholder:text-gray-400 text-gray-900 text-sm sm:text-base"
+      className="
+        block
+        w-full
+        min-w-0
+        resize-none
+        bg-transparent
+        p-0
+        text-sm
+        leading-5
+        text-gray-900
+        outline-none
+        placeholder:text-gray-400
+        focus:outline-none
+        focus:ring-0
+      "
+      style={{
+        /*
+         * The textarea itself is allowed to grow naturally.
+         * The outer composer controls the overall available space.
+         */
+        maxHeight: "35dvh",
+        overflowY: isExpanded ? "auto" : "hidden",
+      }}
     />
   );
 
+  const attachmentPreview =
+    attachments.length > 0 && (
+      <div
+        className="
+          shrink-0
+          flex
+          items-start
+          gap-2
+          overflow-x-auto
+          overscroll-x-contain
+          px-3
+          pt-3
+          pb-2
+          snap-x
+          hide-scrollbar
+        "
+      >
+        {attachments.map((att, idx) => (
+          <div
+            key={att.url}
+            className="
+              relative
+              shrink-0
+              snap-start
+              w-[clamp(3.5rem,16vw,4.5rem)]
+              aspect-square
+            "
+          >
+            <div
+              className="
+                size-full
+                overflow-hidden
+                rounded-xl
+                border
+                border-gray-200
+                bg-gray-50
+              "
+            >
+              {att.isImage ? (
+                <img
+                  src={att.url}
+                  alt={att.name}
+                  className="size-full object-cover"
+                />
+              ) : (
+                <div
+                  className="
+                    size-full
+                    flex
+                    flex-col
+                    items-center
+                    justify-center
+                    gap-1
+                    p-1
+                  "
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    className="size-5 shrink-0 text-gray-500"
+                  >
+                    <path
+                      d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                    />
+                    <path d="M14 2v6h6" />
+                  </svg>
+
+                  <span
+                    className="
+                      w-full
+                      truncate
+                      text-center
+                      text-[0.6rem]
+                      leading-tight
+                      text-gray-600
+                    "
+                  >
+                    {att.name}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {att.loading && (
+              <div
+                className="
+                  absolute
+                  inset-0
+                  flex
+                  items-center
+                  justify-center
+                  rounded-xl
+                  bg-black/40
+                "
+              >
+                <svg
+                  className="size-5 animate-spin text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => onRemoveAttachment(idx)}
+              aria-label={`Remove ${att.name}`}
+              className="
+                absolute
+                -right-1
+                -top-1
+                z-10
+                flex
+                size-5
+                items-center
+                justify-center
+                rounded-full
+                bg-gray-900/75
+                text-white
+                transition-colors
+                hover:bg-gray-900
+                touch-manipulation
+              "
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="size-3"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        ))}
+
+        {attachments.length >= MAX_ATTACHMENTS && (
+          <span
+            className="
+              shrink-0
+              self-center
+              whitespace-nowrap
+              text-xs
+              text-gray-500
+            "
+          >
+            Max limit reached
+          </span>
+        )}
+      </div>
+    );
+
   return (
-    <div className="w-full p-2 sm:p-3 flex-shrink-0 relative z-20">
+    <div className="relative z-20 w-full shrink-0 px-2">
       <input
-        type="file"
         ref={fileInputRef}
+        type="file"
         className="hidden"
         accept="image/*,application/pdf"
         multiple
@@ -200,104 +511,107 @@ const ChatInput: React.FC<ChatInputProps> = ({
       />
 
       <div
-        className="w-full bg-white rounded-xl flex flex-col overflow-hidden"
-        style={{
-          "--chat-box-padding": "1rem",
-          "--chat-toolbar-padding-x": "0.75rem",
-          "--chat-max-height": "12.125rem",
-          "--chat-shadow-color": "var(--grey-300)",
-          "--send-button-color": "#643388",
-          // maxHeight: "var(--chat-max-height)",
-          boxShadow: "0 0.0625rem 0.25rem 0 var(--chat-shadow-color)",
-        } as React.CSSProperties}
+        className="
+          flex
+          w-full
+          max-h-[50dvh]
+          flex-col
+          overflow-hidden
+          rounded-xl
+          bg-white
+        "
+        style={
+          {
+            "--send-button-color": "#643388",
+            boxShadow: "0 0.0625rem 0.25rem 0 var(--grey-300)",
+          } as React.CSSProperties
+        }
       >
-        {/* Attachment previews */}
-        {attachments.length > 0 && (
-          <div className="flex flex-row overflow-x-auto gap-2 snap-x hide-scrollbar">
-            {attachments.map((att, idx) => (
-              <div
-                key={att.url}
-                className="relative shrink-0 w-14 h-14 sm:w-16 sm:h-16 snap-start"
-              >
-                {att.isImage ? (
-                  <img
-                    src={att.url}
-                    alt={att.name}
-                    className="w-full h-full object-cover rounded-xl border border-gray-200"
-                  />
-                ) : (
-                  <div className="w-full h-full rounded-xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center p-1">
-                    <span className="text-base sm:text-lg leading-none">ðŸ“„</span>
-                    <span className="text-[0.55rem] sm:text-xs text-gray-600 truncate w-full text-center mt-0.5 leading-tight">
-                      {att.name}
-                    </span>
-                  </div>
-                )}
-                {att.loading && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl">
-                    <svg
-                      className="animate-spin text-white w-4 h-4 sm:w-5 sm:h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                  </div>
-                )}
-                <button
-                  onClick={() => onRemoveAttachment(idx)}
-                  aria-label={`Remove ${att.name}`}
-                  className="absolute -top-1.5 -right-1.5 bg-gray-900/70 text-white rounded-full flex items-center justify-center touch-manipulation z-10 w-5 h-5 sm:w-6 sm:h-6 hover:bg-gray-900 transition-colors"
-                >
-                  <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            ))}
-            {attachments.length >= MAX_ATTACHMENTS && (
-              <span className="text-xs text-gray-500 self-end pb-1 whitespace-nowrap pl-1">
-                Max limit reached
-              </span>
-            )}
-          </div>
-        )}
+        {/* Attachments always remain at the top */}
+        {attachmentPreview}
 
-        {isMultiline ? (
-          /* ── Stacked layout: textarea on top, + / send row below ── */
-          <div className="flex flex-col w-full " style={{ flex: "1 1 auto" }}>
+        {!isExpanded ? (
+          /*
+           * ========================================================
+           * SINGLE-LINE STATE
+           *
+           * +   textarea   send
+           *
+           * This is the initial state.
+           * ========================================================
+           */
+          <div
+            className="
+              flex
+              w-full
+              min-w-0
+              items-center
+              gap-1
+              px-1
+              py-1
+            "
+          >
+            {attachButton}
+
+            <div className="min-w-0 flex-1">
+              {textarea}
+            </div>
+
+            {sendButton}
+          </div>
+        ) : (
+          /*
+           * ========================================================
+           * EXPANDED STATE
+           *
+           * textarea
+           *
+           * +                         send
+           *
+           * Still ONE outer container.
+           * ========================================================
+           */
+          <div
+            className="
+              flex
+              min-h-0
+              w-full
+              flex-col
+            "
+          >
             <div
-              className="w-full overflow-y-auto min-h-0"
-              style={{ padding: "var(--chat-box-padding)", paddingBottom: "0.375rem", flex: "1 1 auto" }}
+              className="
+                min-h-0
+                flex-1
+                overflow-y-auto
+                overscroll-contain
+                px-3
+                py-2
+              "
             >
               {textarea}
             </div>
-            {/* Toolbar: own horizontal padding, no vertical padding — hugs its buttons' height */}
+
             <div
-              className="flex items-center justify-between w-full gap-1 sm:gap-2 flex-shrink-0"
-              style={{ padding: "0 var(--chat-toolbar-padding-x)" }}
+              className="
+                flex
+                shrink-0
+                items-center
+                justify-between
+                gap-1
+                px-1
+                pb-1
+              "
             >
               {attachButton}
               {sendButton}
             </div>
-          </div>
-        ) : (
-          /* ── Single row (Toolbar): + button · textarea · send button ── */
-          <div
-            className="flex items-center gap-1 sm:gap-2 w-full"
-            style={{ padding: "0.5rem" }}
-          >
-            {attachButton}
-            {textarea}
-            {sendButton}
           </div>
         )}
       </div>
     </div>
   );
 };
-
 // â”€â”€ Main HomeScreen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, userEmail }) => {
   const [message, setMessage]               = useState("");
