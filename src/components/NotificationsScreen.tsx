@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import TabToggle from "./common/TabToggle";
 
 /* ── Types ────────────────────────────────────────────────────────── */
 
@@ -11,6 +10,7 @@ interface NotificationsScreenProps {
 interface NotificationItem {
   id: number;
   title: string;
+  subtitle: string;
   time: string;
   category: string;
   isUnread: boolean;
@@ -19,27 +19,25 @@ interface NotificationItem {
 /* ── Component ────────────────────────────────────────────────────── */
 
 const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onNavigate }) => {
-  const [activeTab, setActiveTab] = useState("all");
-
   const [notifications, setNotifications] = useState<NotificationItem[]>([
-    { id: 1, title: "New comment on your output", time: "2m ago", category: "Today", isUnread: true },
-    { id: 2, title: "New team member added", time: "15m ago", category: "Today", isUnread: true },
-    { id: 3, title: "Task archived", time: "1h ago", category: "Today", isUnread: false },
-    { id: 4, title: "Project deadline updated", time: "3h ago", category: "Today", isUnread: false },
-    { id: 5, title: "New comment on your output", time: "1d ago", category: "Yesterday", isUnread: true },
-    { id: 6, title: "New team member added", time: "1d ago", category: "Yesterday", isUnread: false },
-    { id: 7, title: "Task archived", time: "1d ago", category: "Yesterday", isUnread: false },
-    { id: 8, title: "Weekly report generated", time: "1d ago", category: "Yesterday", isUnread: true },
-    { id: 9, title: "System update scheduled", time: "2d ago", category: "2 days ago", isUnread: true },
-    { id: 10, title: "Invoice processed successfully", time: "2d ago", category: "2 days ago", isUnread: false },
-    { id: 11, title: "Meeting notes uploaded", time: "2d ago", category: "2 days ago", isUnread: false },
-    { id: 12, title: "Quarterly review document shared", time: "3d ago", category: "3 days ago", isUnread: false },
-    { id: 13, title: "Security alert: New login", time: "3d ago", category: "3 days ago", isUnread: false },
-    { id: 14, title: "Performance metrics available", time: "3d ago", category: "3 days ago", isUnread: false },
-    { id: 15, title: "New comment on your output", time: "1w ago", category: "1 week ago", isUnread: true },
-    { id: 16, title: "Policy document updated", time: "1w ago", category: "1 week ago", isUnread: false },
-    { id: 17, title: "Task archived", time: "1w ago", category: "1 week ago", isUnread: false },
-    { id: 18, title: "Onboarding completed", time: "1w ago", category: "1 week ago", isUnread: false },
+    { id: 1, title: "New comment on your output", subtitle: "Agents call", time: "2m ago", category: "Today", isUnread: true },
+    { id: 2, title: "New team member added and 5 people left the project.", subtitle: "Projects", time: "5h ago", category: "Today", isUnread: true },
+    { id: 3, title: "Task archived", subtitle: "Task area", time: "7d ago", category: "Today", isUnread: false },
+    { id: 4, title: "Project deadline updated", subtitle: "Projects", time: "3h ago", category: "Today", isUnread: false },
+    { id: 5, title: "New comment on your output", subtitle: "Agents call", time: "2m ago", category: "Yesterday", isUnread: false },
+    { id: 6, title: "New team member added", subtitle: "Members page", time: "5h ago", category: "Yesterday", isUnread: false },
+    { id: 7, title: "Task archived", subtitle: "Task area", time: "7d ago", category: "Yesterday", isUnread: false },
+    { id: 8, title: "Weekly report generated", subtitle: "Reports", time: "1d ago", category: "Yesterday", isUnread: true },
+    { id: 9, title: "System update scheduled", subtitle: "System", time: "2d ago", category: "2 days ago", isUnread: true },
+    { id: 10, title: "Invoice processed successfully", subtitle: "Invoices", time: "2d ago", category: "2 days ago", isUnread: false },
+    { id: 11, title: "Meeting notes uploaded", subtitle: "Meetings", time: "2d ago", category: "2 days ago", isUnread: false },
+    { id: 12, title: "Quarterly review document shared", subtitle: "Documents", time: "3d ago", category: "3 days ago", isUnread: false },
+    { id: 13, title: "Security alert: New login", subtitle: "Security", time: "3d ago", category: "3 days ago", isUnread: false },
+    { id: 14, title: "Performance metrics available", subtitle: "Analytics", time: "3d ago", category: "3 days ago", isUnread: false },
+    { id: 15, title: "New comment on your output", subtitle: "Agents call", time: "1w ago", category: "1 week ago", isUnread: true },
+    { id: 16, title: "Policy document updated", subtitle: "Documents", time: "1w ago", category: "1 week ago", isUnread: false },
+    { id: 17, title: "Task archived", subtitle: "Task area", time: "1w ago", category: "1 week ago", isUnread: false },
+    { id: 18, title: "Onboarding completed", subtitle: "Onboarding", time: "1w ago", category: "1 week ago", isUnread: false },
   ]);
 
   const markAsRead = (id: number) => {
@@ -48,12 +46,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onNavigate })
     );
   };
 
-  const filteredNotifications =
-    activeTab === "unread"
-      ? notifications.filter((n) => n.isUnread)
-      : notifications;
-
-  const groupedNotifications = filteredNotifications.reduce(
+  const groupedNotifications = notifications.reduce(
     (acc, curr) => {
       if (!acc[curr.category]) acc[curr.category] = [];
       acc[curr.category].push(curr);
@@ -61,11 +54,6 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onNavigate })
     },
     {} as Record<string, NotificationItem[]>
   );
-
-  const notificationTabs = [
-    { label: `All (${notifications.length})`, value: "all" },
-    { label: `Unread (${notifications.filter((n) => n.isUnread).length})`, value: "unread" },
-  ];
 
   return (
     <div
@@ -93,44 +81,53 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onNavigate })
         </div>
       </div>
 
-      {/* Toggle Container: 201 Hug x 45 Hug */}
-      <div className="w-full flex justify-center mt-2 mb-4">
-        <TabToggle
-          tabs={notificationTabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
-      </div>
-
       {/* ── Grouped Notification List ── */}
-      <div className="flex-1 overflow-y-auto pb-[var(--spacing-12)]">
+      <div className="flex-1 overflow-y-auto px-4 pb-[var(--spacing-12)]">
         {Object.entries(groupedNotifications).length > 0 ? (
           Object.entries(groupedNotifications).map(([category, items]) => (
             <div key={category}>
               {/* Category Header */}
-              <h2 className="text-sm text-[var(--grey-500)] pt-4 pb-2 px-[var(--spacing-16)] font-normal">
+              <h2 className="text-xs text-[var(--grey-500)] pt-4 pb-2 font-normal">
                 {category}
               </h2>
 
               {/* Notification Items */}
-              <div className="w-full flex flex-col">
+              <div className="w-full flex flex-col gap-1.5">
                 {items.map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => markAsRead(item.id)}
-                    className="w-full flex justify-between items-center py-3 px-[var(--spacing-16)] border-b border-[var(--grey-200)] last:border-b-0 active:bg-[var(--grey-100)] transition-colors text-left touch-manipulation"
+                    className={`relative w-full flex items-start justify-between gap-3 text-left rounded-2xl px-3 py-2.5 transition-colors touch-manipulation ${
+                      item.isUnread
+                        ? "bg-[var(--purple-100)] active:bg-[var(--purple-200)]"
+                        : "bg-transparent active:bg-[var(--grey-200)]"
+                    }`}
                   >
-                    <span
-                      className={`text-sm text-[var(--grey-1000)] truncate pr-4 ${
-                        item.isUnread ? "font-semibold" : "font-normal"
-                      }`}
-                    >
-                      {item.title}
-                    </span>
-                    <span className="text-xs text-[var(--grey-400)] shrink-0">
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={`text-sm leading-snug ${
+                          item.isUnread
+                            ? "font-semibold text-[var(--grey-1000)]"
+                            : "font-normal text-[var(--grey-900)]"
+                        }`}
+                      >
+                        {item.title}
+                      </p>
+                      <p className="text-xs text-[var(--grey-500)] mt-0.5">
+                        {item.subtitle}
+                      </p>
+                    </div>
+                    <span className="text-xs text-[var(--grey-400)] shrink-0 whitespace-nowrap mt-0.5">
                       {item.time}
                     </span>
+
+                    {item.isUnread && (
+                      <span
+                        aria-hidden="true"
+                        className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[var(--purple-800)] ring-2 ring-[var(--card,#ffffff)]"
+                      />
+                    )}
                   </button>
                 ))}
               </div>

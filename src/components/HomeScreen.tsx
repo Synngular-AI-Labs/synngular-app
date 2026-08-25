@@ -1,16 +1,49 @@
 import React, { useEffect, useRef, useState } from "react";
 import logoAsset from "../assets/logo.png";
 import { M3 } from "tauri-plugin-m3";
-import { Menu, Bell, Bot } from "lucide-react";
+import { Menu, Bell, Bot, ChevronDown, LogOut } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const MAX_ATTACHMENTS = 10;
 
-// ── Recents Dummy Data ──────────────────────────────────────────────────────
-const recentItems = [
+// â”€â”€ Current user (derived from the signed-in email â€” no display name is collected) â”€â”€
+const deriveCurrentUser = (email: string) => {
+  const local = email.split("@")[0] || "";
+  const name =
+    local
+      .replace(/[._-]+/g, " ")
+      .split(" ")
+      .filter(Boolean)
+      .map((w) => w[0].toUpperCase() + w.slice(1))
+      .join(" ") || "User";
+  const initials =
+    name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0].toUpperCase())
+      .join("") || "U";
+  return { name, email, initials };
+};
+
+// â”€â”€ Recents persistence (per signed-in user, survives sign-out/sign-in) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const recentsStorageKey = (email: string) => `synngular:recents:${email || "guest"}`;
+
+const loadRecentItems = (email: string): RecentItem[] => {
+  try {
+    const raw = localStorage.getItem(recentsStorageKey(email));
+    if (raw) return JSON.parse(raw);
+  } catch {
+    // Corrupt/unavailable storage falls back to the seeded demo list below.
+  }
+  return initialRecentItems;
+};
+
+// â”€â”€ Recents Dummy Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const initialRecentItems: RecentItem[] = [
   { id: 1,  title: "Contract analysis",                  time: "2m ago" },
   { id: 2,  title: "Customer Support Ticket Summary...", time: "2m ago" },
   { id: 3,  title: "HR Candidate Screening",             time: "2m ago" },
@@ -33,7 +66,7 @@ const recentItems = [
   { id: 20, title: "Weekly Sync Notes",                  time: "2m ago" },
 ];
 
-// ── Types ───────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 type Screen =
   | "signin" | "verify" | "terms" | "privacy"
   | "home" | "agents" | "outputs" | "approvals" | "notifications";
@@ -41,6 +74,13 @@ type Screen =
 interface HomeScreenProps {
   onNavigate: (screen: Screen) => void;
   isKeyboardOpen: boolean;
+  userEmail: string;
+}
+
+interface RecentItem {
+  id: number;
+  title: string;
+  time: string;
 }
 
 interface Attachment {
@@ -57,10 +97,11 @@ interface Message {
   files?: { url: string; type: string; name: string }[];
 }
 
-// ── ChatInput ───────────────────────────────────────────────────────────────
+// â”€â”€ ChatInput â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface ChatInputProps {
   message: string;
   attachments: Attachment[];
+  isMultiline: boolean;
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   fileInputRef: React.RefObject<HTMLInputElement>;
   onInput: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
@@ -75,6 +116,7 @@ interface ChatInputProps {
 const ChatInput: React.FC<ChatInputProps> = ({
   message,
   attachments,
+  isMultiline,
   textareaRef,
   fileInputRef,
   onInput,
@@ -87,8 +129,68 @@ const ChatInput: React.FC<ChatInputProps> = ({
 }) => {
   const hasContent = message.trim().length > 0 || attachments.length > 0;
 
+  // Attach and send buttons are shared between the single-row and stacked layouts.
+  const attachButton = (
+    <button
+      onClick={onAttachClick}
+      disabled={attachments.length >= MAX_ATTACHMENTS}
+      aria-label="Attach file"
+      className={`shrink-0 flex items-center justify-center rounded-full p-1 sm:p-0.5 transition-colors touch-manipulation ${
+        attachments.length >= MAX_ATTACHMENTS
+          ? "text-gray-300 cursor-not-allowed"
+          : "text-gray-500 active:bg-gray-100 hover:bg-gray-100"
+      }`}
+    >
+      <svg
+        viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2.5"
+        strokeLinecap="round" strokeLinejoin="round"
+        className="w-5 h-5 sm:w-6 sm:h-6"
+      >
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+    </button>
+  );
+
+  const sendButton = (
+    <button
+      onClick={onSend}
+      aria-label="Send message"
+      className={`shrink-0 flex items-center justify-center rounded-full p-2 sm:p-2.5 transition-all touch-manipulation text-white bg-[var(--send-button-color)] ${
+        hasContent ? "opacity-100 hover:opacity-90 shadow-sm cursor-pointer" : "opacity-40 cursor-default"
+      }`}
+    >
+      <svg
+        viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2.5"
+        strokeLinecap="round" strokeLinejoin="round"
+        className="w-4 h-4 sm:w-5 sm:h-5"
+      >
+        <line x1="12" y1="19" x2="12" y2="5" />
+        <polyline points="5 12 12 5 19 12" />
+      </svg>
+    </button>
+  );
+
+  // In stacked mode the wrapping row is a flex item (flex:1, min-height:0) inside the
+  // max-height-capped card, so it — not a hardcoded height guess — clips/scrolls the
+  // textarea once the toolbar row below has taken its own (Hug-sized) share of the space.
+  const textarea = (
+    <textarea
+      ref={textareaRef}
+      value={message}
+      onChange={onInput}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      rows={1}
+      placeholder="Type a message here..."
+      className="w-full bg-transparent resize-none focus:outline-none placeholder:text-gray-400 text-gray-900 text-sm sm:text-base"
+    />
+  );
+
   return (
-    <div className="w-full px-2 sm:px-4 flex-shrink-0 relative z-20">
+    <div className="w-full p-2 sm:p-3 flex-shrink-0 relative z-20">
       <input
         type="file"
         ref={fileInputRef}
@@ -98,10 +200,21 @@ const ChatInput: React.FC<ChatInputProps> = ({
         onChange={onFileChange}
       />
 
-      <div className="w-full bg-white border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm flex flex-col overflow-hidden">
+      <div
+        className="w-full bg-white rounded-xl flex flex-col overflow-hidden"
+        style={{
+          "--chat-box-padding": "1rem",
+          "--chat-toolbar-padding-x": "0.75rem",
+          "--chat-max-height": "12.125rem",
+          "--chat-shadow-color": "var(--grey-300)",
+          "--send-button-color": "#643388",
+          // maxHeight: "var(--chat-max-height)",
+          boxShadow: "0 0.0625rem 0.25rem 0 var(--chat-shadow-color)",
+        } as React.CSSProperties}
+      >
         {/* Attachment previews */}
         {attachments.length > 0 && (
-          <div className="flex flex-row overflow-x-auto gap-2 px-3 pt-3 pb-1 snap-x hide-scrollbar">
+          <div className="flex flex-row overflow-x-auto gap-2 snap-x hide-scrollbar">
             {attachments.map((att, idx) => (
               <div
                 key={att.url}
@@ -115,7 +228,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                   />
                 ) : (
                   <div className="w-full h-full rounded-xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center p-1">
-                    <span className="text-base sm:text-lg leading-none">📄</span>
+                    <span className="text-base sm:text-lg leading-none">ðŸ“„</span>
                     <span className="text-[0.55rem] sm:text-xs text-gray-600 truncate w-full text-center mt-0.5 leading-tight">
                       {att.name}
                     </span>
@@ -152,89 +265,70 @@ const ChatInput: React.FC<ChatInputProps> = ({
           </div>
         )}
 
-        {/* ── Single row: + button · textarea · send button ── */}
-        <div className="flex items-end px-2 py-2 sm:px-3 sm:py-3 gap-1 sm:gap-2 w-full">
-          {/* Attach / + button */}
-          <button
-            onClick={onAttachClick}
-            disabled={attachments.length >= MAX_ATTACHMENTS}
-            aria-label="Attach file"
-            className={`shrink-0 flex items-center justify-center rounded-full p-2 sm:p-2.5 transition-colors touch-manipulation ${
-              attachments.length >= MAX_ATTACHMENTS
-                ? "text-gray-300 cursor-not-allowed"
-                : "text-gray-500 active:bg-gray-100 hover:bg-gray-100"
-            }`}
-          >
-            <svg
-              viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2.5"
-              strokeLinecap="round" strokeLinejoin="round"
-              className="w-5 h-5 sm:w-6 sm:h-6"
+        {isMultiline ? (
+          /* ── Stacked layout: textarea on top, + / send row below ── */
+          <div className="flex flex-col w-full " style={{ flex: "1 1 auto" }}>
+            <div
+              className="w-full overflow-y-auto min-h-0"
+              style={{ padding: "var(--chat-box-padding)", paddingBottom: "0.375rem", flex: "1 1 auto" }}
             >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </button>
-
-          {/* Textarea — flexibly grows between the two buttons */}
-          <textarea
-            ref={textareaRef}
-            value={message}
-            onChange={onInput}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            rows={1}
-            placeholder="Type a message here..."
-            className="flex-1 bg-transparent resize-none focus:outline-none placeholder:text-gray-400 text-gray-900 overflow-y-auto text-sm sm:text-base py-2 sm:py-2.5 max-h-24 sm:max-h-32"
-          />
-
-          {/* Send button */}
-          <button
-            onClick={onSend}
-            aria-label="Send message"
-            className={`shrink-0 flex items-center justify-center rounded-full p-2 sm:p-2.5 transition-all touch-manipulation text-white ${
-              hasContent ? "bg-purple-600 hover:bg-purple-700 shadow-sm cursor-pointer" : "bg-purple-400 cursor-default"
-            }`}
-          >
-            <svg
-              viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2.5"
-              strokeLinecap="round" strokeLinejoin="round"
-              className="w-4 h-4 sm:w-5 sm:h-5"
+              {textarea}
+            </div>
+            {/* Toolbar: own horizontal padding, no vertical padding — hugs its buttons' height */}
+            <div
+              className="flex items-center justify-between w-full gap-1 sm:gap-2 flex-shrink-0"
+              style={{ padding: "0 var(--chat-toolbar-padding-x)" }}
             >
-              <line x1="12" y1="19" x2="12" y2="5" />
-              <polyline points="5 12 12 5 19 12" />
-            </svg>
-          </button>
-        </div>
+              {attachButton}
+              {sendButton}
+            </div>
+          </div>
+        ) : (
+          /* ── Single row (Toolbar): + button · textarea · send button ── */
+          <div
+            className="flex items-center gap-1 sm:gap-2 w-full"
+            style={{ padding: "0.5rem" }}
+          >
+            {attachButton}
+            {textarea}
+            {sendButton}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-// ── Main HomeScreen ─────────────────────────────────────────────────────────
-const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) => {
+// â”€â”€ Main HomeScreen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, userEmail }) => {
   const [message, setMessage]               = useState("");
   const [attachments, setAttachments]       = useState<Attachment[]>([]);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isSoftKeyboard, setIsSoftKeyboard] = useState(false);
   const [isRecentsOpen, setIsRecentsOpen]   = useState(false);
   const [messages, setMessages]             = useState<Message[]>([]);
+  const [isMultiline, setIsMultiline]       = useState(false);
+  const [recentItems, setRecentItems]       = useState<RecentItem[]>(() => loadRecentItems(userEmail));
+  const [isLogoutOpen, setIsLogoutOpen]     = useState(false);
+
+  const currentUser = deriveCurrentUser(userEmail);
 
   const textareaRef    = useRef<HTMLTextAreaElement>(null);
   const fileInputRef   = useRef<HTMLInputElement>(null);
   const fileUrlsRef    = useRef<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Re-measures the textarea after every change and flips the input between its
+  // single-row and stacked layouts once the content grows past one line. The
+  // textarea's own max-height (set in ChatInput via CSS var calc) caps growth
+  // beyond that, at which point it scrolls internally instead of the box growing.
   const syncTextareaHeight = () => {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    const lineHeight = parseFloat(getComputedStyle(el).lineHeight || "22");
-    const maxHeight  = lineHeight * 5 +
-      parseFloat(getComputedStyle(el).paddingTop    || "0") +
-      parseFloat(getComputedStyle(el).paddingBottom || "0");
-    el.style.height = `${Math.min(el.scrollHeight, maxHeight)}px`;
+    const lineHeight = parseFloat(getComputedStyle(el).lineHeight || "0") || el.scrollHeight;
+    setIsMultiline(el.scrollHeight > lineHeight + 2);
+    el.style.height = `${el.scrollHeight}px`;
   };
 
   useEffect(() => {
@@ -245,6 +339,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
     const urls = fileUrlsRef.current;
     return () => urls.forEach((u) => URL.revokeObjectURL(u));
   }, []);
+
+  // Persists Recents under the signed-in user's key so it's restored on the next
+  // sign-in (HomeScreen unmounts entirely on sign-out, so component state alone
+  // wouldn't survive that round trip).
+  useEffect(() => {
+    try {
+      localStorage.setItem(recentsStorageKey(userEmail), JSON.stringify(recentItems));
+    } catch {
+      // Storage unavailable (e.g. private browsing) — recents just won't persist.
+    }
+  }, [recentItems, userEmail]);
 
   useEffect(() => {
     (async () => {
@@ -279,6 +384,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
     ]);
     setMessage("");
     setAttachments([]);
+    setIsMultiline(false);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
   };
 
@@ -324,16 +430,33 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
   const handleRemoveAttachment = (index: number) =>
     setAttachments((prev) => prev.filter((_, i) => i !== index));
 
-  // ── Derived state ───────────────────────────────────────────────────────
+  // Archives the active conversation into Recents (if it has any messages), then
+  // resets the chat back to its empty/welcome state.
+  const handleNewChat = () => {
+    if (messages.length > 0) {
+      const firstUserMessage = messages.find((m) => m.isUser && m.text.trim());
+      const title = firstUserMessage?.text.trim().slice(0, 60) || "New chat";
+      setRecentItems((prev) => [{ id: Date.now(), title, time: "Just now" }, ...prev]);
+    }
+    setMessages([]);
+    setMessage("");
+    setAttachments([]);
+    setIsMultiline(false);
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
+    setIsRecentsOpen(false);
+  };
+
+  // â”€â”€ Derived state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const navHidden = isKeyboardOpen || isSoftKeyboard;
 
   const inputWrapperPb = navHidden
     ? "env(safe-area-inset-bottom, 0.5rem)"
-    : "calc(var(--nav-height, 4.25rem) + max(env(safe-area-inset-bottom), 0.75rem) + 0.75rem)";
+    : "calc(var(--nav-height, 3.5rem) + max(env(safe-area-inset-bottom), 0.75rem) + 0.75rem)";
 
   const chatInputProps: ChatInputProps = {
     message,
     attachments,
+    isMultiline,
     textareaRef,
     fileInputRef,
     onInput:            handleInput,
@@ -345,7 +468,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
     onRemoveAttachment: handleRemoveAttachment,
   };
 
-  // ── Nav items ───────────────────────────────────────────────────────────
+  // â”€â”€ Nav items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const navItems = [
     {
       key: "home" as Screen,
@@ -389,17 +512,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
     },
   ] as const;
 
-  // ── Render ──────────────────────────────────────────────────────────────
+  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
     <div
-      className="flex flex-col bg-[var(--background)] overflow-hidden"
+      className="flex flex-col bg-[var(--background)] p-2 overflow-hidden"
       style={{
         height:        "100dvh",
         paddingTop:    "env(safe-area-inset-top)",
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
     >
-      {/* ── Header ── */}
+      {/* â”€â”€ Header â”€â”€ */}
       <header className="relative z-30 w-full flex items-center justify-between flex-shrink-0 bg-[var(--background)] px-6 py-4">
         <button
           type="button"
@@ -422,11 +545,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
         </button>
       </header>
 
-      {/* ── Body ── */}
+      {/* â”€â”€ Body â”€â”€ */}
       {messages.length === 0 ? (
-        /* ── Welcome / empty state ── */
+        /* â”€â”€ Welcome / empty state â”€â”€ */
         <div className="flex flex-col flex-1 min-h-0">
-          {/* Centred welcome content — flex-1 so it fills all space above the input */}
+          {/* Centred welcome content â€” flex-1 so it fills all space above the input */}
           <main className="flex-1 flex flex-col items-center justify-center w-full px-4 min-h-0">
             <img
               src={logoAsset}
@@ -468,7 +591,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
           </div>
         </div>
       ) : (
-        /* ── Active chat ── */
+        /* â”€â”€ Active chat â”€â”€ */
         <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
           <div
             className="flex-1 overflow-y-auto w-full flex flex-col gap-3"
@@ -506,7 +629,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
                             className="rounded-xl bg-[var(--grey-100)] flex flex-col items-center justify-center p-1"
                             style={{ width: "clamp(3rem, 14vw, 4rem)", height: "clamp(3rem, 14vw, 4rem)" }}
                           >
-                            <span>📄</span>
+                            <span>ðŸ“„</span>
                             <span
                               className="text-center truncate w-full text-[var(--grey-700)]"
                               style={{ fontSize: "0.5rem", marginTop: "0.125rem" }}
@@ -533,7 +656,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
         </div>
       )}
 
-      {/* ── Bottom Nav ── */}
+      {/* â”€â”€ Bottom Nav â”€â”€ */}
       <nav
         className={`fixed bottom-0 left-0 w-full bg-white border-t border-[var(--grey-200)] z-40 flex transition-transform duration-200 ${
           navHidden
@@ -579,7 +702,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
         })}
       </nav>
 
-      {/* ── Backdrop ── */}
+      {/* â”€â”€ Backdrop â”€â”€ */}
       <div
         className={`fixed inset-0 z-40 bg-[var(--grey-500)] transition-opacity duration-300 ${
           isRecentsOpen ? "opacity-50 pointer-events-auto" : "opacity-0 pointer-events-none"
@@ -587,7 +710,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
         onClick={() => setIsRecentsOpen(false)}
       />
 
-      {/* ── Recents Side Panel ── */}
+      {/* â”€â”€ Recents Side Panel â”€â”€ */}
       <div
         aria-modal="true"
         role="dialog"
@@ -657,7 +780,87 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen }) =
               ))}
             </ul>
           </div>
+
+          {/* â”€â”€ User footer â”€â”€ */}
+          <div className="flex-shrink-0 border-t border-[var(--grey-200)] px-4 py-3 flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => setIsLogoutOpen(true)}
+              aria-label="Account menu"
+              className="flex items-center gap-2 min-w-0 text-left rounded-lg active:bg-[var(--grey-100)] transition-colors touch-manipulation p-1 -m-1"
+            >
+              <div
+                className="rounded-full bg-red-100 text-red-600 flex items-center justify-center font-semibold shrink-0"
+                style={{ width: "2rem", height: "2rem", fontSize: "0.75rem" }}
+              >
+                {currentUser.initials}
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1">
+                  <span
+                    className="font-medium text-[var(--grey-1000)] truncate"
+                    style={{ fontSize: "0.8125rem", lineHeight: "1.125rem" }}
+                  >
+                    {currentUser.name}
+                  </span>
+                  <ChevronDown className="w-3.5 h-3.5 text-[var(--grey-500)] shrink-0" />
+                </div>
+                <span
+                  className="text-[var(--grey-500)] truncate block"
+                  style={{ fontSize: "0.6875rem", lineHeight: "1rem" }}
+                >
+                  {currentUser.email}
+                </span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNewChat}
+              className="shrink-0 rounded-full border border-[var(--grey-300)] text-[var(--grey-1000)] font-medium active:bg-[var(--grey-100)] transition-colors touch-manipulation"
+              style={{ fontSize: "0.75rem", padding: "0.375rem 0.75rem" }}
+            >
+              New chat
+            </button>
+          </div>
         </div>
+      </div>
+
+      {/* â”€â”€ Logout backdrop â”€â”€ */}
+      <div
+        className={`fixed inset-0 z-[60] bg-[var(--grey-900)] transition-opacity duration-300 ${
+          isLogoutOpen ? "opacity-70 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setIsLogoutOpen(false)}
+      />
+
+      {/* â”€â”€ Logout bottom sheet â”€â”€ */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Account menu"
+        className={`fixed bottom-0 left-0 w-full z-[70] bg-white rounded-t-2xl transition-transform duration-300 ease-in-out ${
+          isLogoutOpen ? "translate-y-0" : "translate-y-full"
+        }`}
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <div className="flex justify-center pt-2 pb-1">
+          <div className="rounded-full bg-[var(--grey-300)]" style={{ width: "2.25rem", height: "0.25rem" }} />
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setIsLogoutOpen(false);
+            setIsRecentsOpen(false);
+            onNavigate("signin");
+          }}
+          className="w-full flex items-center justify-between px-4 py-4 active:bg-[var(--grey-100)] transition-colors touch-manipulation"
+        >
+          <span className="font-medium text-red-600" style={{ fontSize: "0.9375rem" }}>
+            Logout
+          </span>
+          <LogOut className="w-4 h-4 text-red-600" />
+        </button>
       </div>
     </div>
   );

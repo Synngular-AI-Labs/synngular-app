@@ -118,7 +118,7 @@ const AppContent = () => {
         <PrivacyPolicyScreen onNavigate={handleNavigate} returnTo={previousScreen} />
       )}
       {currentScreen === "home" && (
-        <HomeScreen onNavigate={handleNavigate} isKeyboardOpen={isKeyboardOpen} />
+        <HomeScreen onNavigate={handleNavigate} isKeyboardOpen={isKeyboardOpen} userEmail={userEmail} />
       )}
       {currentScreen === "agents" && (
         <AgentsScreen onNavigate={handleNavigate} isKeyboardOpen={isKeyboardOpen} />

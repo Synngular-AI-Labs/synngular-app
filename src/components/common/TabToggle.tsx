@@ -16,6 +16,8 @@ export interface TabToggleProps {
 
 /* ── Component ──────────────────────────────────────────────────────── */
 
+// Single global size/style for every pill toggle in the app (Agents, Approvals, …).
+// Change padding/colors here, not per-screen — every usage picks it up automatically.
 const TabToggle: React.FC<TabToggleProps> = ({
   tabs,
   activeTab,
@@ -23,17 +25,17 @@ const TabToggle: React.FC<TabToggleProps> = ({
   className = "",
 }) => (
   <div
-    className={`inline-flex items-center p-1 bg-[var(--grey-200)] rounded-full h-[2.8125rem] ${className}`}
+    className={`inline-flex items-center rounded-full p-1 bg-[var(--muted)] ${className}`}
   >
     {tabs.map((tab) => (
       <button
         key={tab.value}
         type="button"
         onClick={() => onTabChange(tab.value)}
-        className={`flex items-center justify-center h-[2.3125rem] px-4 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer touch-manipulation ${
+        className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer touch-manipulation ${
           activeTab === tab.value
-            ? "bg-white text-[var(--grey-1000)] shadow-sm"
-            : "text-[var(--grey-500)] hover:text-[var(--grey-1000)]"
+            ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+            : "bg-transparent text-[var(--muted-foreground)]"
         }`}
       >
         {tab.label}

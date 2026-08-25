@@ -5,6 +5,7 @@ import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
+import TabToggle from "./common/TabToggle";
 
 interface AgentsScreenProps {
   onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals") => void;
@@ -76,21 +77,15 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen 
         )}
       </header>
 
-      <div className="flex flex-row items-center justify-center rounded-full p-1 inline-flex w-fit mx-auto mt-4 bg-[var(--muted)]">
-        <button
-          type="button"
-          onClick={() => setActiveTab('all')}
-          className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer ${activeTab === 'all' ? 'bg-[var(--card)] text-[var(--foreground)] shadow-sm' : 'bg-transparent text-[var(--muted-foreground)]'}`}
-        >
-          All (38)
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('favourites')}
-          className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer ${activeTab === 'favourites' ? 'bg-[var(--card)] text-[var(--foreground)] shadow-sm' : 'bg-transparent text-[var(--muted-foreground)]'}`}
-        >
-          Favourite (8)
-        </button>
+      <div className="flex justify-center mt-4">
+        <TabToggle
+          tabs={[
+            { label: "All (38)", value: "all" },
+            { label: "Favourite (8)", value: "favourites" },
+          ]}
+          activeTab={activeTab}
+          onTabChange={(value) => setActiveTab(value as 'all' | 'favourites')}
+        />
       </div>
 
       <div className="flex-grow overflow-y-auto px-6 mt-4 pb-[calc(4rem+max(env(safe-area-inset-bottom),1.25rem))]">

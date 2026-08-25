@@ -5,6 +5,7 @@ import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
+import TabToggle from "./common/TabToggle";
 import type { ApprovalData } from "./ApprovalDetailsScreen";
 
 interface ApprovalsScreenProps {
@@ -233,30 +234,14 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate, isKeyboar
 
       {/* ── Tab Toggle ── */}
       <div className="flex-shrink-0 flex justify-center px-[var(--spacing-16)] py-2">
-        <div className="flex flex-row items-center rounded-full p-1 bg-[var(--muted)]">
-          <button
-            type="button"
-            onClick={() => setActiveTab("all")}
-            className={`px-5 sm:px-6 py-2 sm:py-2.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer ${
-              activeTab === "all"
-                ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
-                : "bg-transparent text-[var(--muted-foreground)]"
-            }`}
-          >
-            All ({allCount})
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("urgent")}
-            className={`px-5 sm:px-6 py-2 sm:py-2.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer ${
-              activeTab === "urgent"
-                ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
-                : "bg-transparent text-[var(--muted-foreground)]"
-            }`}
-          >
-            Urgent ({urgentCount})
-          </button>
-        </div>
+        <TabToggle
+          tabs={[
+            { label: `All (${allCount})`, value: "all" },
+            { label: `Urgent (${urgentCount})`, value: "urgent" },
+          ]}
+          activeTab={activeTab}
+          onTabChange={(value) => setActiveTab(value as "all" | "urgent")}
+        />
       </div>
 
       {/* ── Approvals List ── */}

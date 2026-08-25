@@ -35,7 +35,4 @@
       "icons/icon.ico"
     ]
   }
-  "android": {
-  "windowEdgeToEdge": true
-}
 }
