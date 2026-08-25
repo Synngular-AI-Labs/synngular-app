@@ -119,7 +119,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onNavigate })
                     {item.isUnread && (
                       <span
                         aria-hidden="true"
-                        className="absolute top-2 right-2 w-3 h-3 rounded-full bg-[var(--purple-800)]"
+                        className="absolute top-0 right-0 w-3 h-3 rounded-full bg-[var(--purple-800)]"
                       />
                     )}
                   </button>
