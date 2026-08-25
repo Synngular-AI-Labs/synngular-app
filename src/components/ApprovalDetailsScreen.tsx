@@ -135,10 +135,10 @@ export default function ApprovalDetailsScreen({
   };
 
   return (
-    <div className="flex flex-col w-full h-[100dvh] bg-[var(--grey-50)]">
+    <div className="flex flex-col w-full h-[100dvh] bg-[var(--background)]">
 
       {/* ── Header ── */}
-      <header className="sticky top-0 z-20 w-full bg-[var(--grey-50)] pt-[max(var(--safe-top),2.75rem)] pb-4 px-[var(--spacing-16)] flex items-center gap-4">
+      <header className="sticky top-0 z-20 w-full bg-[var(--background)] pt-[max(var(--safe-top),2.75rem)] pb-4 px-[var(--spacing-16)] flex items-center gap-4">
         <button
           onClick={() => onNavigate('approvals')}
           className="w-9 h-9 flex items-center justify-center active:bg-[var(--grey-200)] rounded-full transition-colors"
@@ -168,7 +168,7 @@ export default function ApprovalDetailsScreen({
         </div>
 
         {/* Main Approval Card */}
-        <div className="bg-[var(--card,#ffffff)] border border-[var(--grey-300)] rounded-xl p-5 mb-4 shadow-sm flex flex-col">
+        <div className="bg-[var(--card,#ffffff)] border border-[var(--grey-300)] rounded-xl p-5 mb-4 flex flex-col">
           {approvalData.isUrgent && (
             <span className="bg-[var(--error-200)] text-[var(--error-600)] text-xs font-medium px-2 py-1 rounded-md w-fit mb-3">
               Urgent
@@ -191,7 +191,7 @@ export default function ApprovalDetailsScreen({
 
           {/* DYNAMIC CONTENT BLOCK */}
           {displayType !== 'info' && (
-            <div className="border-t border-[var(--grey-200)] pt-4">
+            <div className="border-t border-[var(--grey-300)] pt-4">
 
               {/* TYPE: TEXT INPUT */}
               {displayType === 'text' && (
@@ -310,7 +310,7 @@ export default function ApprovalDetailsScreen({
         </div>
 
         {/* Job Details Card */}
-        <div className="w-full bg-[var(--card,#ffffff)] border border-[var(--grey-300)] rounded-xl p-5 mb-6 shadow-sm flex flex-col">
+        <div className="w-full bg-[var(--card,#ffffff)] border border-[var(--grey-300)] rounded-xl p-5 mb-6 flex flex-col">
           <h3 className="font-semibold text-base text-[var(--grey-1000)] mb-2">Job</h3>
           <div className="flex flex-col items-start gap-1">
             <p className="font-normal text-sm leading-[1.3125rem] text-[var(--grey-700)] line-clamp-3">
@@ -327,7 +327,7 @@ export default function ApprovalDetailsScreen({
       </main>
 
       {/* ── Dynamic Footer ── */}
-      <footer className="w-full bg-white border-t border-[var(--grey-200)] px-[var(--spacing-16)] py-4 pb-[max(var(--safe-bottom),2.125rem)] flex gap-3 z-20">
+      <footer className="w-full bg-[var(--card,#ffffff)] border-t border-[var(--grey-300)] px-[var(--spacing-16)] py-4 pb-[max(var(--safe-bottom),2.125rem)] flex gap-3 z-20">
         {displayType === 'info' ? (
           <button
             onClick={handleApprove}
