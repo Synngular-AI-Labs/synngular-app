@@ -88,7 +88,7 @@ const VerifyEmailScreen: React.FC<{
   }, []);
 
   return (
-    <div className="w-full min-h-screen flex flex-col pt-[max(env(safe-area-inset-top),2.75rem)] bg-[var(--grey-200)]">
+    <div className="w-full min-h-screen flex flex-col pt-[max(var(--safe-top),2.75rem)] bg-[var(--grey-200)]">
       {/* Container 1: Header Banner */}
       <div
         className="w-full h-56 sm:h-52 flex bg-header-gradient"
@@ -105,7 +105,7 @@ const VerifyEmailScreen: React.FC<{
         className="w-full flex-1 rounded-t-[2.5rem] -mt-8 relative z-30 flex flex-col bg-[var(--grey-100)]"
 style={{
   padding: "clamp(1.25rem, 5vw, 2rem)",
-  paddingBottom: "max(env(safe-area-inset-bottom), clamp(1.25rem, 5vw, 2rem))",
+  paddingBottom: "max(var(--safe-bottom), clamp(1.25rem, 5vw, 2rem))",
 }}
       >
         {/* Back Button */}

@@ -191,7 +191,7 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate, isKeyboar
     <div className="w-full h-[100dvh] flex flex-col bg-[var(--background)] overflow-hidden">
 
       {/* ── Header ── */}
-      <header className="flex-shrink-0 px-[var(--spacing-16)] pt-[max(env(safe-area-inset-top),2.75rem)] pb-3">
+      <header className="flex-shrink-0 px-[var(--spacing-16)] pt-[max(var(--safe-top),2.75rem)] pb-3">
         {!isSearchActive ? (
           <div className="flex flex-row justify-between items-center">
             <h1
@@ -245,7 +245,7 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate, isKeyboar
       </div>
 
       {/* ── Approvals List ── */}
-      <div className="flex-1 overflow-y-auto px-[var(--spacing-16)] pb-[calc(4rem+max(env(safe-area-inset-bottom),1.25rem))] min-h-0">
+      <div className="flex-1 overflow-y-auto px-[var(--spacing-16)] pb-[calc(4rem+max(var(--safe-bottom),1.25rem))] min-h-0">
         {filteredApprovals.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full">
             <p className="text-sm text-[var(--muted-foreground)]">
@@ -307,7 +307,7 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate, isKeyboar
       />
 
       {/* ── Bottom Navigation ── */}
-      <nav className={`fixed bottom-0 left-0 w-full bg-white border-t border-[var(--grey-200)] z-40 flex px-[0.75rem] gap-[0.75rem] pt-[0.75rem] pb-[max(env(safe-area-inset-bottom),0.75rem)] transition-transform duration-200 ${isKeyboardOpen ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
+      <nav className={`fixed bottom-0 left-0 w-full bg-white border-t border-[var(--grey-200)] z-40 flex px-[0.75rem] gap-[0.75rem] pt-[0.75rem] pb-[max(var(--safe-bottom),0.75rem)] transition-transform duration-200 ${isKeyboardOpen ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
         <button
           onClick={() => onNavigate('home')}
           className="flex-1 h-[2.75rem] flex flex-col items-center justify-between relative touch-manipulation group"

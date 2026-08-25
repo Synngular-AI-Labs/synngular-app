@@ -11,15 +11,15 @@ const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, r
       className="flex flex-col min-h-screen w-full"
       style={{
         background: "var(--background)",
-        paddingLeft: "env(safe-area-inset-left)",
-        paddingRight: "env(safe-area-inset-right)"
+        paddingLeft: "var(--safe-left)",
+        paddingRight: "var(--safe-right)"
       }}
     >
       <header
         className="sticky top-0 z-10 w-full h-[3.25rem] flex items-center px-4 sm:px-6 border-b backdrop-blur-sm"
         style={{
-          paddingTop: "calc(var(--spacing-base, 0.5rem) + env(safe-area-inset-top))",
-          paddingBottom: "calc(var(--spacing-base, 0.5rem) + env(safe-area-inset-top))",
+          paddingTop: "calc(var(--spacing-base, 0.5rem) + var(--safe-top))",
+          paddingBottom: "var(--spacing-base, 0.5rem)",
           background: "var(--background)",
           borderColor: "var(--border)"
         }}
@@ -42,7 +42,7 @@ const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavigate, r
         className="flex-1 overflow-y-auto px-4 sm:px-6"
         style={{
           paddingTop: "var(--spacing-base, 1.25rem)",
-          paddingBottom: "calc(var(--spacing-base, 1.5rem) + env(safe-area-inset-bottom))"
+          paddingBottom: "calc(var(--spacing-base, 1.5rem) + var(--safe-bottom))"
         }}
       >
         <section className="mb-6">

@@ -1,8 +1,15 @@
 import React, { useState, useRef } from "react";
-import { ArrowLeft, Play, Pause, Download, Star, Bot, Check } from "lucide-react";
+import { ArrowLeft, Phone, Play, Pause, Download, Star, Bot, Check } from "lucide-react";
 import AudioWaveform from "./AudioWaveform";
 
 /* ── Types ────────────────────────────────────────────────────────── */
+// Each action's checked state is decided by the backend (whether the agent actually
+// completed it) — this is display-only data, never toggled by the user in the UI.
+export interface AgentAction {
+  label: string;
+  completed: boolean;
+}
+
 interface TranscriptScreenProps {
   agentTitle?: string;
   agentSubtitle?: string;
@@ -13,7 +20,7 @@ interface TranscriptScreenProps {
   status?: string;
   aiSummary?: string;
   topicTags?: string[];
-  agentActions?: string[];
+  agentActions?: AgentAction[];
   audioUrl?: string;
   onNavigate: (screen: string, payload?: Record<string, unknown>) => void;
 }
@@ -30,7 +37,6 @@ const SAMPLE_AUDIO_URL =
 /* ── Text Constants ───────────────────────────────────────────────── */
 const LABEL_CALL_RECORDING = "Call recording";
 const RATE_CALL_TEXT = "Rate this call";
-const BUTTON_TEXT_CALL_AGAIN = "Call again";
 
 /* ── State Constants ──────────────────────────────────────────────── */
 const DEFAULT_RATING = 0;
@@ -48,10 +54,10 @@ const DEFAULT_TOPIC_TAGS = [
   "Follow-up",
 ];
 
-const DEFAULT_AGENT_ACTIONS = [
-  "Accounts documents creation",
-  "Emails sent to contacts",
-  "Follow up action",
+const DEFAULT_AGENT_ACTIONS: AgentAction[] = [
+  { label: "Accounts documents creation", completed: true },
+  { label: "Emails sent to contacts", completed: true },
+  { label: "Follow up action", completed: false },
 ];
 
 const DEFAULT_AI_SUMMARY =
@@ -111,22 +117,6 @@ const StatCell: React.FC<StatCellProps> = ({ label, value, isLast }) => (
   </div>
 );
 
-/* ── Call Again Button ────────────────────────────────────────────── */
-const CallAgainButton: React.FC = () => {
-  const [hasCalled, setHasCalled] = useState(false);
-
-  return (
-    <div className="w-full shrink-0 bg-white border-t-[length:var(--border-thin)] border-[var(--grey-300)] pt-[var(--spacing-12)] pb-[max(env(safe-area-inset-bottom),2.125rem)] px-4">
-      <button
-        onClick={() => setHasCalled(true)}
-        className={`flex items-center justify-center w-full min-h-[var(--h-btn-call-again)] rounded-[var(--border-radius-btn)] font-medium transition-colors duration-200 ${hasCalled ? "bg-[var(--purple-1000)] text-white border border-[var(--purple-1000)]" : "bg-transparent text-[var(--purple-1000)] border border-[var(--purple-1000)]"}`}
-      >
-        {BUTTON_TEXT_CALL_AGAIN}
-      </button>
-    </div>
-  );
-};
-
 /* ── Section Title ────────────────────────────────────────────────── */
 const SectionTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <h3
@@ -145,7 +135,6 @@ const SectionTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 const TranscriptScreen: React.FC<TranscriptScreenProps> = ({
   agentTitle = "Revenue services",
   agentSubtitle = "Leads qualifications",
-  date = "30 June 2026",
   duration = "1m 30s",
   startDate = "30/06/26",
   callType = "Voice",
@@ -159,7 +148,6 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({
   const [rating, setRating] = useState(DEFAULT_RATING);
   const [hoverRating, setHoverRating] = useState(DEFAULT_HOVER_RATING);
   const [isOnline] = useState(true);
-  const [checkedActions, setCheckedActions] = useState<number[]>([0, 1]);
   const [isPlaying, setIsPlaying] = useState(DEFAULT_IS_PLAYING);
   const [currentTime, setCurrentTime] = useState(START_TIME);
   const [audioDuration, setAudioDuration] = useState(START_TIME);
@@ -199,14 +187,12 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({
     if (audioRef.current) audioRef.current.currentTime = newTime;
   };
 
-  const toggleAction = (index: number) => {
-    setCheckedActions((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
-    );
-  };
-
   const handleDownload = () => {
     window.open(audioUrl, "_blank");
+  };
+
+  const handleCallAgain = () => {
+    alert(`Initiating call with ${agentTitle}...`);
   };
 
   const stats = [
@@ -218,7 +204,7 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({
 
   return (
     <div
-      className="flex flex-col w-full h-full bg-[var(--background)] box-border pt-[max(env(safe-area-inset-top),2.75rem)]"
+      className="flex flex-col w-full h-full bg-[var(--background)] box-border pt-[max(var(--safe-top),2.75rem)]"
     >
       {/* ── Header ── */}
       <header
@@ -246,6 +232,7 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({
         </button>
         <h1
           style={{
+            flex: 1,
             fontSize: "clamp(1.1rem, 5vw, 1.375rem)",
             fontWeight: 700,
             color: "var(--grey-1000)",
@@ -254,6 +241,20 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({
         >
           Transcript
         </h1>
+        <button
+          type="button"
+          onClick={handleCallAgain}
+          className="w-9 h-9 flex items-center justify-center rounded-full active:bg-[var(--grey-100)] transition-colors shrink-0"
+          style={{ color: "var(--foreground)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+          aria-label={`Call ${agentTitle}`}
+        >
+          <Phone
+            style={{
+              width: "clamp(1.1rem, 4.5vw, 1.25rem)",
+              height: "clamp(1.1rem, 4.5vw, 1.25rem)",
+            }}
+          />
+        </button>
       </header>
 
       {/* ── Agent info row ── */}
@@ -351,7 +352,7 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({
 
       {/* ── Scrollable body (summary content only) ── */}
       <div
-        className="flex-1 overflow-x-hidden overflow-y-auto w-full px-4 box-border flex flex-col gap-5 pb-[var(--spacing-12)]"
+        className="flex-1 overflow-x-hidden overflow-y-auto w-full px-4 box-border flex flex-col gap-5 pb-[max(var(--safe-bottom),2.125rem)]"
       >
         {/* AI Summary */}
         <section>
@@ -401,56 +402,52 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({
         <section>
           <SectionTitle>Agents Actions</SectionTitle>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            {actionsProp.map((action, idx) => {
-              const checked = checkedActions.includes(idx);
-              return (
+            {actionsProp.map((action) => (
+              <div
+                key={action.label}
+                role="checkbox"
+                aria-checked={action.completed}
+                aria-readonly="true"
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                }}
+              >
                 <div
-                  key={action}
-                  role="button"
-                  onClick={() => toggleAction(idx)}
                   style={{
+                    flexShrink: 0,
                     display: "flex",
-                    flexDirection: "row",
                     alignItems: "center",
-                    gap: "0.75rem",
-                    cursor: "pointer",
+                    justifyContent: "center",
+                    width: "clamp(14px, 4vw, 16px)",
+                    height: "clamp(14px, 4vw, 16px)",
+                    borderRadius: "3px",
+                    border: `1.5px solid ${action.completed ? "var(--purple-1000)" : "var(--grey-1000)"}`,
+                    backgroundColor: action.completed ? "var(--purple-1000)" : "transparent",
                   }}
                 >
-                  <div
-                    style={{
-                      flexShrink: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "clamp(14px, 4vw, 16px)",
-                      height: "clamp(14px, 4vw, 16px)",
-                      borderRadius: "3px",
-                      border: `1.5px solid ${checked ? "var(--purple-1000)" : "var(--grey-1000)"}`,
-                      backgroundColor: checked ? "var(--purple-1000)" : "transparent",
-                      transition: "background 0.15s, border-color 0.15s",
-                    }}
-                  >
-                    {checked && (
-                      <Check
-                        style={{
-                          width: "clamp(8px, 2.5vw, 10px)",
-                          height: "clamp(8px, 2.5vw, 10px)",
-                          color: "white",
-                        }}
-                      />
-                    )}
-                  </div>
-                  <span
-                    style={{
-                      fontSize: "clamp(0.8rem, 3.5vw, 0.875rem)",
-                      color: "var(--grey-700)",
-                    }}
-                  >
-                    {action}
-                  </span>
+                  {action.completed && (
+                    <Check
+                      style={{
+                        width: "clamp(8px, 2.5vw, 10px)",
+                        height: "clamp(8px, 2.5vw, 10px)",
+                        color: "white",
+                      }}
+                    />
+                  )}
                 </div>
-              );
-            })}
+                <span
+                  style={{
+                    fontSize: "clamp(0.8rem, 3.5vw, 0.875rem)",
+                    color: "var(--grey-700)",
+                  }}
+                >
+                  {action.label}
+                </span>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -547,9 +544,6 @@ const TranscriptScreen: React.FC<TranscriptScreenProps> = ({
           </div>
         </section>
       </div>
-
-      {/* ── Call Again (sticky footer) ── */}
-      <CallAgainButton />
 
       {/* ── Hidden audio element ── */}
       <audio

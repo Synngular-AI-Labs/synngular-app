@@ -80,8 +80,8 @@ const FilterBottomSheet: React.FC<FilterBottomSheetProps> = ({
       onClick={onClose}
     >
       <div
-        className="w-full bg-[var(--background)] rounded-t-3xl px-4 py-3 flex flex-col justify-between mx-auto shadow-xl transition-transform duration-300 ease-in-out"
-        style={{ maxWidth: "min(375px, 100%)" }}
+        className="w-full bg-[var(--background)] rounded-t-3xl px-4 pt-3 flex flex-col justify-between mx-auto shadow-xl transition-transform duration-300 ease-in-out"
+        style={{ maxWidth: "min(375px, 100%)", paddingBottom: "max(var(--safe-bottom), 0.75rem)" }}
         onClick={(event) => event.stopPropagation()}
       >
         <div>

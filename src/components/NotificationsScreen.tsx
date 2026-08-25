@@ -57,11 +57,11 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onNavigate })
 
   return (
     <div
-      className="w-full h-full flex flex-col bg-[var(--card,#ffffff)] pb-[max(env(safe-area-inset-bottom),2.125rem)]"
+      className="w-full h-full flex flex-col bg-[var(--card,#ffffff)] pb-[max(var(--safe-bottom),2.125rem)]"
     >
       {/* ── Navigation Header (375x52) ── */}
       <div
-        className="w-full min-h-[3.25rem] flex items-center px-[var(--spacing-16)] pt-[max(env(safe-area-inset-top),2.75rem)]"
+        className="w-full min-h-[3.25rem] flex items-center px-[var(--spacing-16)] pt-[max(var(--safe-top),2.75rem)]"
       >
         <div className="flex items-center gap-1">
           {/* Back icon button (36x36 container, 16x16 icon) */}

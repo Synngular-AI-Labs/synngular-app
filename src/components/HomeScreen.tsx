@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import logoAsset from "../assets/logo.png";
-import { M3 } from "tauri-plugin-m3";
 import { Menu, Bell, Bot, ChevronDown, LogOut } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
@@ -102,8 +101,8 @@ interface ChatInputProps {
   message: string;
   attachments: Attachment[];
   isMultiline: boolean;
-  textareaRef: React.RefObject<HTMLTextAreaElement>;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   onInput: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onFocus: () => void;
   onBlur: () => void;
@@ -303,7 +302,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, userEmail }) => {
   const [message, setMessage]               = useState("");
   const [attachments, setAttachments]       = useState<Attachment[]>([]);
-  const [isInputFocused, setIsInputFocused] = useState(false);
   const [isSoftKeyboard, setIsSoftKeyboard] = useState(false);
   const [isRecentsOpen, setIsRecentsOpen]   = useState(false);
   const [messages, setMessages]             = useState<Message[]>([]);
@@ -352,17 +350,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
   }, [recentItems, userEmail]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        await M3.setBarColor("dark");
-        await M3.setStatusBarTranslucent(true);
-      } catch (e) {
-        console.error("M3 status bar error:", e);
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
     if (!window.visualViewport) return;
     const onResize = () =>
       setIsSoftKeyboard(window.visualViewport!.height < window.innerHeight * 0.85);
@@ -394,13 +381,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
   };
 
   const handleFocus = () => {
-    setIsInputFocused(true);
     setTimeout(syncTextareaHeight, 50);
   };
 
-  const handleBlur = () => {
-    if (!message && attachments.length === 0) setIsInputFocused(false);
-  };
+  const handleBlur = () => {};
 
   const handleAttachClick = () => {
     if (attachments.length >= MAX_ATTACHMENTS) return;
@@ -450,8 +434,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
   const navHidden = isKeyboardOpen || isSoftKeyboard;
 
   const inputWrapperPb = navHidden
-    ? "env(safe-area-inset-bottom, 0.5rem)"
-    : "calc(var(--nav-height, 3.5rem) + max(env(safe-area-inset-bottom), 0.75rem) + 0.75rem)";
+    ? "max(var(--safe-bottom), 0.5rem)"
+    : "calc(var(--nav-height, 3.5rem) + max(var(--safe-bottom), 0.75rem) + 0.75rem)";
 
   const chatInputProps: ChatInputProps = {
     message,
@@ -518,8 +502,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
       className="flex flex-col bg-[var(--background)] p-2 overflow-hidden"
       style={{
         height:        "100dvh",
-        paddingTop:    "env(safe-area-inset-top)",
-        paddingBottom: "env(safe-area-inset-bottom)",
+        paddingTop:    "max(var(--safe-top), 2.75rem)",
+        paddingBottom: "max(var(--safe-bottom), 0.75rem)",
       }}
     >
       {/* â”€â”€ Header â”€â”€ */}
@@ -665,7 +649,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
         }`}
         style={{
           padding:       "0.75rem 0.75rem 0",
-          paddingBottom: "max(env(safe-area-inset-bottom), 0.75rem)",
+          paddingBottom: "max(var(--safe-bottom), 0.75rem)",
           gap:           "0.75rem",
         }}
       >
@@ -723,8 +707,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
         <div
           className="flex flex-col w-full h-full"
           style={{
-            paddingTop:    "env(safe-area-inset-top)",
-            paddingBottom: "env(safe-area-inset-bottom)",
+            paddingTop:    "max(var(--safe-top), 2.75rem)",
+            paddingBottom: "max(var(--safe-bottom), 0.75rem)",
           }}
         >
           <div
@@ -842,7 +826,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
         className={`fixed bottom-0 left-0 w-full z-[70] bg-white rounded-t-2xl transition-transform duration-300 ease-in-out ${
           isLogoutOpen ? "translate-y-0" : "translate-y-full"
         }`}
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        style={{ paddingBottom: "max(var(--safe-bottom), 0.75rem)" }}
       >
         <div className="flex justify-center pt-2 pb-1">
           <div className="rounded-full bg-[var(--grey-300)]" style={{ width: "2.25rem", height: "0.25rem" }} />

@@ -75,7 +75,7 @@ const HistoryRow: React.FC<HistoryRowProps> = ({
       {/* Arrow icon */}
       <div
         className="flex-shrink-0 flex items-center justify-center"
-        style={{ width: "clamp(1.1rem, 4vw, 1.4rem)", height: "clamp(1.1rem, 4vw, 1.4rem)", marginRight: "0.75rem" }}
+        style={{ width: "clamp(1.1rem, 4vw, 1.4rem)", height: "clamp(1.1rem, 4vw, 1.4rem)" }}
       >
         <ArrowUpRight
           style={{
@@ -145,7 +145,7 @@ const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({
 
   return (
     <div
-      className="flex flex-col w-full h-full bg-[var(--background)] pt-[max(env(safe-area-inset-top),2.75rem)] pb-[max(env(safe-area-inset-bottom),2.125rem)]"
+      className="flex flex-col w-full h-full bg-[var(--background)] pt-[max(var(--safe-top),2.75rem)]"
     >
       {/* ── Header ── */}
       <header
@@ -245,7 +245,7 @@ const AgentDetailsScreen: React.FC<AgentDetailsScreenProps> = ({
 
       {/* ── Call Again button ── */}
       <div
-        className="w-full shrink-0 bg-white border-t-[length:var(--border-thin)] border-[var(--grey-300)] pt-[var(--spacing-12)] pb-[max(env(safe-area-inset-bottom),2.125rem)] px-4"
+        className="w-full shrink-0 bg-white border-t-[length:var(--border-thin)] border-[var(--grey-300)] pt-[var(--spacing-12)] pb-[max(var(--safe-bottom),2.125rem)] px-4"
       >
         <button
           type="button"

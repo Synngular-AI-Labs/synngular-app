@@ -93,7 +93,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({
   );
 
   return (
-    <div className="w-full min-h-screen flex flex-col pt-[max(env(safe-area-inset-top),2.75rem)] bg-[var(--grey-200)]">
+    <div className="w-full min-h-screen flex flex-col pt-[max(var(--safe-top),2.75rem)] bg-[var(--grey-200)]">
 
       {/* ── Header Banner ── */}
       <div className="w-full h-56 sm:h-52 flex bg-header-gradient">
@@ -110,7 +110,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({
         style={{
           padding: "clamp(1.25rem, 5vw, 2rem)",
           paddingBottom:
-            "max(env(safe-area-inset-bottom), clamp(1.25rem, 5vw, 2rem))",
+            "max(var(--safe-bottom), clamp(1.25rem, 5vw, 2rem))",
         }}
       >
         {/* Heading */}

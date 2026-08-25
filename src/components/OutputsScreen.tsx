@@ -70,7 +70,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
 
   return (
     <div
-      className="w-full h-full flex flex-col bg-[var(--background)] pt-[max(env(safe-area-inset-top),2.75rem)] pb-[max(env(safe-area-inset-bottom),2.125rem)]"
+      className="w-full h-full flex flex-col bg-[var(--background)] pt-[max(var(--safe-top),2.75rem)] pb-[max(var(--safe-bottom),2.125rem)]"
     >
       <header className="px-6 py-4">
         {!isSearchActive ? (
@@ -120,7 +120,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
         ))}
       </div>
 
-      <div className="flex-grow overflow-y-auto px-6 mt-2 pb-[calc(4rem+max(env(safe-area-inset-bottom),1.25rem))] flex flex-col gap-6">
+      <div className="flex-grow overflow-y-auto px-6 mt-2 pb-[calc(4rem+max(var(--safe-bottom),1.25rem))] flex flex-col gap-6">
         {filteredOutputs.map((output) => {
           let Icon;
           let iconColor;
@@ -181,7 +181,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
         onApply={() => setIsFilterOpen(false)}
       />
 
-      <nav className={`fixed bottom-0 left-0 w-full bg-white border-t border-[var(--grey-200)] z-40 flex px-[0.75rem] gap-[0.75rem] pt-[0.75rem] pb-[max(env(safe-area-inset-bottom),0.75rem)] transition-transform duration-200 ${isKeyboardOpen ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
+      <nav className={`fixed bottom-0 left-0 w-full bg-white border-t border-[var(--grey-200)] z-40 flex px-[0.75rem] gap-[0.75rem] pt-[0.75rem] pb-[max(var(--safe-bottom),0.75rem)] transition-transform duration-200 ${isKeyboardOpen ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>
         <button
           onClick={() => onNavigate('home')}
           className="flex-1 h-[2.75rem] flex flex-col items-center justify-between relative touch-manipulation group"

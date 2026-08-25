@@ -57,7 +57,7 @@ const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, out
 
   return (
     <div
-      className="w-full h-full flex flex-col bg-[var(--background)] pt-[max(env(safe-area-inset-top),2.75rem)] pb-[max(env(safe-area-inset-bottom),2.125rem)]"
+      className="w-full h-full flex flex-col bg-[var(--background)] pt-[max(var(--safe-top),2.75rem)] pb-[max(var(--safe-bottom),2.125rem)]"
     >
       {/* Header bar with close and download */}
       <div className="w-full flex flex-row items-center justify-between px-4 pt-4 pb-2">
