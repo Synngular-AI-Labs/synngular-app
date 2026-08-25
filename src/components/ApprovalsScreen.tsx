@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Bell, Bot, Search, UserCheck, ChevronRight } from "lucide-react";
+import { Bot, UserCheck, ChevronRight } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
 import TabToggle from "./common/TabToggle";
+import ScreenHeader from "./common/ScreenHeader";
 import type { ApprovalData } from "./ApprovalDetailsScreen";
 
 interface ApprovalsScreenProps {
@@ -193,34 +194,11 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate, isKeyboar
       {/* ── Header ── */}
       <header className="flex-shrink-0 px-[var(--spacing-16)] pt-[max(var(--safe-top),2.75rem)] pb-3">
         {!isSearchActive ? (
-          <div className="flex flex-row justify-between items-center">
-            <h1
-              className="text-card-title-20"
-              style={{ color: "var(--foreground)" }}
-            >
-              Approvals
-            </h1>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <button
-                type="button"
-                onClick={() => setIsSearchActive(true)}
-                className="p-2 cursor-pointer rounded-full active:bg-[var(--grey-100)] transition-colors"
-                style={{ color: "var(--foreground)" }}
-                aria-label="Search"
-              >
-                <Search size={20} />
-              </button>
-              <button
-                type="button"
-                onClick={() => onNavigate("notifications")}
-                className="p-2 cursor-pointer rounded-full active:bg-[var(--grey-100)] transition-colors"
-                style={{ color: "var(--foreground)" }}
-                aria-label="Notifications"
-              >
-                <Bell size={20} />
-              </button>
-            </div>
-          </div>
+          <ScreenHeader
+            title="Approvals"
+            onSearchClick={() => setIsSearchActive(true)}
+            onNotificationsClick={() => onNavigate("notifications")}
+          />
         ) : (
           <SearchBar
             searchQuery={searchQuery}

@@ -619,6 +619,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
   const [isSoftKeyboard, setIsSoftKeyboard] = useState(false);
   const [isRecentsOpen, setIsRecentsOpen]   = useState(false);
   const [messages, setMessages]             = useState<Message[]>([]);
+  const [hasFocusedInput, setHasFocusedInput] = useState(false);
   const [isMultiline, setIsMultiline]       = useState(false);
   const [recentItems, setRecentItems]       = useState<RecentItem[]>(() => loadRecentItems(userEmail));
   const [isLogoutOpen, setIsLogoutOpen]     = useState(false);
@@ -695,6 +696,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
   };
 
   const handleFocus = () => {
+    setHasFocusedInput(true);
     setTimeout(syncTextareaHeight, 50);
   };
 
@@ -740,6 +742,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
     setMessage("");
     setAttachments([]);
     setIsMultiline(false);
+    setHasFocusedInput(false);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     setIsRecentsOpen(false);
   };
@@ -821,7 +824,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
       }}
     >
       {/* â”€â”€ Header â”€â”€ */}
-      <header className="relative z-30 w-full flex items-center justify-between flex-shrink-0 bg-[var(--background)] px-6 py-4">
+      <header className="relative z-30 w-full flex items-center justify-between flex-shrink-0 bg-[var(--background)] px-[var(--spacing-16)] pb-[var(--spacing-4)]">
         <button
           type="button"
           aria-label="Open menu"
@@ -844,24 +847,24 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
       </header>
 
       {/* â”€â”€ Body â”€â”€ */}
-      {messages.length === 0 ? (
+      {messages.length === 0 && !hasFocusedInput ? (
         /* â”€â”€ Welcome / empty state â”€â”€ */
         <div className="flex flex-col flex-1 min-h-0">
           {/* Centred welcome content â€” flex-1 so it fills all space above the input */}
-          <main className="flex-1 flex flex-col items-center justify-center w-full px-4 min-h-0">
+          <main className="flex-1 flex flex-col items-center justify-center w-full px-[var(--spacing-16)] min-h-0">
             <img
               src={logoAsset}
               alt="Logo"
-              className="object-contain mx-auto mb-4"
+              className="object-contain mx-auto mb-[var(--spacing-16)]"
               style={{
                 width:       "clamp(4rem, 12vw, 6.25rem)",
                 aspectRatio: "1 / 1",
               }}
             />
             <h1
-              className="font-semibold text-center mb-1"
+              className="font-semibold text-center whitespace-nowrap mb-[var(--spacing-4)]"
               style={{
-                fontSize:   "clamp(1.5rem, 5vw, 1.875rem)",
+                fontSize:   "clamp(1.375rem, 6vw, 1.875rem)",
                 lineHeight: 1.5,
                 color:      "var(--grey-1000)",
               }}
@@ -869,9 +872,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
               Welcome back
             </h1>
             <p
-              className="font-medium text-center"
+              className="font-medium text-center whitespace-nowrap"
               style={{
-                fontSize:   "clamp(0.875rem, 3.5vw, 1rem)",
+                fontSize:   "clamp(0.625rem, 4.2vw, 1rem)",
                 lineHeight: 1.5,
                 color:      "var(--grey-700)",
               }}

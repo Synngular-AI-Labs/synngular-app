@@ -38,19 +38,19 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onFilterClick,
 }) => {
   return (
-    <div className="w-full max-w-[355px] h-[36px] flex flex-row items-center justify-between gap-2 mx-auto">
+    <div className="w-full h-[var(--btn-size-36)] flex flex-row items-center gap-2">
       <button
         type="button"
         onClick={() => {
           setSearchQuery("");
           setIsSearchActive(false);
         }}
-        className="w-[36px] h-[36px] flex items-center justify-center cursor-pointer text-[var(--foreground)]"
+        className="w-[var(--btn-size-36)] h-[var(--btn-size-36)] flex items-center justify-center shrink-0 cursor-pointer text-[var(--foreground)]"
       >
         <ArrowLeft size={20} />
       </button>
 
-      <div className="flex-1 h-[36px] bg-[var(--grey-100)] rounded-full px-4 flex items-center">
+      <div className="flex-1 h-[var(--btn-size-36)] bg-[var(--grey-100)] border border-[var(--grey-300)] rounded-full px-[var(--spacing-16)] flex items-center">
         <input
           type="text"
           value={searchQuery}
@@ -69,7 +69,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             console.log("Filter clicked");
           }
         }}
-        className="w-[36px] h-[36px] flex items-center justify-center cursor-pointer text-[var(--foreground)]"
+        className="w-[var(--btn-size-36)] h-[var(--btn-size-36)] flex items-center justify-center shrink-0 cursor-pointer text-[var(--foreground)]"
       >
         <FilterIcon className="w-5 h-5" />
       </button>

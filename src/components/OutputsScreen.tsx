@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from "react";
-import { Search, Bell, FileText, SquareCode, FileSpreadsheet, Download, Bot } from "lucide-react";
+import { FileText, SquareCode, FileSpreadsheet, Download, Bot } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
+import ScreenHeader from "./common/ScreenHeader";
 
 interface OutputItem {
   title: string;
@@ -14,7 +15,7 @@ interface OutputItem {
 }
 
 interface OutputsScreenProps {
-  onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals") => void;
+  onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals" | "notifications") => void;
   setSelectedOutput?: (output: OutputItem) => void;
   isKeyboardOpen: boolean;
 }
@@ -51,7 +52,6 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
   const [searchQuery, setSearchQuery] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const handleNotifications = () => alert("Notifications clicked");
   const handleDownload = (itemName: string) => alert(`Downloading: ${itemName}`);
 
   const filteredOutputs = useMemo(() => {
@@ -69,19 +69,11 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
     >
       <header className="px-[var(--spacing-16)] pt-[max(var(--safe-top),2.75rem)] pb-3">
         {!isSearchActive ? (
-          <div className="flex flex-row justify-between items-center">
-            <h1 className="text-card-title-20" style={{ color: "var(--foreground)" }}>
-              Outputs
-            </h1>
-            <div className="flex items-center gap-3">
-              <button type="button" onClick={() => setIsSearchActive(true)} className="p-2 cursor-pointer" style={{ color: "var(--foreground)" }}>
-                <Search size={20} />
-              </button>
-              <button type="button" onClick={handleNotifications} className="p-2 cursor-pointer" style={{ color: "var(--foreground)" }}>
-                <Bell size={20} />
-              </button>
-            </div>
-          </div>
+          <ScreenHeader
+            title="Outputs"
+            onSearchClick={() => setIsSearchActive(true)}
+            onNotificationsClick={() => onNavigate("notifications")}
+          />
         ) : (
           <SearchBar
             searchQuery={searchQuery}

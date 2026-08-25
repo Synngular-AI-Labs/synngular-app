@@ -1,14 +1,15 @@
 import React, { useState } from "react";
-import { Search, Bell, ChevronRight, Bot } from "lucide-react";
+import { ChevronRight, Bot } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
 import TabToggle from "./common/TabToggle";
+import ScreenHeader from "./common/ScreenHeader";
 
 interface AgentsScreenProps {
-  onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals") => void;
+  onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals" | "notifications") => void;
   isKeyboardOpen: boolean;
 }
 
@@ -43,29 +44,11 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen 
     >
       <header className="px-[var(--spacing-16)] pt-[max(var(--safe-top),2.75rem)] pb-3">
         {!isSearchActive ? (
-          <div className="flex flex-row justify-between items-center">
-            <h1 className="text-card-title-20" style={{ color: "var(--foreground)" }}>
-              Agents
-            </h1>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setIsSearchActive(true)}
-                className="p-2 cursor-pointer"
-                style={{ color: "var(--foreground)" }}
-              >
-                <Search size={20} />
-              </button>
-              <button
-                type="button"
-                onClick={() => alert("Notifications clicked")}
-                className="p-2 cursor-pointer"
-                style={{ color: "var(--foreground)" }}
-              >
-                <Bell size={20} />
-              </button>
-            </div>
-          </div>
+          <ScreenHeader
+            title="Agents"
+            onSearchClick={() => setIsSearchActive(true)}
+            onNotificationsClick={() => onNavigate("notifications")}
+          />
         ) : (
           <SearchBar
             searchQuery={searchQuery}
