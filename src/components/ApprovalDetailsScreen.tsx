@@ -208,7 +208,7 @@ export default function ApprovalDetailsScreen({
                       }}
                       maxLength={approvalData.textInputMaxLength || 500}
                       placeholder={approvalData.textInputPlaceholder || 'Type here'}
-                      className="w-full min-h-[8rem] bg-[var(--grey-50)] border border-[var(--grey-200)] rounded-lg p-3 text-sm text-[var(--grey-1000)] resize-none focus:outline-none focus:border-[var(--purple-1000)] transition-colors"
+                      className="w-full min-h-[8rem] bg-[var(--grey-200)] border border-[var(--grey-400)] rounded-lg p-3 text-sm text-[var(--grey-1000)] resize-none focus:outline-none focus:border-[var(--purple-1000)] transition-colors"
                     />
                     <p className="w-full text-right text-xs text-[var(--grey-400)] mt-1">
                       {mainTextInput.length}/{approvalData.textInputMaxLength || 500}
@@ -281,7 +281,7 @@ export default function ApprovalDetailsScreen({
                                       }}
                                       maxLength={100}
                                       placeholder="Type here"
-                                      className="w-full min-h-[4rem] bg-[var(--grey-50)] border border-[var(--grey-200)] rounded-lg p-3 text-sm text-[var(--grey-1000)] resize-none focus:outline-none focus:border-[var(--purple-1000)] transition-colors"
+                                      className="w-full min-h-[4rem] bg-[var(--grey-200)] border border-[var(--grey-400)] rounded-lg p-3 text-sm text-[var(--grey-1000)] resize-none focus:outline-none focus:border-[var(--purple-1000)] transition-colors"
                                     />
                                     <p className="w-full text-right text-xs text-[var(--grey-400)] mt-1">
                                       {(optionInputs[option.id] || '').length}/100
