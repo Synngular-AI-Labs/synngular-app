@@ -71,16 +71,16 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen 
         />
       </div> */}
 
-      <div className="flex-grow overflow-y-auto px-[var(--spacing-16)] mt-2 pb-[calc(4rem+max(var(--safe-bottom),1.25rem))]">
+      <div className="flex-grow overflow-y-auto flex flex-col gap-[var(--spacing-16)] px-[var(--spacing-16)] pb-[calc(4rem+max(var(--safe-bottom),1.25rem))]">
         {filteredAgents.map((agent) => (
           <button
             key={agent.title}
             type="button"
             onClick={() => onNavigate('agent-details')}
-            className="w-full flex flex-row items-center justify-between py-3 cursor-pointer hover:bg-[var(--grey-50)] active:bg-[var(--grey-100)] transition-all"
+            className="w-full flex flex-row items-start justify-between cursor-pointer hover:bg-[var(--grey-50)] active:bg-[var(--grey-100)] transition-all"
           >
-            <div className="flex flex-row items-center gap-3 flex-1">
-              <div className="w-[40px] h-[40px] flex-shrink-0 rounded-full bg-[var(--grey-200)] flex items-center justify-center">
+            <div className="flex flex-row items-start gap-3 flex-1">
+              <div className="w-8 h-8 flex-shrink-0 rounded-full bg-[var(--grey-200)] flex items-center justify-center mt-0.5">
                 <span className="text-sm font-bold text-[var(--grey-700)]">{agent.initials}</span>
               </div>
 
@@ -91,7 +91,7 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen 
               </div>
             </div>
 
-            <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)] flex-shrink-0 ml-2" />
+            <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)] flex-shrink-0 ml-2 mt-0.5" />
           </button>
         ))}
       </div>

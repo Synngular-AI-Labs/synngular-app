@@ -231,13 +231,13 @@ const ApprovalsScreen: React.FC<ApprovalsScreenProps> = ({ onNavigate, isKeyboar
             </p>
           </div>
         ) : (
-          <div className="flex flex-col">
+          <div className="flex flex-col gap-[var(--spacing-16)]">
             {filteredApprovals.map((approval, index) => (
               <button
                 key={`${approval.title}-${index}`}
                 type="button"
                 onClick={() => onNavigate("approval-details", approval.detailData)}
-                className="w-full flex flex-row items-start gap-3 sm:gap-4 py-4 border-b cursor-pointer text-left active:bg-[var(--grey-50)] transition-colors"
+                className="w-full flex flex-row items-start gap-3 sm:gap-4 border-b cursor-pointer text-left active:bg-[var(--grey-50)] transition-colors"
                 style={{ borderColor: "var(--grey-100)" }}
               >
                 {/* Avatar icon */}

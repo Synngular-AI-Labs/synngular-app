@@ -85,7 +85,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
         )}
       </header>
 
-      <div className="flex-grow overflow-y-auto px-[var(--spacing-16)] mt-2 pb-[calc(4rem+max(var(--safe-bottom),1.25rem))] flex flex-col gap-6">
+      <div className="flex-grow overflow-y-auto px-[var(--spacing-16)] pb-[calc(4rem+max(var(--safe-bottom),1.25rem))] flex flex-col gap-[var(--spacing-16)]">
         {filteredOutputs.map((output) => {
           let Icon;
           let iconColor;
@@ -114,14 +114,14 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
               <div className="min-w-[44px] min-h-[44px] rounded-xl flex items-center justify-center bg-[var(--grey-100)]">
                 <Icon size={20} style={{ color: iconColor }} />
               </div>
-              <div className="flex-1">
-                <p className="text-body-14-m text-[var(--grey-1000)]">
+              <div className="flex-1 min-w-0">
+                <p className="text-body-14-m text-[var(--grey-1000)] line-clamp-2">
                   {output.title}
                 </p>
-                <p className="text-body-12-m text-[var(--grey-700)] mt-1">
+                <p className="text-body-12-m text-[var(--grey-700)] mt-1 truncate">
                   {output.subtitle}
                 </p>
-                <p className="text-captions-12 text-[var(--grey-500)] mt-1">
+                <p className="text-captions-12 text-[var(--grey-500)] mt-1 truncate">
                   {output.meta}
                 </p>
               </div>

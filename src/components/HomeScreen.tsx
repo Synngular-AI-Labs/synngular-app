@@ -625,6 +625,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
   const [message, setMessage]               = useState("");
   const [attachments, setAttachments]       = useState<Attachment[]>([]);
   const [isSoftKeyboard, setIsSoftKeyboard] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
   const [isRecentsOpen, setIsRecentsOpen]   = useState(false);
   const [messages, setMessages]             = useState<Message[]>([]);
   const [hasFocusedInput, setHasFocusedInput] = useState(false);
@@ -672,10 +673,18 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
     }
   }, [recentItems, userEmail]);
 
+  // Tracks the browser/webview's *actual* visible height so the screen's own
+  // height can be pinned to it directly. `100dvh` alone is unreliable once the
+  // on-screen keyboard opens on some Android WebViews — the layout viewport
+  // doesn't shrink to match, so the screen ends up taller than what's visible
+  // and the page becomes scrollable underneath the keyboard. Reading the real
+  // number from visualViewport avoids that regardless of device/keyboard size.
   useEffect(() => {
     if (!window.visualViewport) return;
-    const onResize = () =>
+    const onResize = () => {
       setIsSoftKeyboard(window.visualViewport!.height < window.innerHeight * 0.85);
+      setViewportHeight(window.visualViewport!.height);
+    };
     window.visualViewport.addEventListener("resize", onResize);
     onResize();
     return () => window.visualViewport!.removeEventListener("resize", onResize);
@@ -708,7 +717,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
     setTimeout(syncTextareaHeight, 50);
   };
 
-  const handleBlur = () => {};
+  // Leaving the box empty (no text, no attachments) settles the welcome text
+  // back to its centred idle position. Any actual content keeps it shifted up.
+  const handleBlur = () => {
+    if (!message.trim() && attachments.length === 0) {
+      setHasFocusedInput(false);
+    }
+  };
 
   const handleAttachClick = () => {
     if (attachments.length >= MAX_ATTACHMENTS) return;
@@ -843,13 +858,18 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
     <div
       className="flex flex-col bg-[var(--background)] p-2 overflow-hidden"
       style={{
-        height:        "100dvh",
+        // Real visible height once known (see the visualViewport effect above) —
+        // falls back to 100dvh before the first measurement or where
+        // visualViewport isn't supported. Prevents the keyboard from leaving the
+        // screen taller than what's actually visible, which is what let the page
+        // scroll instead of staying pinned.
+        height:        viewportHeight != null ? `${viewportHeight}px` : "100dvh",
         paddingTop:    "max(var(--safe-top), 2.75rem)",
         paddingBottom: "max(var(--safe-bottom), 0.75rem)",
       }}
     >
-      {/* â”€â”€ Header â”€â”€ */}
-      <header className="relative z-30 w-full flex items-center justify-between flex-shrink-0 bg-[var(--background)] px-2 pb-[var(--spacing-4)]">
+      {/* â”€â”€ Header â”€â”€ â€” sticky so it can never be scrolled out of view */}
+      <header className="sticky top-0 z-30 w-full flex items-center justify-between flex-shrink-0 bg-[var(--background)] px-2 pb-[var(--spacing-4)]">
         <button
           type="button"
           aria-label="Open menu"
@@ -872,11 +892,27 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
       </header>
 
       {/* â”€â”€ Body â”€â”€ */}
-      {messages.length === 0 && !hasFocusedInput ? (
+      {messages.length === 0 ? (
         /* â”€â”€ Welcome / empty state â”€â”€ */
         <div className="flex flex-col flex-1 min-h-0">
-          {/* Centred welcome content â€” flex-1 so it fills all space above the input */}
-          <main className="flex-1 flex flex-col items-center justify-center w-full px-[var(--spacing-16)] min-h-0">
+          {/*
+           * main stays flex-1 in both states so the input below it stays pinned to the
+           * bottom (unchanged). Idle: justify-center, perfectly centred. Focused (typing
+           * a first message, nothing sent yet): justify-start plus a symmetric clamp()
+           * top/bottom padding around the block, so it settles a little higher with even
+           * breathing room â€” a subtle shift (Gemini-style), not a jump to the top â€” fluid
+           * across viewport heights instead of a fixed value, animated for a smooth move.
+           */}
+          <main
+            className={`flex-1 flex flex-col items-center w-full px-[var(--spacing-16)] min-h-0 transition-[padding] duration-300 ease-out ${
+              hasFocusedInput ? "justify-start" : "justify-center"
+            }`}
+            style={
+              hasFocusedInput
+                ? { paddingTop: "clamp(0.75rem, 2dvh, 1.25rem)", paddingBottom: "clamp(0.75rem, 2dvh, 1.25rem)" }
+                : undefined
+            }
+          >
             <img
               src={logoAsset}
               alt="Logo"
