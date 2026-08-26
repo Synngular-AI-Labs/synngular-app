@@ -554,8 +554,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
               min-w-0
               items-center
               gap-1
-              px-1
-              py-1
+              px-[var(--spacing-4)]
+              py-[var(--spacing-4)]
             "
           >
             {attachButton}
@@ -606,8 +606,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 items-center
                 justify-between
                 gap-1
-                px-1
-                pb-1
+                px-[var(--spacing-4)]
+                pt-[var(--spacing-4)]
+                pb-[var(--spacing-4)]
               "
             >
               {attachButton}

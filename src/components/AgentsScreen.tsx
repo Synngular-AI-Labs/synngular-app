@@ -42,7 +42,7 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen 
     <div
       className="w-full h-full flex flex-col bg-[var(--background)] pb-[max(var(--safe-bottom),2.125rem)]"
     >
-      <header className="px-[var(--spacing-16)] pt-[max(var(--safe-top),2.75rem)] pb-3">
+      <header className="flex-shrink-0 px-[var(--spacing-16)] pt-[max(var(--safe-top),2.75rem)] pb-3">
         {!isSearchActive ? (
           <ScreenHeader
             title="Agents"
@@ -71,7 +71,7 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen 
         />
       </div> */}
 
-      <div className="flex-grow overflow-y-auto px-6 mt-4 pb-[calc(4rem+max(var(--safe-bottom),1.25rem))]">
+      <div className="flex-grow overflow-y-auto px-[var(--spacing-16)] mt-2 pb-[calc(4rem+max(var(--safe-bottom),1.25rem))]">
         {filteredAgents.map((agent) => (
           <button
             key={agent.title}

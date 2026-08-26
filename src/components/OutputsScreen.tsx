@@ -67,7 +67,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
     <div
       className="w-full h-full flex flex-col bg-[var(--background)] pb-[max(var(--safe-bottom),2.125rem)]"
     >
-      <header className="px-[var(--spacing-16)] pt-[max(var(--safe-top),2.75rem)] pb-3">
+      <header className="flex-shrink-0 px-[var(--spacing-16)] pt-[max(var(--safe-top),2.75rem)] pb-3">
         {!isSearchActive ? (
           <ScreenHeader
             title="Outputs"
@@ -85,7 +85,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
         )}
       </header>
 
-      <div className="flex-grow overflow-y-auto px-6 mt-2 pb-[calc(4rem+max(var(--safe-bottom),1.25rem))] flex flex-col gap-6">
+      <div className="flex-grow overflow-y-auto px-[var(--spacing-16)] mt-2 pb-[calc(4rem+max(var(--safe-bottom),1.25rem))] flex flex-col gap-6">
         {filteredOutputs.map((output) => {
           let Icon;
           let iconColor;
