@@ -64,8 +64,34 @@ const AppContent = () => {
   // showing, since it's one Activity/WebView across every React-level navigation —
   // a one-time call (as HomeScreen used to do) goes stale the moment the user
   // navigates to a screen with a different background.
+  //
+  // setBarColor is async and can race the WebView's readiness right after a cold
+  // start/navigation, or transiently fail — either way it resolves false/rejects
+  // rather than throwing synchronously. Left as a fire-and-forget single call, a
+  // missed attempt leaves icons stuck in the previous screen's color (invisible
+  // against the new background, e.g. white icons on a light screen) until the next
+  // navigation happens to retry it. Retrying a few times closes that gap.
   useEffect(() => {
-    M3.setBarColor(DARK_HEADER_SCREENS.has(currentScreen) ? "light" : "dark");
+    let cancelled = false;
+    const desiredColor = DARK_HEADER_SCREENS.has(currentScreen) ? "light" : "dark";
+    const applyBarColor = async (attempt: number) => {
+      if (cancelled) return;
+      try {
+        const success = await M3.setBarColor(desiredColor);
+        if (!success && attempt < 3 && !cancelled) {
+          setTimeout(() => applyBarColor(attempt + 1), 150);
+        }
+      } catch (err) {
+        console.error("M3.setBarColor failed", err);
+        if (attempt < 3 && !cancelled) {
+          setTimeout(() => applyBarColor(attempt + 1), 150);
+        }
+      }
+    };
+    applyBarColor(0);
+    return () => {
+      cancelled = true;
+    };
   }, [currentScreen]);
 
   // CSS env(safe-area-inset-*) works reliably on iOS/desktop but is unreliable on
