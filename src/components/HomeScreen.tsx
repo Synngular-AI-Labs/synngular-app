@@ -80,6 +80,7 @@ interface RecentItem {
   id: number;
   title: string;
   time: string;
+  messages?: Message[];
 }
 
 interface Attachment {
@@ -95,6 +96,12 @@ interface Message {
   isUser: boolean;
   files?: { url: string; type: string; name: string }[];
 }
+
+// Synthesizes a stand-in first message for the seeded demo Recents, which
+// predate real chat history and so have no `messages` of their own.
+const seedMessagesFromTitle = (item: RecentItem): Message[] => [
+  { id: `seed-${item.id}`, text: item.title, isUser: true },
+];
 
 // â”€â”€ ChatInput â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface ChatInputProps {
@@ -730,19 +737,36 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
   const handleRemoveAttachment = (index: number) =>
     setAttachments((prev) => prev.filter((_, i) => i !== index));
 
-  // Archives the active conversation into Recents (if it has any messages), then
-  // resets the chat back to its empty/welcome state.
+  // Archives the active conversation into Recents, if it has any messages.
+  const archiveActiveChat = () => {
+    if (messages.length === 0) return;
+    const firstUserMessage = messages.find((m) => m.isUser && m.text.trim());
+    const title = firstUserMessage?.text.trim().slice(0, 60) || "New chat";
+    setRecentItems((prev) => [{ id: Date.now(), title, time: "Just now", messages }, ...prev]);
+  };
+
+  // Archives the active conversation into Recents, then resets the chat back
+  // to its empty/welcome state.
   const handleNewChat = () => {
-    if (messages.length > 0) {
-      const firstUserMessage = messages.find((m) => m.isUser && m.text.trim());
-      const title = firstUserMessage?.text.trim().slice(0, 60) || "New chat";
-      setRecentItems((prev) => [{ id: Date.now(), title, time: "Just now" }, ...prev]);
-    }
+    archiveActiveChat();
     setMessages([]);
     setMessage("");
     setAttachments([]);
     setIsMultiline(false);
     setHasFocusedInput(false);
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
+    setIsRecentsOpen(false);
+  };
+
+  // Archives the active conversation (so it isn't lost), then loads the
+  // selected Recents entry's own messages back into the chat.
+  const handleOpenRecent = (item: RecentItem) => {
+    archiveActiveChat();
+    setMessages(item.messages && item.messages.length > 0 ? item.messages : seedMessagesFromTitle(item));
+    setMessage("");
+    setAttachments([]);
+    setIsMultiline(false);
+    setHasFocusedInput(true);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     setIsRecentsOpen(false);
   };
@@ -824,13 +848,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
       }}
     >
       {/* â”€â”€ Header â”€â”€ */}
-      <header className="relative z-30 w-full flex items-center justify-between flex-shrink-0 bg-[var(--background)] px-[var(--spacing-16)] pb-[var(--spacing-4)]">
+      <header className="relative z-30 w-full flex items-center justify-between flex-shrink-0 bg-[var(--background)] px-2 pb-[var(--spacing-4)]">
         <button
           type="button"
           aria-label="Open menu"
           onClick={(e) => { e.stopPropagation(); setIsRecentsOpen(true); }}
           className="flex items-center justify-center rounded-xl text-[var(--foreground)] hover:bg-[var(--grey-100)] active:bg-[var(--grey-200)] touch-manipulation"
-          style={{ width: "2.5rem", height: "2.5rem" }}
+          style={{ width: "var(--btn-size-36)", height: "var(--btn-size-36)" }}
         >
           <Menu className="w-6 h-6" />
         </button>
@@ -840,7 +864,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
           aria-label="Notifications"
           onClick={(e) => { e.stopPropagation(); onNavigate("notifications"); }}
           className="flex items-center justify-center rounded-xl text-[var(--foreground)] hover:bg-[var(--grey-100)] active:bg-[var(--grey-200)] touch-manipulation"
-          style={{ width: "2.5rem", height: "2.5rem" }}
+          style={{ width: "var(--btn-size-36)", height: "var(--btn-size-36)" }}
         >
           <Bell className="w-6 h-6" />
         </button>
@@ -1061,6 +1085,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
                 <li key={item.id}>
                   <button
                     type="button"
+                    onClick={() => handleOpenRecent(item)}
                     className="w-full flex items-center justify-between text-left active:bg-[var(--grey-100)] transition-colors touch-manipulation px-4 py-2"
                     style={{ minHeight: "2.5rem" }}
                   >

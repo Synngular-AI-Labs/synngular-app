@@ -5,7 +5,7 @@ import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
-import TabToggle from "./common/TabToggle";
+// import TabToggle from "./common/TabToggle";
 import ScreenHeader from "./common/ScreenHeader";
 
 interface AgentsScreenProps {
@@ -24,7 +24,7 @@ const agents = [
 ];
 
 const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen }) => {
-  const [activeTab, setActiveTab] = useState<'all' | 'favourites'>('all');
+  const [activeTab, _setActiveTab] = useState<'all' | 'favourites'>('all');
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -60,16 +60,16 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen 
         )}
       </header>
 
-      <div className="flex justify-center mt-4">
+      {/* <div className="flex justify-center mt-4">
         <TabToggle
           tabs={[
-            { label: "All (38)", value: "all" },
-            { label: "Favourite (8)", value: "favourites" },
+            { label: `All (${agents.length})`, value: "all" },
+            { label: `Favourite (${agents.filter((agent) => agent.isFavourite).length})`, value: "favourites" },
           ]}
           activeTab={activeTab}
           onTabChange={(value) => setActiveTab(value as 'all' | 'favourites')}
         />
-      </div>
+      </div> */}
 
       <div className="flex-grow overflow-y-auto px-6 mt-4 pb-[calc(4rem+max(var(--safe-bottom),1.25rem))]">
         {filteredAgents.map((agent) => (

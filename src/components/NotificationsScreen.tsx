@@ -7,6 +7,10 @@ interface NotificationsScreenProps {
   onNavigate: (screen: string, payload?: Record<string, unknown>) => void;
 }
 
+// Screen the notification's subject matter actually lives on, so tapping it
+// can jump straight back to that origin instead of just marking it read.
+type NotificationOrigin = "home" | "agents" | "outputs" | "approvals";
+
 interface NotificationItem {
   id: number;
   title: string;
@@ -14,36 +18,42 @@ interface NotificationItem {
   time: string;
   category: string;
   isUnread: boolean;
+  origin: NotificationOrigin;
 }
 
 /* ── Component ────────────────────────────────────────────────────── */
 
 const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onNavigate }) => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([
-    { id: 1, title: "New comment on your output", subtitle: "Agents call", time: "2m ago", category: "Today", isUnread: true },
-    { id: 2, title: "New team member added and 5 people left the project.", subtitle: "Projects", time: "5h ago", category: "Today", isUnread: true },
-    { id: 3, title: "Task archived", subtitle: "Task area", time: "7d ago", category: "Today", isUnread: false },
-    { id: 4, title: "Project deadline updated", subtitle: "Projects", time: "3h ago", category: "Today", isUnread: false },
-    { id: 5, title: "New comment on your output", subtitle: "Agents call", time: "2m ago", category: "Yesterday", isUnread: false },
-    { id: 6, title: "New team member added", subtitle: "Members page", time: "5h ago", category: "Yesterday", isUnread: false },
-    { id: 7, title: "Task archived", subtitle: "Task area", time: "7d ago", category: "Yesterday", isUnread: false },
-    { id: 8, title: "Weekly report generated", subtitle: "Reports", time: "1d ago", category: "Yesterday", isUnread: true },
-    { id: 9, title: "System update scheduled", subtitle: "System", time: "2d ago", category: "2 days ago", isUnread: true },
-    { id: 10, title: "Invoice processed successfully", subtitle: "Invoices", time: "2d ago", category: "2 days ago", isUnread: false },
-    { id: 11, title: "Meeting notes uploaded", subtitle: "Meetings", time: "2d ago", category: "2 days ago", isUnread: false },
-    { id: 12, title: "Quarterly review document shared", subtitle: "Documents", time: "3d ago", category: "3 days ago", isUnread: false },
-    { id: 13, title: "Security alert: New login", subtitle: "Security", time: "3d ago", category: "3 days ago", isUnread: false },
-    { id: 14, title: "Performance metrics available", subtitle: "Analytics", time: "3d ago", category: "3 days ago", isUnread: false },
-    { id: 15, title: "New comment on your output", subtitle: "Agents call", time: "1w ago", category: "1 week ago", isUnread: true },
-    { id: 16, title: "Policy document updated", subtitle: "Documents", time: "1w ago", category: "1 week ago", isUnread: false },
-    { id: 17, title: "Task archived", subtitle: "Task area", time: "1w ago", category: "1 week ago", isUnread: false },
-    { id: 18, title: "Onboarding completed", subtitle: "Onboarding", time: "1w ago", category: "1 week ago", isUnread: false },
+    { id: 1, title: "New comment on your output", subtitle: "Agents call", time: "2m ago", category: "Today", isUnread: true, origin: "outputs" },
+    { id: 2, title: "New team member added and 5 people left the project.", subtitle: "Projects", time: "5h ago", category: "Today", isUnread: true, origin: "agents" },
+    { id: 3, title: "Task archived", subtitle: "Task area", time: "7d ago", category: "Today", isUnread: false, origin: "outputs" },
+    { id: 4, title: "Project deadline updated", subtitle: "Projects", time: "3h ago", category: "Today", isUnread: false, origin: "agents" },
+    { id: 5, title: "New comment on your output", subtitle: "Agents call", time: "2m ago", category: "Yesterday", isUnread: false, origin: "outputs" },
+    { id: 6, title: "New team member added", subtitle: "Members page", time: "5h ago", category: "Yesterday", isUnread: false, origin: "agents" },
+    { id: 7, title: "Task archived", subtitle: "Task area", time: "7d ago", category: "Yesterday", isUnread: false, origin: "outputs" },
+    { id: 8, title: "Weekly report generated", subtitle: "Reports", time: "1d ago", category: "Yesterday", isUnread: true, origin: "outputs" },
+    { id: 9, title: "System update scheduled", subtitle: "System", time: "2d ago", category: "2 days ago", isUnread: true, origin: "home" },
+    { id: 10, title: "Invoice processed successfully", subtitle: "Invoices", time: "2d ago", category: "2 days ago", isUnread: false, origin: "approvals" },
+    { id: 11, title: "Meeting notes uploaded", subtitle: "Meetings", time: "2d ago", category: "2 days ago", isUnread: false, origin: "outputs" },
+    { id: 12, title: "Quarterly review document shared", subtitle: "Documents", time: "3d ago", category: "3 days ago", isUnread: false, origin: "outputs" },
+    { id: 13, title: "Security alert: New login", subtitle: "Security", time: "3d ago", category: "3 days ago", isUnread: false, origin: "home" },
+    { id: 14, title: "Performance metrics available", subtitle: "Analytics", time: "3d ago", category: "3 days ago", isUnread: false, origin: "outputs" },
+    { id: 15, title: "New comment on your output", subtitle: "Agents call", time: "1w ago", category: "1 week ago", isUnread: true, origin: "outputs" },
+    { id: 16, title: "Policy document updated", subtitle: "Documents", time: "1w ago", category: "1 week ago", isUnread: false, origin: "outputs" },
+    { id: 17, title: "Task archived", subtitle: "Task area", time: "1w ago", category: "1 week ago", isUnread: false, origin: "outputs" },
+    { id: 18, title: "Onboarding completed", subtitle: "Onboarding", time: "1w ago", category: "1 week ago", isUnread: false, origin: "agents" },
   ]);
 
   const markAsRead = (id: number) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, isUnread: false } : n))
     );
+  };
+
+  const handleNotificationClick = (item: NotificationItem) => {
+    markAsRead(item.id);
+    onNavigate(item.origin);
   };
 
   const groupedNotifications = notifications.reduce(
@@ -97,7 +107,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onNavigate })
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => markAsRead(item.id)}
+                    onClick={() => handleNotificationClick(item)}
                     className={`relative w-full flex items-start justify-between gap-3 text-left rounded-2xl px-3 py-2.5 transition-colors touch-manipulation ${
                       item.isUnread
                         ? "bg-[var(--grey-200)] active:bg-[var(--grey-300)]"
