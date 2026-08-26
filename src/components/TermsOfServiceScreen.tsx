@@ -11,16 +11,24 @@ const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({ onNavigate,
       className="flex flex-col min-h-screen w-full"
       style={{
         background: "var(--background)",
+        paddingTop: "max(var(--safe-top), 2.75rem)",
         paddingLeft: "var(--safe-left)",
         paddingRight: "var(--safe-right)"
       }}
     >
+      {/*
+       * h-[3.25rem] (52px) with items-center vertically centers the 30px
+       * line-height title on its own, giving an even 11px above and below
+       * the text (52 - 30 = 22, split evenly) without needing any padding
+       * of its own — the device's safe-top inset is handled separately by
+       * the screen wrapper above, so it can't eat into that split.
+       */}
       <header
         className="sticky top-0 z-10 w-full h-[3.25rem] flex items-center gap-2 border-b backdrop-blur-sm"
         style={{
           paddingLeft: "var(--spacing-16)",
           paddingRight: 0,
-          paddingTop: "calc(var(--spacing-4) + var(--safe-top))",
+          paddingTop: 0,
           paddingBottom: 0,
           background: "var(--background)",
           borderColor: "var(--border)"
@@ -32,11 +40,11 @@ const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({ onNavigate,
         <button
           type="button"
           onClick={() => onNavigate(returnTo)}
-          className="inline-flex items-center justify-center rounded-full w-8 h-8 flex-shrink-0"
+          className="inline-flex items-center justify-center rounded-full w-10 h-10 flex-shrink-0"
           style={{ color: "var(--foreground)" }}
           aria-label="Close terms of service"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
       </header>
 
