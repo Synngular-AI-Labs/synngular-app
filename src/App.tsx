@@ -233,7 +233,7 @@ const AppContent = () => {
         <AgentsScreen onNavigate={handleNavigate} isKeyboardOpen={isKeyboardOpen} />
       )}
       {currentScreen === "agent-details" && (
-        <AgentDetailsScreen onNavigate={handleNavigate} />
+        <AgentDetailsScreen onNavigate={handleNavigate} {...screenData} />
       )}
       {currentScreen === "outputs" && (
         <OutputsScreen

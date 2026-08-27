@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import groupLogo from "../assets/Group.svg";
+import logoWordmark from "../assets/LogoWordmark.svg";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ArrowLeft, CheckCircle, X } from "lucide-react";
+import { verifyLoginOtp } from "../lib/api/auth";
+import { ApiError } from "../lib/api/client";
 
 /* ── Constants ── */
 const ERROR_MSG_EMPTY_OTP = "Enter the 6-digit code";
@@ -41,11 +44,18 @@ const getButtonStyles = (isValid: boolean, isLoading: boolean): React.CSSPropert
   return { background: "var(--grey-200)", color: "var(--grey-500)" };
 };
 
+/* ── Error Display Helper ── */
+const renderOtpError = (errorMsg: string | null): React.ReactNode => {
+  if (!errorMsg) return null;
+  return <p className="text-sm mt-1 text-[var(--error-600)]">{errorMsg}</p>;
+};
+
 const VerifyEmailScreen: React.FC<{
   onNavigate: (screen: "signin" | "home" | "terms" | "privacy") => void;
   userEmail: string;
 }> = ({ onNavigate, userEmail }) => {
   const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [resendTimer, setResendTimer] = useState(RESEND_INITIAL_TIMER);
@@ -66,21 +76,37 @@ const VerifyEmailScreen: React.FC<{
     return () => clearInterval(interval);
   }, [resendTimer]);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    const otpError = validateOtp(otp);
-    if (otpError) return;
-    setIsLoading(true);
-    console.log("Verifying OTP:", otp);
-    setTimeout(() => {
-      setIsLoading(false);
-      setShowToast(true);
-      onNavigate("home");
-    }, 2000);
-  }, [otp, onNavigate]);
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      const validationError = validateOtp(otp);
+      setOtpError(validationError);
+      if (validationError) return;
+      setIsLoading(true);
+      try {
+        await verifyLoginOtp(userEmail, otp);
+        setShowToast(true);
+        onNavigate("home");
+      } catch (err) {
+        console.error("verifyLoginOtp failed:", err);
+        if (err instanceof ApiError) {
+          const body = err.body as
+            | { error?: string; details?: string }
+            | undefined;
+          setOtpError(body?.details ?? body?.error ?? "Something went wrong");
+        } else {
+          setOtpError("Something went wrong. Please try again.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [otp, userEmail, onNavigate]
+  );
 
   const handleOtpChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setOtp(e.target.value.replace(/\D/g, '').slice(0, MAX_OTP_LENGTH));
+    setOtpError(null);
   }, []);
 
   const handleResend = useCallback(() => {
@@ -91,13 +117,24 @@ const VerifyEmailScreen: React.FC<{
     <div className="w-full min-h-screen flex flex-col bg-[var(--grey-200)]">
       {/* Container 1: Header Banner */}
       <div
-        className="w-full h-56 sm:h-52 flex bg-header-gradient"
+        className="w-full h-56 sm:h-52 relative overflow-hidden flex items-center justify-center bg-header-gradient"
         style={{ paddingTop: "var(--safe-top)" }}
       >
         <img
           src={groupLogo}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none"
+        />
+        <img
+          src={logoWordmark}
           alt={ALT_LOGO}
-          className="w-full h-[800px] z-20 pointer-events-none"
+          className="relative z-20 pointer-events-none"
+          style={{
+            width: "clamp(7.5rem, 32vw, 10rem)",
+            height: "auto",
+            aspectRatio: "142 / 36",
+          }}
         />
       </div>
 
@@ -155,10 +192,21 @@ style={{
               placeholder={PLACEHOLDER_OTP}
               value={otp}
               onChange={handleOtpChange}
+              aria-invalid={!!otpError}
+              data-invalid={!!otpError}
+              style={
+                otpError
+                  ? {
+                      borderColor: "var(--error-600)",
+                      boxShadow: "0 0 0 3px rgba(239,68,68,0.2)",
+                    }
+                  : {}
+              }
               required
               maxLength={MAX_OTP_LENGTH}
               className="h-12 w-full bg-[var(--grey-100)] border border-[var(--grey-400)] placeholder:text-[var(--grey-400)] text-[var(--foreground)]"
             />
+            {renderOtpError(otpError)}
           </div>
 
           {/* 3. Verify Email button */}

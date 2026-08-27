@@ -1,7 +1,10 @@
 import React, { useState, useCallback, useMemo } from "react";
 import groupLogo from "../assets/Group.svg";
+import logoWordmark from "../assets/LogoWordmark.svg";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { requestLoginOtp } from "../lib/api/auth";
+import { ApiError } from "../lib/api/client";
 
 /* ── Constants ── */
 const ERROR_MSG_EMPTY_EMAIL = "Enter your email id";
@@ -35,11 +38,7 @@ const getButtonStyles = (isValid: boolean): React.CSSProperties => {
 /* ── Error Display Helper ── */
 const renderEmailError = (errorMsg: string | null): React.ReactNode => {
   if (!errorMsg) return null;
-  return (
-    <p className="text-sm mt-1 text-[var(--error-600)]">
-      {errorMsg}
-    </p>
-  );
+  return <p className="text-sm mt-1 text-[var(--error-600)]">{errorMsg}</p>;
 };
 
 interface SignInScreenProps {
@@ -68,7 +67,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({
       setEmail(value);
       if (touched) setEmailError(validateEmail(value));
     },
-    [touched]
+    [touched],
   );
 
   const handleEmailBlur = useCallback(() => {
@@ -77,33 +76,55 @@ const SignInScreen: React.FC<SignInScreenProps> = ({
   }, [email]);
 
   const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
       const errorMsg = validateEmail(email);
       setEmailError(errorMsg);
       if (errorMsg) return;
       setIsLoading(true);
-      setUserEmail(email);
-      setTimeout(() => {
-        setIsLoading(false);
+      try {
+        await requestLoginOtp(email);
+        setUserEmail(email);
         onNavigateToVerify?.();
-      }, 2000);
+      } catch (err) {
+        console.error("requestLoginOtp failed:", err);
+        if (err instanceof ApiError) {
+          const body = err.body as
+            | { error?: string; details?: string }
+            | undefined;
+          setEmailError(body?.details ?? body?.error ?? "Something went wrong");
+        } else {
+          setEmailError("Something went wrong. Please try again.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
     },
-    [email, setUserEmail, onNavigateToVerify]
+    [email, setUserEmail, onNavigateToVerify],
   );
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-[var(--grey-200)]">
-
       {/* ── Header Banner ── */}
       <div
-        className="w-full h-56 sm:h-52 flex bg-header-gradient"
+        className="w-full h-56 sm:h-52 relative overflow-hidden flex items-center justify-center bg-header-gradient"
         style={{ paddingTop: "var(--safe-top)" }}
       >
         <img
           src={groupLogo}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none"
+        />
+        <img
+          src={logoWordmark}
           alt={ALT_LOGO}
-          className="w-full h-[800px] z-20 pointer-events-none"
+          className="relative z-20 pointer-events-none"
+          style={{
+            width: "clamp(7.5rem, 32vw, 10rem)",
+            height: "auto",
+            aspectRatio: "142 / 36",
+          }}
         />
       </div>
 
@@ -112,27 +133,28 @@ const SignInScreen: React.FC<SignInScreenProps> = ({
         className="w-full flex-1 rounded-t-[2.5rem] -mt-8 relative z-30 flex flex-col gap-6 bg-[var(--grey-100)]"
         style={{
           padding: "clamp(1.25rem, 5vw, 2rem)",
-          paddingBottom:
-            "max(var(--safe-bottom), clamp(1.25rem, 5vw, 2rem))",
+          paddingBottom: "max(var(--safe-bottom), clamp(1.25rem, 5vw, 2rem))",
         }}
       >
         {/* Heading */}
         <h1
-  className="font-semibold text-[var(--grey-1000)]"
-  style={{
-    fontFamily: "Inter, sans-serif",
-    fontSize: "clamp(1rem, 5vw, 1.25rem)",
-    lineHeight: "1.5rem",
-    letterSpacing: "0%",
-  }}
->
+          className="font-semibold text-[var(--grey-1000)]"
+          style={{
+            fontFamily: "Inter, sans-serif",
+            fontSize: "clamp(1rem, 5vw, 1.25rem)",
+            lineHeight: "1.5rem",
+            letterSpacing: "0%",
+          }}
+        >
           {HEADING_TEXT_SIGNIN}
         </h1>
 
         {/* Form */}
-        <div className="w-full flex flex-col gap-4" style={{ marginTop: "clamp(0.75rem, 3vw, 1.5rem)" }}>
+        <div
+          className="w-full flex flex-col gap-4"
+          style={{ marginTop: "clamp(0.75rem, 3vw, 1.5rem)" }}
+        >
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
-
             {/* Email Input */}
             <div className="flex flex-col gap-2 w-full">
               <label

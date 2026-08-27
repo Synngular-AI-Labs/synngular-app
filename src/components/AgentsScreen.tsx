@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronRight, Bot } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
@@ -7,36 +7,70 @@ import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
 // import TabToggle from "./common/TabToggle";
 import ScreenHeader from "./common/ScreenHeader";
+import { listAgents, type Agent } from "../lib/api/agents";
+import { ApiError } from "../lib/api/client";
 
 interface AgentsScreenProps {
-  onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals" | "notifications") => void;
+  onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals" | "notifications", payload?: Record<string, unknown>) => void;
   isKeyboardOpen: boolean;
 }
 
-const agents = [
-  { initials: "RS", title: "Revenue services", subtitle: "Leads qualification", time: "5min ago", isFavourite: true },
-  { initials: "SA", title: "Sales assistant", subtitle: "Calls customers", time: "1hr ago", isFavourite: true },
-  { initials: "CS", title: "Customer support", subtitle: "Handles customer inquiries", time: "10hr ago", isFavourite: false },
-  { initials: "BS", title: "Billing specialist", subtitle: "Generate sales bills", time: "1d ago" },
-  { initials: "OG", title: "Onboarding guide", subtitle: "Leads qualification", time: "10d ago" },
-  { initials: "HR", title: "HR operations", subtitle: "Candidate selection", time: "1mon ago" },
-  { initials: "DG", title: "Design guide", subtitle: "Creative strategy", time: "2mon ago" },
-];
+/* ── Helpers ── */
+function getInitials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "?";
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
+
+function formatRunCount(count: number): string {
+  if (count === 0) return "No runs yet";
+  return `${count} run${count === 1 ? "" : "s"}`;
+}
 
 const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen }) => {
-  const [activeTab, _setActiveTab] = useState<'all' | 'favourites'>('all');
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const filteredAgents = agents.filter((agent) => {
-    const matchesTab = activeTab === 'all' || agent.isFavourite;
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [agentRunCounts, setAgentRunCounts] = useState<Record<string, number>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchAgents = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await listAgents();
+      setAgents(response.agents);
+      setAgentRunCounts(response.agentRunCounts);
+    } catch (err) {
+      console.error("listAgents failed:", err);
+      if (err instanceof ApiError) {
+        const body = err.body as { error?: string; details?: string } | undefined;
+        setError(body?.details ?? body?.error ?? "Something went wrong");
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAgents();
+  }, [fetchAgents]);
+
+  const filteredAgents = useMemo(() => {
     const query = searchQuery.toLowerCase();
-    const matchesSearch =
-      agent.title.toLowerCase().includes(query) ||
-      agent.subtitle.toLowerCase().includes(query);
-    return matchesTab && matchesSearch;
-  });
+    return agents.filter((agent) => {
+      return (
+        agent.name.toLowerCase().includes(query) ||
+        agent.description.toLowerCase().includes(query)
+      );
+    });
+  }, [agents, searchQuery]);
 
   return (
     <div
@@ -60,34 +94,57 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen 
         )}
       </header>
 
-      {/* <div className="flex justify-center mt-4">
-        <TabToggle
-          tabs={[
-            { label: `All (${agents.length})`, value: "all" },
-            { label: `Favourite (${agents.filter((agent) => agent.isFavourite).length})`, value: "favourites" },
-          ]}
-          activeTab={activeTab}
-          onTabChange={(value) => setActiveTab(value as 'all' | 'favourites')}
-        />
-      </div> */}
-
       <div className="flex-grow overflow-y-auto flex flex-col gap-[var(--spacing-16)] px-[var(--spacing-16)] pb-[calc(4rem+max(var(--safe-bottom),1.25rem))]">
-        {filteredAgents.map((agent) => (
+        {isLoading && (
+          <p className="text-secondary-14 text-[var(--grey-500)] text-center mt-4">Loading agents...</p>
+        )}
+
+        {!isLoading && error && (
+          <div className="text-center mt-4">
+            <p className="text-secondary-14 text-[var(--error-600)]">{error}</p>
+            <button
+              type="button"
+              onClick={fetchAgents}
+              className="text-secondary-14 text-[var(--purple-800)] font-medium mt-2 hover:underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !error && filteredAgents.length === 0 && (
+          <p className="text-secondary-14 text-[var(--grey-500)] text-center mt-4">No agents found.</p>
+        )}
+
+        {!isLoading && !error && filteredAgents.map((agent) => (
           <button
-            key={agent.title}
+            key={agent.id}
             type="button"
-            onClick={() => onNavigate('agent-details')}
+            onClick={() =>
+              onNavigate('agent-details', {
+                agentId: agent.id,
+                agentTitle: agent.name,
+                agentSubtitle: agent.llmModelConfig?.provider?.name
+                  ? `Powered by ${agent.llmModelConfig.provider.name}`
+                  : agent.agentType,
+                agentDescription: agent.description,
+              })
+            }
             className="w-full flex flex-row items-start justify-between cursor-pointer hover:bg-[var(--grey-50)] active:bg-[var(--grey-100)] transition-all"
           >
             <div className="flex flex-row items-start gap-3 flex-1">
               <div className="w-8 h-8 flex-shrink-0 rounded-full bg-[var(--grey-200)] flex items-center justify-center mt-0.5">
-                <span className="text-sm font-bold text-[var(--grey-700)]">{agent.initials}</span>
+                <span className="text-sm font-bold text-[var(--grey-700)]">{getInitials(agent.name)}</span>
               </div>
 
               <div className="flex flex-col flex-1 items-start text-left min-w-0 ml-3">
-                <p className="text-body-16-m text-[var(--grey-1000)] text-left w-full">{agent.title}</p>
-                <p className="text-secondary-14 text-[var(--grey-700)] mt-0.5 text-left w-full">{agent.subtitle}</p>
-                <span className="text-captions-12 text-[var(--grey-500)] mt-0.5 text-left w-full">{agent.time}</span>
+                <p className="text-body-16-m text-[var(--grey-1000)] text-left w-full">{agent.name}</p>
+                <p className="text-secondary-14 text-[var(--grey-700)] mt-0.5 text-left w-full">
+                  {agent.llmModelConfig?.provider?.name ? `Powered by ${agent.llmModelConfig.provider.name}` : agent.agentType}
+                </p>
+                <span className="text-captions-12 text-[var(--grey-500)] mt-0.5 text-left w-full">
+                  {formatRunCount(agentRunCounts[agent.id] ?? 0)}
+                </span>
               </div>
             </div>
 

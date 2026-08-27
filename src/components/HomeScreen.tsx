@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import logoAsset from "../assets/logo.png";
-import { Menu, Bell, Bot, ChevronDown, LogOut } from "lucide-react";
+import { Menu, Bell, Bot, ChevronDown, LogOut, Sparkle } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
@@ -43,26 +43,26 @@ const loadRecentItems = (email: string): RecentItem[] => {
 
 // â”€â”€ Recents Dummy Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const initialRecentItems: RecentItem[] = [
-  { id: 1,  title: "Contract analysis",                  time: "2m ago" },
-  { id: 2,  title: "Customer Support Ticket Summary...", time: "2m ago" },
-  { id: 3,  title: "HR Candidate Screening",             time: "2m ago" },
-  { id: 4,  title: "Sales Lead Analysis",                time: "2m ago" },
-  { id: 5,  title: "Invoice Processing",                 time: "2m ago" },
-  { id: 6,  title: "Marketing Campaign Ideas",           time: "2m ago" },
-  { id: 7,  title: "Employee Onboarding Workflow",       time: "2m ago" },
-  { id: 8,  title: "Quarterly Sales Report",             time: "2m ago" },
-  { id: 9,  title: "Vendor Comparison",                  time: "2m ago" },
-  { id: 10, title: "Expense Report Review",              time: "2m ago" },
-  { id: 11, title: "Product Requirements Draft",         time: "2m ago" },
-  { id: 12, title: "Project Status Update",              time: "2m ago" },
-  { id: 13, title: "Lead Qualification",                 time: "2m ago" },
-  { id: 14, title: "Policy Document Summary",            time: "2m ago" },
-  { id: 15, title: "Recruitment Pipeline Review",        time: "2m ago" },
-  { id: 16, title: "Q3 Financial Review",                time: "2m ago" },
-  { id: 17, title: "New Hire Onboarding Doc",            time: "2m ago" },
-  { id: 18, title: "Sales Pitch Transcript",             time: "2m ago" },
-  { id: 19, title: "Client Feedback Analysis",           time: "2m ago" },
-  { id: 20, title: "Weekly Sync Notes",                  time: "2m ago" },
+  { id: 1,  title: "Contract analysis",                  time: "2m ago", group: "Today" },
+  { id: 2,  title: "Customer Support Ticket Summary...", time: "2m ago", group: "Today" },
+  { id: 3,  title: "HR Candidate Screening",             time: "2m ago", group: "Today" },
+  { id: 4,  title: "Sales Lead Analysis",                time: "2m ago", group: "Today" },
+  { id: 5,  title: "Invoice Processing",                 time: "2m ago", group: "Yesterday" },
+  { id: 6,  title: "Marketing Campaign Ideas",           time: "2m ago", group: "Yesterday" },
+  { id: 7,  title: "Employee Onboarding Workflow",       time: "2m ago", group: "Yesterday" },
+  { id: 8,  title: "Quarterly Sales Report",             time: "2m ago", group: "Yesterday" },
+  { id: 9,  title: "Vendor Comparison",                  time: "2m ago", group: "1 week ago" },
+  { id: 10, title: "Expense Report Review",              time: "2m ago", group: "1 week ago" },
+  { id: 11, title: "Product Requirements Draft",         time: "2m ago", group: "1 week ago" },
+  { id: 12, title: "Project Status Update",              time: "2m ago", group: "1 week ago" },
+  { id: 13, title: "Lead Qualification",                 time: "2m ago", group: "1 week ago" },
+  { id: 14, title: "Policy Document Summary",            time: "2m ago", group: "1 week ago" },
+  { id: 15, title: "Recruitment Pipeline Review",        time: "2m ago", group: "1 week ago" },
+  { id: 16, title: "Q3 Financial Review",                time: "2m ago", group: "1 week ago" },
+  { id: 17, title: "New Hire Onboarding Doc",            time: "2m ago", group: "1 week ago" },
+  { id: 18, title: "Sales Pitch Transcript",             time: "2m ago", group: "1 week ago" },
+  { id: 19, title: "Client Feedback Analysis",           time: "2m ago", group: "1 week ago" },
+  { id: 20, title: "Weekly Sync Notes",                  time: "2m ago", group: "1 week ago" },
 ];
 
 // â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -80,6 +80,7 @@ interface RecentItem {
   id: number;
   title: string;
   time: string;
+  group: string;
   messages?: Message[];
 }
 
@@ -758,7 +759,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
     if (messages.length === 0) return;
     const firstUserMessage = messages.find((m) => m.isUser && m.text.trim());
     const title = firstUserMessage?.text.trim().slice(0, 60) || "New chat";
-    setRecentItems((prev) => [{ id: Date.now(), title, time: "Just now", messages }, ...prev]);
+    setRecentItems((prev) => [{ id: Date.now(), title, time: "Just now", group: "Today", messages }, ...prev]);
   };
 
   // Archives the active conversation into Recents, then resets the chat back
@@ -786,6 +787,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     setIsRecentsOpen(false);
   };
+
+  // Buckets Recents into their time-group sections (Today, Yesterday, ...),
+  // preserving each group's first-appearance order in `recentItems`.
+  const recentGroups = useMemo(() => {
+    const order: string[] = [];
+    const byGroup = new Map<string, RecentItem[]>();
+    for (const item of recentItems) {
+      if (!byGroup.has(item.group)) {
+        byGroup.set(item.group, []);
+        order.push(item.group);
+      }
+      byGroup.get(item.group)!.push(item);
+    }
+    return order.map((group) => ({ group, items: byGroup.get(group)! }));
+  }, [recentItems]);
 
   // â”€â”€ Derived state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const navHidden = isKeyboardOpen || isSoftKeyboard;
@@ -1117,31 +1133,47 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
           </div>
 
           <div className="flex-1 overflow-y-auto w-full">
-            <ul className="flex flex-col py-3">
-              {recentItems.map((item) => (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleOpenRecent(item)}
-                    className="w-full flex items-center justify-between text-left active:bg-[var(--grey-100)] transition-colors touch-manipulation px-4 py-2"
-                    style={{ minHeight: "2.5rem" }}
-                  >
-                    <span
-                      className="font-normal text-[var(--grey-1000)] truncate"
-                      style={{ fontSize: "0.875rem", lineHeight: "1.25rem", maxWidth: "75%" }}
-                    >
-                      {item.title}
-                    </span>
-                    <span
-                      className="font-normal text-[var(--grey-500)] shrink-0 ml-2"
-                      style={{ fontSize: "0.75rem" }}
-                    >
-                      {item.time}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {recentGroups.map(({ group, items }) => (
+              <div key={group} className="flex flex-col">
+                <h3
+                  className="px-4 pt-3 pb-1 font-medium text-[var(--grey-500)]"
+                  style={{ fontSize: "0.75rem", lineHeight: "1rem" }}
+                >
+                  {group}
+                </h3>
+                <ul className="flex flex-col pb-1">
+                  {items.map((item) => (
+                    <li key={item.id}>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenRecent(item)}
+                        className="w-full flex items-center justify-between text-left active:bg-[var(--grey-100)] transition-colors touch-manipulation px-4 py-2"
+                        style={{ minHeight: "2.5rem" }}
+                      >
+                        <span className="flex items-center gap-2 min-w-0" style={{ maxWidth: "75%" }}>
+                          <Sparkle
+                            className="shrink-0 fill-[var(--purple-1000)] text-[var(--purple-1000)]"
+                            style={{ width: "0.875rem", height: "0.875rem" }}
+                          />
+                          <span
+                            className="font-semibold text-[var(--grey-1000)] truncate"
+                            style={{ fontSize: "0.875rem", lineHeight: "1.25rem" }}
+                          >
+                            {item.title}
+                          </span>
+                        </span>
+                        <span
+                          className="font-normal text-[var(--grey-500)] shrink-0 ml-2"
+                          style={{ fontSize: "0.75rem" }}
+                        >
+                          {item.time}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
 
           {/* â”€â”€ User footer â”€â”€ */}
@@ -1153,7 +1185,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
               className="flex items-center gap-2 min-w-0 text-left rounded-lg active:bg-[var(--grey-100)] transition-colors touch-manipulation p-1 -m-1"
             >
               <div
-                className="rounded-full bg-red-100 text-red-600 flex items-center justify-center font-semibold shrink-0"
+                className="rounded-full bg-[var(--purple-1000)] text-white flex items-center justify-center font-semibold shrink-0"
                 style={{ width: "2rem", height: "2rem", fontSize: "0.75rem" }}
               >
                 {currentUser.initials}
@@ -1180,7 +1212,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
             <button
               type="button"
               onClick={handleNewChat}
-              className="shrink-0 rounded-full border border-[var(--grey-300)] text-[var(--grey-1000)] font-medium active:bg-[var(--grey-100)] transition-colors touch-manipulation"
+              className="shrink-0 rounded-full border border-[var(--purple-1000)] text-[var(--purple-1000)] font-medium active:bg-[var(--purple-100)] transition-colors touch-manipulation"
               style={{ fontSize: "0.75rem", padding: "0.375rem 0.75rem" }}
             >
               New chat
