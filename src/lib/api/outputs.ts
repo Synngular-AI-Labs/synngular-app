@@ -12,10 +12,10 @@ export interface OutputBlock extends OutputBlockSummary {
 }
 
 export interface OutputSummary {
-  output: string;
+  name: string;
   title: string;
-  description: string;
-  blocks: OutputBlockSummary[];
+  description: string | null;
+  artifactId: string;
   updatedAt: string;
 }
 

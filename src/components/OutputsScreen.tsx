@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { FileText, SquareCode, FileSpreadsheet, Download, Bot } from "lucide-react";
+import { FileText, Download, Bot } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
@@ -22,20 +22,9 @@ function formatUpdatedAt(iso: string): string {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
-function formatBlockCount(count: number): string {
-  return `${count} block${count === 1 ? "" : "s"}`;
-}
-
-// The backend doesn't expose a document "type" — this is a cosmetic guess from the
-// first block's kind, purely to pick an icon; it has no effect on what gets rendered.
-// `blocks` is guarded since the API may return it null/omitted for an output with no
-// content yet — an unguarded access here previously crashed the whole screen.
-function getIconForOutput(output: OutputSummary): { Icon: typeof FileText; color: string } {
-  const kind = output.blocks?.[0]?.kind;
-  if (kind === "html") return { Icon: SquareCode, color: "var(--purple-800)" };
-  if (kind === "table" || kind === "csv" || kind === "spreadsheet") {
-    return { Icon: FileSpreadsheet, color: "var(--success-700)" };
-  }
+// The list endpoint doesn't expose block/kind info (only the detail endpoint does),
+// so there's nothing to base an icon guess on here — every row gets the same icon.
+function getIconForOutput(_output: OutputSummary): { Icon: typeof FileText; color: string } {
   return { Icon: FileText, color: "var(--error-700)" };
 }
 
@@ -131,7 +120,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
 
           return (
             <div
-              key={output.output}
+              key={output.artifactId}
               className="flex items-start gap-4 cursor-pointer active:opacity-70 transition-opacity"
               onClick={() => {
                 if (setSelectedOutput) {
@@ -150,7 +139,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
                   {output.description}
                 </p>
                 <p className="text-captions-12 text-[var(--grey-500)] mt-1 truncate">
-                  {formatUpdatedAt(output.updatedAt)} • {formatBlockCount(output.blocks?.length ?? 0)}
+                  {formatUpdatedAt(output.updatedAt)}
                 </p>
               </div>
               <button

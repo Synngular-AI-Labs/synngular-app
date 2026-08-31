@@ -10,10 +10,12 @@ interface OutputDetailScreenProps {
 
 /* ── Rendered block ──
    Blocks come back as raw HTML from the backend. They're rendered inside a
-   sandboxed iframe (no scripts, no same-origin) rather than dangerouslySetInnerHTML,
-   so block content can never execute in — or read from — the app's own context.
+   sandboxed iframe rather than dangerouslySetInnerHTML, so block content can never
+   execute script in the app's context — sandbox grants allow-same-origin only,
+   never allow-scripts, so the parent can read contentDocument (to auto-size the
+   iframe to its real content) while the block's own <script> tags still never run.
    Using a blob: URL for `src` instead of `srcDoc` — some WebView builds (notably
-   older Android system WebViews) mishandle srcDoc on a fully locked-down sandboxed
+   older Android system WebViews) mishandle srcDoc on a locked-down sandboxed
    iframe and can crash the renderer process; blob: URLs are the more broadly
    supported way to hand a sandboxed iframe raw HTML. */
 const BlockView: React.FC<{ block: OutputBlock }> = ({ block }) => {
@@ -34,7 +36,7 @@ const BlockView: React.FC<{ block: OutputBlock }> = ({ block }) => {
       <iframe
         title={block.title}
         src={blobUrl}
-        sandbox=""
+        sandbox="allow-same-origin"
         className="w-full border-0 rounded-lg"
         style={{ height: iframeHeight, backgroundColor: "var(--grey-100)" }}
         onLoad={(e) => {
@@ -42,7 +44,7 @@ const BlockView: React.FC<{ block: OutputBlock }> = ({ block }) => {
             const doc = e.currentTarget.contentDocument;
             if (doc) setIframeHeight(Math.max(doc.documentElement.scrollHeight, 100));
           } catch {
-            // sandboxed cross-origin doc — keep the fallback height
+            // in case the doc is ever unreadable for another reason — keep the fallback height
           }
         }}
       />
@@ -60,7 +62,7 @@ const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, out
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getOutput(output.output);
+      const response = await getOutput(output.name);
       setBlocks(response.data?.blocks ?? []);
     } catch (err) {
       console.error("getOutput failed:", err);
@@ -117,7 +119,7 @@ const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, out
       </div>
 
       {/* Blocks */}
-      <div className="flex-1 overflow-y-auto px-4">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4">
         {isLoading && (
           <p className="text-secondary-14 text-[var(--grey-500)] text-center mt-4">Loading artifact...</p>
         )}
