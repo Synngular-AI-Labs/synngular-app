@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { M3 } from "tauri-plugin-m3";
 import { ThemeProvider } from "./context/ThemeContext";
+import ErrorBoundary from "./components/ErrorBoundary";
 import SplashScreen from "./components/SplashScreen";
 import SignInScreen from "./components/SignInScreen";
 import VerifyEmailScreen from "./components/VerifyEmailScreen";
@@ -271,9 +272,11 @@ const AppContent = () => {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

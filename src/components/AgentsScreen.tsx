@@ -17,7 +17,7 @@ interface AgentsScreenProps {
 
 /* ── Helpers ── */
 function getInitials(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean);
+  const words = (name ?? "").trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return "?";
   if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
   return (words[0][0] + words[1][0]).toUpperCase();
@@ -43,8 +43,8 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen 
     setError(null);
     try {
       const response = await listAgents();
-      setAgents(response.agents);
-      setAgentRunCounts(response.agentRunCounts);
+      setAgents(response.agents ?? []);
+      setAgentRunCounts(response.agentRunCounts ?? {});
     } catch (err) {
       console.error("listAgents failed:", err);
       if (err instanceof ApiError) {
@@ -66,8 +66,8 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen 
     const query = searchQuery.toLowerCase();
     return agents.filter((agent) => {
       return (
-        agent.name.toLowerCase().includes(query) ||
-        agent.description.toLowerCase().includes(query)
+        (agent.name ?? "").toLowerCase().includes(query) ||
+        (agent.description ?? "").toLowerCase().includes(query)
       );
     });
   }, [agents, searchQuery]);

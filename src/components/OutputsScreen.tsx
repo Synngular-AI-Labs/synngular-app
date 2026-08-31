@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FileText, SquareCode, FileSpreadsheet, Download, Bot } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
@@ -6,51 +6,70 @@ import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
 import ScreenHeader from "./common/ScreenHeader";
-
-interface OutputItem {
-  title: string;
-  subtitle: string;
-  meta: string;
-  type: "pdf" | "code" | "spreadsheet";
-}
+import { listOutputs, type OutputSummary } from "../lib/api/outputs";
+import { ApiError } from "../lib/api/client";
 
 interface OutputsScreenProps {
   onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals" | "notifications") => void;
-  setSelectedOutput?: (output: OutputItem) => void;
+  setSelectedOutput?: (output: OutputSummary) => void;
   isKeyboardOpen: boolean;
 }
 
-const outputs: OutputItem[] = [
-  {
-    title: "PDF created for HR policy",
-    subtitle: "Hr department",
-    meta: "10:32 AM • PDF • 1.2 MB",
-    type: "pdf",
-  },
-  {
-    title: "Code snippet package",
-    subtitle: "Devops team",
-    meta: "09:45 AM • Codes • 24 KB",
-    type: "code",
-  },
-  {
-    title: "Spreadsheet export",
-    subtitle: "Finance review",
-    meta: "08:20 AM • Spreadsheet • 520 KB",
-    type: "spreadsheet",
-  },
-  {
-    title: "PDF summary report",
-    subtitle: "Legal team",
-    meta: "Yesterday • PDF • 850 KB",
-    type: "pdf",
-  },
-];
+/* ── Helpers ── */
+function formatUpdatedAt(iso: string): string {
+  const date = new Date(iso);
+  if (isNaN(date.getTime())) return "";
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+function formatBlockCount(count: number): string {
+  return `${count} block${count === 1 ? "" : "s"}`;
+}
+
+// The backend doesn't expose a document "type" — this is a cosmetic guess from the
+// first block's kind, purely to pick an icon; it has no effect on what gets rendered.
+// `blocks` is guarded since the API may return it null/omitted for an output with no
+// content yet — an unguarded access here previously crashed the whole screen.
+function getIconForOutput(output: OutputSummary): { Icon: typeof FileText; color: string } {
+  const kind = output.blocks?.[0]?.kind;
+  if (kind === "html") return { Icon: SquareCode, color: "var(--purple-800)" };
+  if (kind === "table" || kind === "csv" || kind === "spreadsheet") {
+    return { Icon: FileSpreadsheet, color: "var(--success-700)" };
+  }
+  return { Icon: FileText, color: "var(--error-700)" };
+}
 
 const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOutput, isKeyboardOpen }) => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const [outputs, setOutputs] = useState<OutputSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchOutputs = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await listOutputs();
+      setOutputs(response.data ?? []);
+    } catch (err) {
+      console.error("listOutputs failed:", err);
+      if (err instanceof ApiError) {
+        const body = err.body as { error?: string; details?: string } | undefined;
+        setError(body?.details ?? body?.error ?? "Something went wrong");
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOutputs();
+  }, [fetchOutputs]);
 
   const handleDownload = (itemName: string) => alert(`Downloading: ${itemName}`);
 
@@ -58,10 +77,10 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
     const query = searchQuery.toLowerCase();
     return outputs.filter(
       (output) =>
-        output.title.toLowerCase().includes(query) ||
-        output.subtitle.toLowerCase().includes(query)
+        (output.title ?? "").toLowerCase().includes(query) ||
+        (output.description ?? "").toLowerCase().includes(query)
     );
-  }, [searchQuery]);
+  }, [outputs, searchQuery]);
 
   return (
     <div
@@ -86,24 +105,33 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
       </header>
 
       <div className="flex-grow overflow-y-auto px-[var(--spacing-16)] pb-[calc(4rem+max(var(--safe-bottom),1.25rem))] flex flex-col gap-[var(--spacing-16)]">
-        {filteredOutputs.map((output) => {
-          let Icon;
-          let iconColor;
+        {isLoading && (
+          <p className="text-secondary-14 text-[var(--grey-500)] text-center mt-4">Loading outputs...</p>
+        )}
 
-          if (output.type === "pdf") {
-            Icon = FileText;
-            iconColor = "var(--error-700)";
-          } else if (output.type === "code") {
-            Icon = SquareCode;
-            iconColor = "var(--purple-800)";
-          } else {
-            Icon = FileSpreadsheet;
-            iconColor = "var(--success-700)";
-          }
+        {!isLoading && error && (
+          <div className="text-center mt-4">
+            <p className="text-secondary-14 text-[var(--error-600)]">{error}</p>
+            <button
+              type="button"
+              onClick={fetchOutputs}
+              className="text-secondary-14 text-[var(--purple-800)] font-medium mt-2 hover:underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !error && filteredOutputs.length === 0 && (
+          <p className="text-secondary-14 text-[var(--grey-500)] text-center mt-4">No outputs found.</p>
+        )}
+
+        {!isLoading && !error && filteredOutputs.map((output) => {
+          const { Icon, color: iconColor } = getIconForOutput(output);
 
           return (
             <div
-              key={output.title}
+              key={output.output}
               className="flex items-start gap-4 cursor-pointer active:opacity-70 transition-opacity"
               onClick={() => {
                 if (setSelectedOutput) {
@@ -119,10 +147,10 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
                   {output.title}
                 </p>
                 <p className="text-body-12-m text-[var(--grey-700)] mt-1 truncate">
-                  {output.subtitle}
+                  {output.description}
                 </p>
                 <p className="text-captions-12 text-[var(--grey-500)] mt-1 truncate">
-                  {output.meta}
+                  {formatUpdatedAt(output.updatedAt)} • {formatBlockCount(output.blocks?.length ?? 0)}
                 </p>
               </div>
               <button

@@ -1,59 +1,87 @@
-import React from "react";
-import { X, Download, FileText, FileSpreadsheet, SquareCode } from "lucide-react";
-
-interface OutputItem {
-  title: string;
-  subtitle: string;
-  meta: string;
-  type: "pdf" | "code" | "spreadsheet";
-}
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { X, Download } from "lucide-react";
+import { getOutput, type OutputBlock, type OutputSummary } from "../lib/api/outputs";
+import { ApiError } from "../lib/api/client";
 
 interface OutputDetailScreenProps {
   onNavigate: (screen: string) => void;
-  output: OutputItem | null;
+  output: OutputSummary | null;
 }
 
+/* ── Rendered block ──
+   Blocks come back as raw HTML from the backend. They're rendered inside a
+   sandboxed iframe (no scripts, no same-origin) rather than dangerouslySetInnerHTML,
+   so block content can never execute in — or read from — the app's own context.
+   Using a blob: URL for `src` instead of `srcDoc` — some WebView builds (notably
+   older Android system WebViews) mishandle srcDoc on a fully locked-down sandboxed
+   iframe and can crash the renderer process; blob: URLs are the more broadly
+   supported way to hand a sandboxed iframe raw HTML. */
+const BlockView: React.FC<{ block: OutputBlock }> = ({ block }) => {
+  const [iframeHeight, setIframeHeight] = useState(200);
+
+  const blobUrl = useMemo(() => {
+    const blob = new Blob([block.html], { type: "text/html" });
+    return URL.createObjectURL(blob);
+  }, [block.html]);
+
+  useEffect(() => {
+    return () => URL.revokeObjectURL(blobUrl);
+  }, [blobUrl]);
+
+  return (
+    <div className="mb-6">
+      <p className="text-body-14-sb text-[var(--grey-1000)] mb-2">{block.title}</p>
+      <iframe
+        title={block.title}
+        src={blobUrl}
+        sandbox=""
+        className="w-full border-0 rounded-lg"
+        style={{ height: iframeHeight, backgroundColor: "var(--grey-100)" }}
+        onLoad={(e) => {
+          try {
+            const doc = e.currentTarget.contentDocument;
+            if (doc) setIframeHeight(Math.max(doc.documentElement.scrollHeight, 100));
+          } catch {
+            // sandboxed cross-origin doc — keep the fallback height
+          }
+        }}
+      />
+    </div>
+  );
+};
+
 const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, output }) => {
+  const [blocks, setBlocks] = useState<OutputBlock[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDetail = useCallback(async () => {
+    if (!output) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await getOutput(output.output);
+      setBlocks(response.data?.blocks ?? []);
+    } catch (err) {
+      console.error("getOutput failed:", err);
+      if (err instanceof ApiError) {
+        const body = err.body as { error?: string; details?: string } | undefined;
+        setError(body?.details ?? body?.error ?? "Something went wrong");
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [output]);
+
+  useEffect(() => {
+    fetchDetail();
+  }, [fetchDetail]);
+
   if (!output) return null;
 
   const handleDownload = () => alert(`Downloading: ${output.title}`);
-
-  const getIconForType = () => {
-    switch (output.type) {
-      case "pdf":
-        return FileText;
-      case "spreadsheet":
-        return FileSpreadsheet;
-      case "code":
-        return SquareCode;
-      default:
-        return FileText;
-    }
-  };
-
-  const getIconColorForType = () => {
-    switch (output.type) {
-      case "pdf":
-        return "var(--error-700)";
-      case "spreadsheet":
-        return "var(--success-700)";
-      case "code":
-        return "var(--purple-800)";
-      default:
-        return "var(--error-700)";
-    }
-  };
-
-  const IconComponent = getIconForType();
-  const iconColor = getIconColorForType();
-
-  const tableRows = [
-    { item: "Lead qualification calls", qty: "128", amount: "$4,220" },
-    { item: "Converted opportunities", qty: "34", amount: "$18,900" },
-    { item: "Follow-up sessions", qty: "76", amount: "$2,150" },
-  ];
-
-  const totalRevenue = "$25,270";
 
   return (
     <div
@@ -80,118 +108,40 @@ const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, out
         </button>
       </div>
 
-      {/* Title card container */}
-      <div
-        className="flex flex-row items-center gap-3 mx-auto px-4 mb-6"
-        style={{ width: "320px", minHeight: "62px" }}
-      >
-        {/* PDF icon in 32x32 grey rounded square */}
-        <div
-          className="flex-shrink-0 flex items-center justify-center"
-          style={{
-            width: "32px",
-            height: "32px",
-            backgroundColor: "var(--grey-200)",
-            borderRadius: "6px",
-          }}
-        >
-          <IconComponent size={16} style={{ color: iconColor }} />
-        </div>
-
-        {/* Title, subtitle, date */}
-        <div className="flex flex-col flex-1 min-w-0">
-          <p
-            className="text-body-16-sb text-[var(--grey-1000)] truncate"
-          >
-            {output.title}
-          </p>
-          <p
-            className="text-secondary-14 text-[var(--grey-500)] truncate"
-          >
-            {output.subtitle}
-          </p>
-          <p
-            className="text-captions-12 text-[var(--grey-500)]"
-          >
-            {output.meta}
-          </p>
-        </div>
+      {/* Title */}
+      <div className="px-4 mb-4">
+        <p className="text-body-16-sb text-[var(--grey-1000)]">{output.title}</p>
+        {output.description && (
+          <p className="text-secondary-14 text-[var(--grey-500)] mt-1">{output.description}</p>
+        )}
       </div>
 
-      {/* Agent / Status section */}
-      <div className="flex flex-row justify-between px-4 mb-6">
-        <div className="flex flex-col">
-          <span className="text-captions-12 text-[var(--grey-700)]">
-            Agent
-          </span>
-          <span className="text-body-14-m text-[var(--grey-1000)] mt-0.5">
-            Revenue services
-          </span>
-        </div>
-        <div className="flex flex-col items-end">
-          <span className="text-captions-12 text-[var(--grey-700)]">
-            Status
-          </span>
-          <span className="text-body-14-m text-[var(--grey-1000)] mt-0.5">
-            Completed
-          </span>
-        </div>
-      </div>
+      {/* Blocks */}
+      <div className="flex-1 overflow-y-auto px-4">
+        {isLoading && (
+          <p className="text-secondary-14 text-[var(--grey-500)] text-center mt-4">Loading artifact...</p>
+        )}
 
-      {/* Horizontal placeholder lines */}
-      <div className="px-4 mb-6 flex flex-col gap-2">
-        {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            style={{
-              height: "8px",
-              width: `${90 - i * 8}%`,
-              backgroundColor: "var(--purple-100)",
-              borderRadius: "4px",
-            }}
-          />
+        {!isLoading && error && (
+          <div className="text-center mt-4">
+            <p className="text-secondary-14 text-[var(--error-600)]">{error}</p>
+            <button
+              type="button"
+              onClick={fetchDetail}
+              className="text-secondary-14 text-[var(--purple-800)] font-medium mt-2 hover:underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !error && blocks.length === 0 && (
+          <p className="text-secondary-14 text-[var(--grey-500)] text-center mt-4">No content in this artifact.</p>
+        )}
+
+        {!isLoading && !error && blocks.map((block) => (
+          <BlockView key={block.blockId} block={block} />
         ))}
-      </div>
-
-      {/* Table section */}
-      <div className="flex flex-col px-4">
-        {/* Table headers */}
-        <div className="flex flex-row mb-2">
-          <div className="flex-1 text-captions-12 text-[var(--grey-500)]">
-            Item
-          </div>
-          <div className="w-12 text-right text-captions-12 text-[var(--grey-500)]">
-            Qty
-          </div>
-          <div className="w-20 text-right text-captions-12 text-[var(--grey-500)]">
-            Amount
-          </div>
-        </div>
-
-        {/* Table rows */}
-        {tableRows.map((row) => (
-          <div
-            key={row.item}
-            className="flex flex-row items-center py-2"
-          >
-            <div className="flex-1 text-body-14-m text-[var(--grey-900)]">{row.item}</div>
-            <div className="w-12 text-right text-body-14-sb text-[var(--grey-900)]">{row.qty}</div>
-            <div className="w-20 text-right text-body-14-sb text-[var(--grey-900)]">{row.amount}</div>
-          </div>
-        ))}
-
-        {/* Divider */}
-        <div className="my-3 w-full border-t" style={{ borderColor: "var(--grey-300)" }} />
-
-        {/* Total revenue */}
-        <div className="flex flex-col items-end mt-2 mb-4">
-          <span className="text-captions-12 text-[var(--grey-500)]">
-            Total revenue
-          </span>
-          <span className="text-body-16-sb text-[var(--purple-1000)]">
-            {totalRevenue}
-          </span>
-        </div>
       </div>
     </div>
   );
