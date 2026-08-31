@@ -9,6 +9,16 @@
     "m3:default",
     "core:window:allow-set-decorations",
     "core:webview:allow-set-webview-size",
+    "dialog:default",
+    "fs:default",
+    {
+      "identifier": "fs:allow-write-text-file",
+      "allow": [
+        { "path": "$DOWNLOAD/**" },
+        { "path": "$DOCUMENT/**" },
+        { "path": "$HOME/**" }
+      ]
+    },
     {
       "identifier": "http:default",
       "allow": [{ "url": "https://platform.synngular.com/*" }]

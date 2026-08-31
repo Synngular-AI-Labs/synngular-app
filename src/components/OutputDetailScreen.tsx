@@ -1,11 +1,40 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { X, Download } from "lucide-react";
+import { isTauri } from "@tauri-apps/api/core";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { getOutput, type OutputBlock, type OutputSummary } from "../lib/api/outputs";
 import { ApiError } from "../lib/api/client";
 
 interface OutputDetailScreenProps {
   onNavigate: (screen: string) => void;
   output: OutputSummary | null;
+}
+
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function sanitizeFilename(name: string): string {
+  return name.replace(/[\\/:*?"<>|]+/g, "_").trim() || "output";
+}
+
+// Blocks are already raw HTML fragments (see BlockView below) — downloading the
+// output means bundling them back into one standalone document, since that's the
+// actual format this content exists in server-side; there's no separate source
+// file the API exposes to download instead.
+function buildExportHtml(title: string, blocks: OutputBlock[]): string {
+  const sections = blocks
+    .map((block) => `<section><h2>${escapeHtml(block.title)}</h2>${block.html}</section>`)
+    .join("\n<hr />\n");
+  return `<!doctype html>
+<html>
+<head><meta charset="utf-8" /><title>${escapeHtml(title)}</title></head>
+<body>
+<h1>${escapeHtml(title)}</h1>
+${sections}
+</body>
+</html>`;
 }
 
 /* ── Rendered block ──
@@ -81,9 +110,41 @@ const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, out
     fetchDetail();
   }, [fetchDetail]);
 
-  if (!output) return null;
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  const handleDownload = () => alert(`Downloading: ${output.title}`);
+  const handleDownload = async () => {
+    if (!output || blocks.length === 0 || isDownloading) return;
+    const filename = `${sanitizeFilename(output.title)}.html`;
+    const html = buildExportHtml(output.title, blocks);
+
+    setIsDownloading(true);
+    try {
+      if (isTauri()) {
+        const path = await save({
+          defaultPath: filename,
+          filters: [{ name: "HTML", extensions: ["html"] }],
+        });
+        if (path) await writeTextFile(path, html);
+      } else {
+        const blob = new Blob([html], { type: "text/html" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      console.error("Download failed:", err);
+      alert("Download failed. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  if (!output) return null;
 
   return (
     <div
@@ -103,7 +164,8 @@ const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, out
         <button
           type="button"
           onClick={handleDownload}
-          className="cursor-pointer active:scale-95 transition-transform p-2"
+          disabled={blocks.length === 0 || isDownloading}
+          className="cursor-pointer active:scale-95 transition-transform p-2 disabled:cursor-not-allowed disabled:opacity-40"
           style={{ color: "var(--purple-1000)" }}
         >
           <Download size={24} />
