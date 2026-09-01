@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import logoAsset from "../assets/logo.png";
-import { Menu, Bell, Bot, ChevronDown, LogOut, Sparkle } from "lucide-react";
+import { Menu, Bell, Bot, ChevronDown, LogOut, Sparkle, Folder } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
@@ -884,23 +884,42 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
         paddingBottom: "max(var(--safe-bottom), 0.75rem)",
       }}
     >
-      {/* â”€â”€ Header â”€â”€ â€” sticky so it can never be scrolled out of view */}
-      <header className="sticky top-0 z-30 w-full flex items-center justify-between flex-shrink-0 bg-[var(--background)] px-2 pb-[var(--spacing-4)]">
+      {/* â”€â”€ Header â”€â”€ â€” sticky so it can never be scrolled out of view.
+          Grid (not flex) so the two side columns share one width token
+          (--btn-size-36): that's what keeps the middle column's content
+          mathematically centered on the header regardless of screen width,
+          matching the design's equal left/right margins around the chip. */}
+      <header
+        className="sticky top-0 z-30 w-full grid items-center flex-shrink-0 bg-[var(--background)] px-2 pb-[var(--spacing-4)] gap-2"
+        style={{ gridTemplateColumns: "var(--btn-size-36) 1fr var(--btn-size-36)" }}
+      >
         <button
           type="button"
           aria-label="Open menu"
           onClick={(e) => { e.stopPropagation(); setIsRecentsOpen(true); }}
-          className="flex items-center justify-center rounded-xl text-[var(--foreground)] hover:bg-[var(--grey-100)] active:bg-[var(--grey-200)] touch-manipulation"
+          className="flex items-center justify-center flex-shrink-0 rounded-xl text-[var(--foreground)] hover:bg-[var(--grey-100)] active:bg-[var(--grey-200)] touch-manipulation"
           style={{ width: "var(--btn-size-36)", height: "var(--btn-size-36)" }}
         >
           <Menu className="w-6 h-6" />
         </button>
 
+        {/* Project selector â€” "Hug" sizing (fits its content, capped at a max
+            width) rather than a fixed box, so it scales with the device's own
+            font/spacing settings instead of a hard-coded pixel size. Inert until
+            multi-project support/API exists; shows a placeholder label for now. */}
+        <div className="flex justify-center min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0 w-fit max-w-[11.25rem] rounded-full border border-[var(--grey-200)] bg-[var(--grey-100)] px-3 py-1 text-[var(--foreground)]">
+            <Folder className="w-4 h-4 flex-shrink-0" />
+            <span className="text-body-14-sb truncate">Project</span>
+            <ChevronDown className="w-4 h-4 flex-shrink-0" />
+          </div>
+        </div>
+
         <button
           type="button"
           aria-label="Notifications"
           onClick={(e) => { e.stopPropagation(); onNavigate("notifications"); }}
-          className="flex items-center justify-center rounded-xl text-[var(--foreground)] hover:bg-[var(--grey-100)] active:bg-[var(--grey-200)] touch-manipulation"
+          className="flex items-center justify-center flex-shrink-0 rounded-xl text-[var(--foreground)] hover:bg-[var(--grey-100)] active:bg-[var(--grey-200)] touch-manipulation justify-self-end"
           style={{ width: "var(--btn-size-36)", height: "var(--btn-size-36)" }}
         >
           <Bell className="w-6 h-6" />
