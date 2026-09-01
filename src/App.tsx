@@ -5,6 +5,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import SplashScreen from "./components/SplashScreen";
 import SignInScreen from "./components/SignInScreen";
 import VerifyEmailScreen from "./components/VerifyEmailScreen";
+import ProjectSelectionScreen from "./components/ProjectSelectionScreen";
+import SubscriptionScreen from "./components/SubscriptionScreen";
 import TermsOfServiceScreen from "./components/TermsOfServiceScreen";
 import PrivacyPolicyScreen from "./components/PrivacyPolicyScreen";
 import HomeScreen from "./components/HomeScreen";
@@ -16,6 +18,7 @@ import ApprovalsScreen from "./components/ApprovalsScreen";
 import TranscriptScreen from "./components/TranscriptScreen";
 import ApprovalDetailsScreen from "./components/ApprovalDetailsScreen";
 import NotificationsScreen from "./components/NotificationsScreen";
+import { DEFAULT_PROJECT_ID, type ApiProject } from "./lib/api/project";
 import "./App.css";
 import "./theme.css";
 
@@ -27,6 +30,8 @@ type Screen =
   | "verify"
   | "terms"
   | "privacy"
+  | "project-select"
+  | "subscription"
   | "home"
   | "agents"
   | "agent-details"
@@ -53,6 +58,8 @@ const AppContent = () => {
   currentScreenRef.current = currentScreen;
   const [previousScreen, setPreviousScreen] = useState<DocumentScreen>("signin");
   const [userEmail, setUserEmail] = useState("");
+  const [organizationId, setOrganizationId] = useState<string | null>(null);
+  const [selectedProject, setSelectedProject] = useState<ApiProject | null>(null);
   const [screenData, setScreenData] = useState<any>(null);
   const [transcriptPayload, setTranscriptPayload] = useState<any>(null);
 
@@ -219,7 +226,11 @@ const AppContent = () => {
         />
       )}
       {currentScreen === "verify" && (
-        <VerifyEmailScreen onNavigate={handleNavigate} userEmail={userEmail} />
+        <VerifyEmailScreen
+          onNavigate={handleNavigate}
+          userEmail={userEmail}
+          setOrganizationId={setOrganizationId}
+        />
       )}
       {currentScreen === "terms" && (
         <TermsOfServiceScreen onNavigate={handleNavigate} returnTo={previousScreen} />
@@ -227,11 +238,32 @@ const AppContent = () => {
       {currentScreen === "privacy" && (
         <PrivacyPolicyScreen onNavigate={handleNavigate} returnTo={previousScreen} />
       )}
+      {currentScreen === "project-select" && (
+        <ProjectSelectionScreen
+          onNavigate={handleNavigate}
+          organizationId={organizationId}
+          onSelectProject={setSelectedProject}
+        />
+      )}
+      {currentScreen === "subscription" && (
+        <SubscriptionScreen onNavigate={handleNavigate} organizationId={organizationId} />
+      )}
       {currentScreen === "home" && (
-        <HomeScreen onNavigate={handleNavigate} isKeyboardOpen={isKeyboardOpen} userEmail={userEmail} />
+        <HomeScreen
+          onNavigate={handleNavigate}
+          isKeyboardOpen={isKeyboardOpen}
+          userEmail={userEmail}
+          organizationId={organizationId}
+          selectedProject={selectedProject}
+          onSelectProject={setSelectedProject}
+        />
       )}
       {currentScreen === "agents" && (
-        <AgentsScreen onNavigate={handleNavigate} isKeyboardOpen={isKeyboardOpen} />
+        <AgentsScreen
+          onNavigate={handleNavigate}
+          isKeyboardOpen={isKeyboardOpen}
+          projectId={selectedProject?.id ?? DEFAULT_PROJECT_ID}
+        />
       )}
       {currentScreen === "agent-details" && (
         <AgentDetailsScreen onNavigate={handleNavigate} {...screenData} />
@@ -241,12 +273,14 @@ const AppContent = () => {
           onNavigate={handleNavigate}
           setSelectedOutput={(o) => handleNavigate("output-details", o)}
           isKeyboardOpen={isKeyboardOpen}
+          projectId={selectedProject?.id ?? DEFAULT_PROJECT_ID}
         />
       )}
       {currentScreen === "output-details" && (
         <OutputDetailScreen
           onNavigate={handleNavigate}
           output={screenData}
+          projectId={selectedProject?.id ?? DEFAULT_PROJECT_ID}
         />
       )}
       {currentScreen === "approvals" && (

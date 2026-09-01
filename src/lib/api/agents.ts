@@ -1,5 +1,4 @@
 import { apiRequest } from "./client";
-import { DEFAULT_PROJECT_ID } from "./project";
 
 export type AgentStatus = "ACTIVE" | "INACTIVE" | "ARCHIVED";
 export type AgentType = "GRAPH" | "CLASSIC";
@@ -40,10 +39,11 @@ export interface ListAgentsResponse {
 }
 
 export function listAgents(
+  projectId: string,
   status: AgentStatus = "ACTIVE"
 ): Promise<ListAgentsResponse> {
   const params = new URLSearchParams({ status });
   return apiRequest<ListAgentsResponse>(
-    `/api/projects/${DEFAULT_PROJECT_ID}/agents?${params.toString()}`
+    `/api/projects/${projectId}/agents?${params.toString()}`
   );
 }

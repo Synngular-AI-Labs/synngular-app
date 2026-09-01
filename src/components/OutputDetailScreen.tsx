@@ -9,6 +9,7 @@ import { ApiError } from "../lib/api/client";
 interface OutputDetailScreenProps {
   onNavigate: (screen: string) => void;
   output: OutputSummary | null;
+  projectId: string;
 }
 
 function escapeHtml(text: string): string {
@@ -81,7 +82,7 @@ const BlockView: React.FC<{ block: OutputBlock }> = ({ block }) => {
   );
 };
 
-const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, output }) => {
+const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, output, projectId }) => {
   const [blocks, setBlocks] = useState<OutputBlock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -91,7 +92,7 @@ const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, out
     setIsLoading(true);
     setError(null);
     try {
-      const response = await getOutput(output.name);
+      const response = await getOutput(projectId, output.name);
       setBlocks(response.data?.blocks ?? []);
     } catch (err) {
       console.error("getOutput failed:", err);
@@ -104,7 +105,7 @@ const OutputDetailScreen: React.FC<OutputDetailScreenProps> = ({ onNavigate, out
     } finally {
       setIsLoading(false);
     }
-  }, [output]);
+  }, [output, projectId]);
 
   useEffect(() => {
     fetchDetail();

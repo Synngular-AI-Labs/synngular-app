@@ -13,6 +13,7 @@ interface OutputsScreenProps {
   onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals" | "notifications") => void;
   setSelectedOutput?: (output: OutputSummary) => void;
   isKeyboardOpen: boolean;
+  projectId: string;
 }
 
 /* ── Helpers ── */
@@ -28,7 +29,7 @@ function getIconForOutput(_output: OutputSummary): { Icon: typeof FileText; colo
   return { Icon: FileText, color: "var(--error-700)" };
 }
 
-const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOutput, isKeyboardOpen }) => {
+const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOutput, isKeyboardOpen, projectId }) => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -41,7 +42,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
     setIsLoading(true);
     setError(null);
     try {
-      const response = await listOutputs();
+      const response = await listOutputs(projectId);
       setOutputs(response.data ?? []);
     } catch (err) {
       console.error("listOutputs failed:", err);
@@ -54,7 +55,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [projectId]);
 
   useEffect(() => {
     fetchOutputs();

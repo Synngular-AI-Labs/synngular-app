@@ -28,6 +28,7 @@ interface SearchBarProps {
   setIsSearchActive: (value: boolean) => void;
   placeholder?: string;
   onFilterClick?: () => void;
+  isFilterActive?: boolean;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -36,6 +37,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   setIsSearchActive,
   placeholder = "Search",
   onFilterClick,
+  isFilterActive = false,
 }) => {
   return (
     <div className="w-full h-[var(--btn-size-36)] flex flex-row items-center gap-2">
@@ -62,6 +64,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
       <button
         type="button"
+        aria-label="Filter"
         onClick={() => {
           if (onFilterClick) {
             onFilterClick();
@@ -69,7 +72,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
             console.log("Filter clicked");
           }
         }}
-        className="w-[var(--btn-size-36)] h-[var(--btn-size-36)] flex items-center justify-center shrink-0 cursor-pointer text-[var(--foreground)]"
+        className={`w-[var(--btn-size-36)] h-[var(--btn-size-36)] flex items-center justify-center shrink-0 cursor-pointer rounded-full text-[var(--foreground)] transition-colors ${
+          isFilterActive ? "bg-[var(--grey-200)]" : ""
+        }`}
       >
         <FilterIcon className="w-5 h-5" />
       </button>

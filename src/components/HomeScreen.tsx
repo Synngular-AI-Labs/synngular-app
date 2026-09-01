@@ -4,6 +4,7 @@ import { Menu, Bell, Bot, ChevronDown, LogOut, Sparkle, Folder } from "lucide-re
 import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
+import ProjectPickerSheet, { type Project } from "./ProjectPickerSheet";
 
 // â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const MAX_ATTACHMENTS = 10;
@@ -74,6 +75,9 @@ interface HomeScreenProps {
   onNavigate: (screen: Screen) => void;
   isKeyboardOpen: boolean;
   userEmail: string;
+  organizationId: string | null;
+  selectedProject: Project | null;
+  onSelectProject: (project: Project) => void;
 }
 
 interface RecentItem {
@@ -622,7 +626,14 @@ const ChatInput: React.FC<ChatInputProps> = ({
   );
 };
 // â”€â”€ Main HomeScreen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, userEmail }) => {
+const HomeScreen: React.FC<HomeScreenProps> = ({
+  onNavigate,
+  isKeyboardOpen,
+  userEmail,
+  organizationId,
+  selectedProject,
+  onSelectProject,
+}) => {
   const [message, setMessage]               = useState("");
   const [attachments, setAttachments]       = useState<Attachment[]>([]);
   const [isSoftKeyboard, setIsSoftKeyboard] = useState(false);
@@ -633,6 +644,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
   const [isMultiline, setIsMultiline]       = useState(false);
   const [recentItems, setRecentItems]       = useState<RecentItem[]>(() => loadRecentItems(userEmail));
   const [isLogoutOpen, setIsLogoutOpen]     = useState(false);
+  const [isProjectPickerOpen, setIsProjectPickerOpen] = useState(false);
 
   const currentUser = deriveCurrentUser(userEmail);
 
@@ -905,14 +917,18 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
 
         {/* Project selector â€” "Hug" sizing (fits its content, capped at a max
             width) rather than a fixed box, so it scales with the device's own
-            font/spacing settings instead of a hard-coded pixel size. Inert until
-            multi-project support/API exists; shows a placeholder label for now. */}
+            font/spacing settings instead of a hard-coded pixel size. Opens the
+            same "Choose a Project" sheet used on the pre-chat gate screen. */}
         <div className="flex justify-center min-w-0">
-          <div className="flex items-center gap-1.5 min-w-0 w-fit max-w-[11.25rem] rounded-full border border-[var(--grey-200)] bg-[var(--grey-100)] px-3 py-1 text-[var(--foreground)]">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setIsProjectPickerOpen(true); }}
+            className="flex items-center gap-1.5 min-w-0 w-fit max-w-[11.25rem] rounded-full border border-[var(--grey-200)] bg-[var(--grey-100)] px-3 py-1 text-[var(--foreground)] touch-manipulation"
+          >
             <Folder className="w-4 h-4 flex-shrink-0" />
-            <span className="text-body-14-sb truncate">Project</span>
+            <span className="text-body-14-sb truncate">{selectedProject?.name ?? "Project"}</span>
             <ChevronDown className="w-4 h-4 flex-shrink-0" />
-          </div>
+          </button>
         </div>
 
         <button
@@ -1276,6 +1292,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, isKeyboardOpen, use
           <LogOut className="w-4 h-4 text-red-600" />
         </button>
       </div>
+
+      <ProjectPickerSheet
+        isOpen={isProjectPickerOpen}
+        onClose={() => setIsProjectPickerOpen(false)}
+        organizationId={organizationId}
+        onSelectProject={(project) => {
+          onSelectProject(project);
+          setIsProjectPickerOpen(false);
+        }}
+      />
     </div>
   );
 };

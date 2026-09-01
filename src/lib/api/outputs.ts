@@ -1,5 +1,4 @@
 import { apiRequest } from "./client";
-import { DEFAULT_PROJECT_ID } from "./project";
 
 export interface OutputBlockSummary {
   blockId: string;
@@ -35,14 +34,14 @@ export interface GetOutputResponse {
   data: OutputDetail;
 }
 
-export function listOutputs(): Promise<ListOutputsResponse> {
+export function listOutputs(projectId: string): Promise<ListOutputsResponse> {
   return apiRequest<ListOutputsResponse>(
-    `/api/projects/${DEFAULT_PROJECT_ID}/outputs`
+    `/api/projects/${projectId}/outputs`
   );
 }
 
-export function getOutput(output: string): Promise<GetOutputResponse> {
+export function getOutput(projectId: string, output: string): Promise<GetOutputResponse> {
   return apiRequest<GetOutputResponse>(
-    `/api/projects/${DEFAULT_PROJECT_ID}/outputs/${encodeURIComponent(output)}`
+    `/api/projects/${projectId}/outputs/${encodeURIComponent(output)}`
   );
 }

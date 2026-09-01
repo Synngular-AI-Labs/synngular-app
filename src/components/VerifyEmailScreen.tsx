@@ -6,6 +6,8 @@ import { Input } from "./ui/input";
 import { ArrowLeft, CheckCircle, X } from "lucide-react";
 import { verifyLoginOtp } from "../lib/api/auth";
 import { ApiError } from "../lib/api/client";
+import { listOrganizations } from "../lib/api/organization";
+import { getSubscriptionStatus, hasActiveSubscription } from "../lib/api/subscription";
 
 /* ── Constants ── */
 const ERROR_MSG_EMPTY_OTP = "Enter the 6-digit code";
@@ -51,9 +53,10 @@ const renderOtpError = (errorMsg: string | null): React.ReactNode => {
 };
 
 const VerifyEmailScreen: React.FC<{
-  onNavigate: (screen: "signin" | "home" | "terms" | "privacy") => void;
+  onNavigate: (screen: "signin" | "project-select" | "subscription" | "terms" | "privacy") => void;
   userEmail: string;
-}> = ({ onNavigate, userEmail }) => {
+  setOrganizationId: (organizationId: string) => void;
+}> = ({ onNavigate, userEmail, setOrganizationId }) => {
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -86,9 +89,23 @@ const VerifyEmailScreen: React.FC<{
       try {
         await verifyLoginOtp(userEmail, otp);
         setShowToast(true);
-        onNavigate("home");
+
+        // The app doesn't support switching organizations yet — until it
+        // does, org[2] is used as a stand-in for "the org this account
+        // actually works in" (falls back to org[0] for accounts with fewer
+        // than 3), per product direction.
+        const organizations = await listOrganizations();
+        const organization = organizations[2] ?? organizations[0];
+        if (!organization) {
+          setOtpError("No organization found for this account.");
+          return;
+        }
+        setOrganizationId(organization.id);
+
+        const subscription = await getSubscriptionStatus(organization.id);
+        onNavigate(hasActiveSubscription(subscription) ? "project-select" : "subscription");
       } catch (err) {
-        console.error("verifyLoginOtp failed:", err);
+        console.error("Sign-in flow failed:", err);
         if (err instanceof ApiError) {
           const body = err.body as
             | { error?: string; details?: string }
@@ -101,7 +118,7 @@ const VerifyEmailScreen: React.FC<{
         setIsLoading(false);
       }
     },
-    [otp, userEmail, onNavigate]
+    [otp, userEmail, onNavigate, setOrganizationId]
   );
 
   const handleOtpChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

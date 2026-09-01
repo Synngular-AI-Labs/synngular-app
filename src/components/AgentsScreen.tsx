@@ -13,6 +13,7 @@ import { ApiError } from "../lib/api/client";
 interface AgentsScreenProps {
   onNavigate: (screen: "signin" | "verify" | "terms" | "privacy" | "home" | "agents" | "agent-details" | "outputs" | "approvals" | "notifications", payload?: Record<string, unknown>) => void;
   isKeyboardOpen: boolean;
+  projectId: string;
 }
 
 /* ── Helpers ── */
@@ -28,7 +29,7 @@ function formatRunCount(count: number): string {
   return `${count} run${count === 1 ? "" : "s"}`;
 }
 
-const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen }) => {
+const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen, projectId }) => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -42,7 +43,7 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen 
     setIsLoading(true);
     setError(null);
     try {
-      const response = await listAgents();
+      const response = await listAgents(projectId);
       setAgents(response.agents ?? []);
       setAgentRunCounts(response.agentRunCounts ?? {});
     } catch (err) {
@@ -56,7 +57,7 @@ const AgentsScreen: React.FC<AgentsScreenProps> = ({ onNavigate, isKeyboardOpen 
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [projectId]);
 
   useEffect(() => {
     fetchAgents();
