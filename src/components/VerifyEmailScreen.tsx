@@ -56,7 +56,8 @@ const VerifyEmailScreen: React.FC<{
   onNavigate: (screen: "signin" | "project-select" | "subscription" | "terms" | "privacy") => void;
   userEmail: string;
   setOrganizationId: (organizationId: string) => void;
-}> = ({ onNavigate, userEmail, setOrganizationId }) => {
+  setUserId: (userId: string) => void;
+}> = ({ onNavigate, userEmail, setOrganizationId, setUserId }) => {
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -87,7 +88,8 @@ const VerifyEmailScreen: React.FC<{
       if (validationError) return;
       setIsLoading(true);
       try {
-        await verifyLoginOtp(userEmail, otp);
+        const { user } = await verifyLoginOtp(userEmail, otp);
+        setUserId(user.id);
         setShowToast(true);
 
         // The app doesn't support switching organizations yet — until it
@@ -118,7 +120,7 @@ const VerifyEmailScreen: React.FC<{
         setIsLoading(false);
       }
     },
-    [otp, userEmail, onNavigate, setOrganizationId]
+    [otp, userEmail, onNavigate, setOrganizationId, setUserId]
   );
 
   const handleOtpChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

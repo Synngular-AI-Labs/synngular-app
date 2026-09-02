@@ -18,7 +18,16 @@ import ApprovalsScreen from "./components/ApprovalsScreen";
 import TranscriptScreen from "./components/TranscriptScreen";
 import ApprovalDetailsScreen from "./components/ApprovalDetailsScreen";
 import NotificationsScreen from "./components/NotificationsScreen";
-import { DEFAULT_PROJECT_ID, type ApiProject } from "./lib/api/project";
+import {
+  DEFAULT_PROJECT_ID,
+  saveSelectedProject,
+  loadSelectedProject,
+  type ApiProject,
+} from "./lib/api/project";
+import { useSocketChat } from "./lib/chat/useSocketChat";
+import { getUserProfile } from "./lib/api/auth";
+import { listOrganizations } from "./lib/api/organization";
+import { getSubscriptionStatus, hasActiveSubscription } from "./lib/api/subscription";
 import "./App.css";
 import "./theme.css";
 
@@ -59,12 +68,32 @@ const AppContent = () => {
   const [previousScreen, setPreviousScreen] = useState<DocumentScreen>("signin");
   const [userEmail, setUserEmail] = useState("");
   const [organizationId, setOrganizationId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<ApiProject | null>(null);
+
+  // Every real selection (initial project-select gate, or the in-chat
+  // project switcher) also persists — see the session-restore effect below,
+  // which is the only place this gets read back.
+  const handleSelectProject = (project: ApiProject) => {
+    setSelectedProject(project);
+    saveSelectedProject(project.organizationId, project);
+  };
+
   const [screenData, setScreenData] = useState<any>(null);
   const [transcriptPayload, setTranscriptPayload] = useState<any>(null);
 
   const [splashVisible, setSplashVisible] = useState(true);
   const [splashFading, setSplashFading] = useState(false);
+
+  // Owned here (not inside HomeScreen) so the conversation and its socket
+  // connection survive switching to Agents/Outputs/etc. and back — HomeScreen
+  // unmounts on every such navigation (see the screen-switch render below),
+  // which would otherwise wipe out chat state along with it.
+  const chat = useSocketChat({
+    organizationId,
+    projectId: selectedProject?.id ?? DEFAULT_PROJECT_ID,
+    userId,
+  });
 
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
@@ -202,6 +231,53 @@ const AppContent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Silently resumes an existing session on cold start instead of forcing
+  // Sign In -> OTP again every time the app process is killed and relaunched.
+  // The auth_token cookie itself already survives that (the native HTTP
+  // client keeps its own persistent cookie jar regardless of in-memory React
+  // state — see lib/api/client.ts) — this just uses it via a cookie-only
+  // profile check instead of throwing the session away unconditionally.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { user } = await getUserProfile();
+        if (cancelled) return;
+        setUserId(user.id);
+        setUserEmail(user.email);
+
+        // Mirrors VerifyEmailScreen's org selection (org[2] ?? org[0]) until
+        // the app supports switching organizations — see its own comment.
+        const organizations = await listOrganizations();
+        if (cancelled) return;
+        const organization = organizations[2] ?? organizations[0];
+        if (!organization) return;
+        setOrganizationId(organization.id);
+
+        const subscription = await getSubscriptionStatus(organization.id);
+        if (cancelled) return;
+        if (!hasActiveSubscription(subscription)) {
+          handleNavigate("subscription");
+          return;
+        }
+
+        const lastProject = loadSelectedProject(organization.id);
+        if (lastProject) {
+          setSelectedProject(lastProject);
+          handleNavigate("home");
+        } else {
+          handleNavigate("project-select");
+        }
+      } catch {
+        // No cookie, or it's no longer valid — stay on the sign-in screen.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setSplashFading(true);
@@ -230,6 +306,7 @@ const AppContent = () => {
           onNavigate={handleNavigate}
           userEmail={userEmail}
           setOrganizationId={setOrganizationId}
+          setUserId={setUserId}
         />
       )}
       {currentScreen === "terms" && (
@@ -242,7 +319,7 @@ const AppContent = () => {
         <ProjectSelectionScreen
           onNavigate={handleNavigate}
           organizationId={organizationId}
-          onSelectProject={setSelectedProject}
+          onSelectProject={handleSelectProject}
         />
       )}
       {currentScreen === "subscription" && (
@@ -254,8 +331,18 @@ const AppContent = () => {
           isKeyboardOpen={isKeyboardOpen}
           userEmail={userEmail}
           organizationId={organizationId}
+          userId={userId}
           selectedProject={selectedProject}
-          onSelectProject={setSelectedProject}
+          onSelectProject={handleSelectProject}
+          messages={chat.messages}
+          isConnected={chat.isConnected}
+          isSending={chat.isSending}
+          connectionError={chat.connectionError}
+          sendMessage={chat.sendMessage}
+          answerQuestion={chat.answerQuestion}
+          resolveAction={chat.resolveAction}
+          startNewChat={chat.startNewChat}
+          loadMessages={chat.loadMessages}
         />
       )}
       {currentScreen === "agents" && (

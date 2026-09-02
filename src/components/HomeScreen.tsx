@@ -1,10 +1,19 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import logoAsset from "../assets/logo.png";
-import { Menu, Bell, Bot, ChevronDown, LogOut, Sparkle, Folder } from "lucide-react";
+import { Menu, Bell, Bot, ChevronDown, LogOut, Sparkle, Folder, Loader2, Check } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import ProjectPickerSheet, { type Project } from "./ProjectPickerSheet";
+import {
+  type ChatMessage,
+  type ChatFile,
+  type PendingQuestion,
+  type PendingAction,
+  type QuestionResponse,
+  type ActionResult,
+  type ActionRoute,
+} from "../lib/chat/useSocketChat";
 
 // â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const MAX_ATTACHMENTS = 10;
@@ -76,8 +85,20 @@ interface HomeScreenProps {
   isKeyboardOpen: boolean;
   userEmail: string;
   organizationId: string | null;
+  userId: string | null;
   selectedProject: Project | null;
   onSelectProject: (project: Project) => void;
+  // Chat state/actions, owned by App (see App.tsx) so they survive HomeScreen
+  // unmounting when the user navigates to another tab and back.
+  messages: ChatMessage[];
+  isConnected: boolean;
+  isSending: boolean;
+  connectionError: string | null;
+  sendMessage: (text: string, files?: ChatFile[]) => boolean;
+  answerQuestion: (toolCallId: string, responses: QuestionResponse[]) => void;
+  resolveAction: (actionId: string, result: ActionResult, route: ActionRoute) => void;
+  startNewChat: () => void;
+  loadMessages: (restored: ChatMessage[]) => void;
 }
 
 interface RecentItem {
@@ -85,7 +106,7 @@ interface RecentItem {
   title: string;
   time: string;
   group: string;
-  messages?: Message[];
+  messages?: ChatMessage[];
 }
 
 interface Attachment {
@@ -95,17 +116,10 @@ interface Attachment {
   isImage: boolean;
 }
 
-interface Message {
-  id: string;
-  text: string;
-  isUser: boolean;
-  files?: { url: string; type: string; name: string }[];
-}
-
 // Synthesizes a stand-in first message for the seeded demo Recents, which
 // predate real chat history and so have no `messages` of their own.
-const seedMessagesFromTitle = (item: RecentItem): Message[] => [
-  { id: `seed-${item.id}`, text: item.title, isUser: true },
+const seedMessagesFromTitle = (item: RecentItem): ChatMessage[] => [
+  { id: `seed-${item.id}`, role: "user", text: item.title },
 ];
 
 // â”€â”€ ChatInput â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -122,6 +136,8 @@ interface ChatInputProps {
   onAttachClick: () => void;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveAttachment: (index: number) => void;
+  sendDisabled?: boolean;
+  isSending?: boolean;
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({
@@ -136,11 +152,13 @@ const ChatInput: React.FC<ChatInputProps> = ({
   onAttachClick,
   onFileChange,
   onRemoveAttachment,
+  sendDisabled = false,
+  isSending = false,
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
 
   const hasContent =
-    message.trim().length > 0 || attachments.length > 0;
+    (message.trim().length > 0 || attachments.length > 0) && !sendDisabled;
 
   /*
    * Determines whether the textarea needs more than one line.
@@ -265,7 +283,32 @@ const ChatInput: React.FC<ChatInputProps> = ({
     </button>
   );
 
-  const sendButton = (
+  // Frozen (not clickable) while a turn is in flight — the agent's response
+  // always runs to completion once started, so there's nothing to interrupt.
+  const sendButton = isSending ? (
+    <button
+      type="button"
+      disabled
+      aria-label="Waiting for response"
+      className="
+        shrink-0
+        flex
+        items-center
+        justify-center
+        rounded-full
+        p-2
+        text-white
+        bg-[var(--send-button-color)]
+        opacity-40
+        cursor-default
+        touch-manipulation
+      "
+    >
+      <svg viewBox="0 0 24 24" className="size-4">
+        <rect x="5" y="5" width="14" height="14" rx="2" fill="currentColor" />
+      </svg>
+    </button>
+  ) : (
     <button
       type="button"
       onClick={onSend}
@@ -625,6 +668,240 @@ const ChatInput: React.FC<ChatInputProps> = ({
     </div>
   );
 };
+
+// ── QuestionCard ── renders a paused chat.question and collects answers ────
+const cardOptionButtonClass = (selected: boolean) =>
+  `rounded-full border px-3 py-1.5 text-xs font-medium touch-manipulation transition-colors ${
+    selected
+      ? "bg-[var(--purple-1000)] border-[var(--purple-1000)] text-white"
+      : "bg-white border-[var(--grey-300)] text-[var(--foreground)]"
+  }`;
+
+const QuestionCard: React.FC<{
+  pending: PendingQuestion;
+  onSubmit: (toolCallId: string, responses: QuestionResponse[]) => void;
+}> = ({ pending, onSubmit }) => {
+  const [answers, setAnswers] = useState<Record<number, string | string[]>>({});
+
+  const setText = (i: number, value: string) => setAnswers((a) => ({ ...a, [i]: value }));
+  const setSingle = (i: number, option: string) => setAnswers((a) => ({ ...a, [i]: option }));
+  const toggleMulti = (i: number, option: string) =>
+    setAnswers((a) => {
+      const current = (a[i] as string[]) ?? [];
+      return {
+        ...a,
+        [i]: current.includes(option) ? current.filter((o) => o !== option) : [...current, option],
+      };
+    });
+
+  const canSubmit = pending.questions.every((_, i) => {
+    const a = answers[i];
+    if (a === undefined) return false;
+    return Array.isArray(a) ? a.length > 0 : a.trim().length > 0;
+  });
+
+  const handleSubmit = () => {
+    onSubmit(
+      pending.toolCallId,
+      pending.questions.map((q, i) => ({ question: q.question, answer: answers[i] ?? "" }))
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-3 mt-2 rounded-xl border border-[var(--grey-200)] bg-[var(--grey-50)] p-3">
+      {pending.questions.map((q, i) => (
+        <div key={i} className="flex flex-col gap-1.5">
+          <span className="text-body-14-sb text-[var(--grey-1000)]">{q.question}</span>
+          {q.answerType === "text" && (
+            <input
+              type="text"
+              value={(answers[i] as string) ?? ""}
+              onChange={(e) => setText(i, e.target.value)}
+              placeholder="Type your answer..."
+              className="w-full rounded-lg border border-[var(--grey-300)] px-3 py-2 text-sm outline-none focus:border-[var(--purple-1000)]"
+            />
+          )}
+          {q.answerType === "single-choice" && (
+            <div className="flex flex-wrap gap-2">
+              {(q.options ?? []).map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => setSingle(i, opt)}
+                  className={cardOptionButtonClass(answers[i] === opt)}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          )}
+          {q.answerType === "multi-choice" && (
+            <div className="flex flex-wrap gap-2">
+              {(q.options ?? []).map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => toggleMulti(i, opt)}
+                  className={cardOptionButtonClass(((answers[i] as string[]) ?? []).includes(opt))}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={!canSubmit}
+        className={`self-end rounded-full px-4 py-1.5 text-xs font-semibold touch-manipulation transition-opacity ${
+          canSubmit ? "bg-[var(--purple-1000)] text-white" : "bg-[var(--grey-200)] text-[var(--grey-500)]"
+        }`}
+      >
+        Submit
+      </button>
+    </div>
+  );
+};
+
+// ── ActionCard ── renders a paused chat.action (approval/choice/form/etc) ──
+const ActionCard: React.FC<{
+  pending: PendingAction;
+  onResolve: (actionId: string, result: ActionResult, route: ActionRoute) => void;
+}> = ({ pending, onResolve }) => {
+  const { action, actionId } = pending;
+  const [selected, setSelected] = useState<string[]>([]);
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+
+  const isMultiChoice = action.actionType === "choice" && !!action.multiple;
+
+  const toggleOption = (opt: string) => {
+    if (isMultiChoice) {
+      setSelected((s) => (s.includes(opt) ? s.filter((o) => o !== opt) : [...s, opt]));
+    } else {
+      setSelected([opt]);
+    }
+  };
+
+  const resolve = (values?: Record<string, unknown>) =>
+    onResolve(actionId, { status: "resolved", values }, action.route);
+  const cancel = () => onResolve(actionId, { status: "cancelled" }, action.route);
+
+  return (
+    <div
+      className={`flex flex-col gap-2 mt-2 rounded-xl border p-3 bg-[var(--grey-50)] ${
+        action.destructive ? "border-[var(--error-600)]" : "border-[var(--grey-200)]"
+      }`}
+    >
+      {action.title && <span className="text-body-14-sb text-[var(--grey-1000)]">{action.title}</span>}
+      {action.prompt && <span className="text-secondary-14 text-[var(--grey-700)]">{action.prompt}</span>}
+
+      {(action.actionType === "form" || action.actionType === "custom") && action.fields && (
+        <div className="flex flex-col gap-2 mt-1">
+          {action.fields.map((field) => (
+            <div key={field.key} className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-[var(--grey-700)]">
+                {field.label}
+                {field.required ? " *" : ""}
+              </span>
+              {field.type === "select" ? (
+                <select
+                  value={fieldValues[field.key] ?? ""}
+                  onChange={(e) => setFieldValues((v) => ({ ...v, [field.key]: e.target.value }))}
+                  className="rounded-lg border border-[var(--grey-300)] px-3 py-2 text-sm bg-white"
+                >
+                  <option value="" disabled>
+                    Select...
+                  </option>
+                  {(field.options ?? []).map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type={field.type === "number" ? "number" : field.type === "date" ? "date" : "text"}
+                  value={fieldValues[field.key] ?? ""}
+                  onChange={(e) => setFieldValues((v) => ({ ...v, [field.key]: e.target.value }))}
+                  className="rounded-lg border border-[var(--grey-300)] px-3 py-2 text-sm"
+                />
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => resolve(fieldValues)}
+            className="self-end rounded-full bg-[var(--purple-1000)] text-white px-4 py-1.5 text-xs font-semibold mt-1 touch-manipulation"
+          >
+            Submit
+          </button>
+        </div>
+      )}
+
+      {action.actionType === "choice" && (
+        <>
+          <div className="flex flex-wrap gap-2 mt-1">
+            {(action.options ?? []).map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => toggleOption(opt)}
+                className={cardOptionButtonClass(selected.includes(opt))}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => resolve({ selected: isMultiChoice ? selected : selected[0] })}
+            disabled={selected.length === 0}
+            className={`self-end rounded-full px-4 py-1.5 text-xs font-semibold mt-1 touch-manipulation ${
+              selected.length > 0
+                ? "bg-[var(--purple-1000)] text-white"
+                : "bg-[var(--grey-200)] text-[var(--grey-500)]"
+            }`}
+          >
+            Submit
+          </button>
+        </>
+      )}
+
+      {(action.actionType === "approval" || action.actionType === "yes_no" || action.actionType === "confirm") && (
+        <div className="flex gap-2 mt-1 justify-end">
+          <button
+            type="button"
+            onClick={cancel}
+            className="rounded-full border border-[var(--grey-300)] text-[var(--foreground)] px-4 py-1.5 text-xs font-semibold touch-manipulation"
+          >
+            {action.options?.[1] ?? "No"}
+          </button>
+          <button
+            type="button"
+            onClick={() => resolve({ answer: action.options?.[0] ?? "Yes" })}
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold text-white touch-manipulation ${
+              action.destructive ? "bg-[var(--error-600)]" : "bg-[var(--purple-1000)]"
+            }`}
+          >
+            {action.options?.[0] ?? "Yes"}
+          </button>
+        </div>
+      )}
+
+      {action.actionType === "acknowledge" && (
+        <button
+          type="button"
+          onClick={() => resolve({ answer: "OK" })}
+          className="self-end rounded-full bg-[var(--purple-1000)] text-white px-4 py-1.5 text-xs font-semibold mt-1 touch-manipulation"
+        >
+          OK
+        </button>
+      )}
+    </div>
+  );
+};
 // â”€â”€ Main HomeScreen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const HomeScreen: React.FC<HomeScreenProps> = ({
   onNavigate,
@@ -633,13 +910,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   organizationId,
   selectedProject,
   onSelectProject,
+  messages,
+  isConnected,
+  isSending,
+  connectionError,
+  sendMessage,
+  answerQuestion,
+  resolveAction,
+  startNewChat,
+  loadMessages,
 }) => {
   const [message, setMessage]               = useState("");
   const [attachments, setAttachments]       = useState<Attachment[]>([]);
   const [isSoftKeyboard, setIsSoftKeyboard] = useState(false);
   const [viewportHeight, setViewportHeight] = useState<number | null>(null);
   const [isRecentsOpen, setIsRecentsOpen]   = useState(false);
-  const [messages, setMessages]             = useState<Message[]>([]);
   const [hasFocusedInput, setHasFocusedInput] = useState(false);
   const [isMultiline, setIsMultiline]       = useState(false);
   const [recentItems, setRecentItems]       = useState<RecentItem[]>(() => loadRecentItems(userEmail));
@@ -704,16 +989,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   }, []);
 
   const handleSend = () => {
-    if (!message.trim() && attachments.length === 0) return;
-    const fileData = attachments.map((a) => ({
+    if (!message.trim()) return;
+    // Attachments are shown in the sent bubble for local preview only — the
+    // chat.message protocol has no file field, so they're never transmitted.
+    const fileData: ChatFile[] = attachments.map((a) => ({
       url:  a.url,
       type: a.isImage ? "image/jpeg" : "application/pdf",
       name: a.name,
     }));
-    setMessages((prev) => [
-      ...prev,
-      { id: Date.now().toString(), text: message.trim(), isUser: true, files: fileData },
-    ]);
+    const sent = sendMessage(message, fileData.length > 0 ? fileData : undefined);
+    if (!sent) return;
     setMessage("");
     setAttachments([]);
     setIsMultiline(false);
@@ -769,7 +1054,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   // Archives the active conversation into Recents, if it has any messages.
   const archiveActiveChat = () => {
     if (messages.length === 0) return;
-    const firstUserMessage = messages.find((m) => m.isUser && m.text.trim());
+    const firstUserMessage = messages.find((m) => m.role === "user" && m.text.trim());
     const title = firstUserMessage?.text.trim().slice(0, 60) || "New chat";
     setRecentItems((prev) => [{ id: Date.now(), title, time: "Just now", group: "Today", messages }, ...prev]);
   };
@@ -778,7 +1063,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   // to its empty/welcome state.
   const handleNewChat = () => {
     archiveActiveChat();
-    setMessages([]);
+    startNewChat();
     setMessage("");
     setAttachments([]);
     setIsMultiline(false);
@@ -791,7 +1076,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   // selected Recents entry's own messages back into the chat.
   const handleOpenRecent = (item: RecentItem) => {
     archiveActiveChat();
-    setMessages(item.messages && item.messages.length > 0 ? item.messages : seedMessagesFromTitle(item));
+    loadMessages(item.messages && item.messages.length > 0 ? item.messages : seedMessagesFromTitle(item));
     setMessage("");
     setAttachments([]);
     setIsMultiline(false);
@@ -835,6 +1120,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     onAttachClick:      handleAttachClick,
     onFileChange:       handleFileChange,
     onRemoveAttachment: handleRemoveAttachment,
+    sendDisabled:       isSending || !isConnected,
+    isSending,
   };
 
   // â”€â”€ Nav items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1000,6 +1287,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             className="w-full flex-shrink-0 bg-[var(--background)]"
             style={{ paddingBottom: inputWrapperPb, paddingTop: "0.5rem" }}
           >
+            {connectionError && (
+              <p
+                className="text-center px-4 pb-2"
+                style={{ fontSize: "0.75rem", color: "var(--error-600)" }}
+              >
+                {connectionError}
+              </p>
+            )}
             <ChatInput {...chatInputProps} />
           </div>
         </div>
@@ -1010,53 +1305,116 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             className="flex-1 overflow-y-auto w-full flex flex-col gap-3"
             style={{ padding: "1rem 1rem 0.5rem" }}
           >
-            {messages.map((msg) => (
-              <div key={msg.id} className="flex w-full justify-end">
-                <div
-                  className="bg-[#F4F4F6] text-[var(--grey-900)] rounded-[1.125rem]"
-                  style={{ maxWidth: "82%", padding: "0.625rem 0.75rem" }}
-                >
-                  {msg.text ? (
-                    <p
-                      className="break-words whitespace-pre-wrap font-normal"
-                      style={{ fontSize: "0.875rem", lineHeight: "1.375rem" }}
-                    >
-                      {msg.text}
-                    </p>
-                  ) : null}
+            {messages.map((msg) =>
+              msg.role === "user" ? (
+                <div key={msg.id} className="flex w-full justify-end">
+                  <div
+                    className="bg-[#F4F4F6] text-[var(--grey-900)] rounded-[1.125rem]"
+                    style={{ maxWidth: "82%", padding: "0.625rem 0.75rem" }}
+                  >
+                    {msg.text ? (
+                      <p
+                        className="break-words whitespace-pre-wrap font-normal"
+                        style={{ fontSize: "0.875rem", lineHeight: "1.375rem" }}
+                      >
+                        {msg.text}
+                      </p>
+                    ) : null}
 
-                  {msg.files && msg.files.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {msg.files.map((file, i) =>
-                        file.type.startsWith("image/") ? (
-                          <img
-                            key={`${file.name}-${i}`}
-                            src={file.url}
-                            alt={file.name}
-                            className="rounded-xl object-cover border border-[var(--grey-200)]"
-                            style={{ width: "clamp(3rem, 14vw, 4rem)", height: "clamp(3rem, 14vw, 4rem)" }}
-                          />
-                        ) : (
-                          <div
-                            key={`${file.name}-${i}`}
-                            className="rounded-xl bg-[var(--grey-100)] flex flex-col items-center justify-center p-1"
-                            style={{ width: "clamp(3rem, 14vw, 4rem)", height: "clamp(3rem, 14vw, 4rem)" }}
-                          >
-                            <span>ðŸ“„</span>
-                            <span
-                              className="text-center truncate w-full text-[var(--grey-700)]"
-                              style={{ fontSize: "0.5rem", marginTop: "0.125rem" }}
+                    {msg.files && msg.files.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {msg.files.map((file, i) =>
+                          file.type.startsWith("image/") ? (
+                            <img
+                              key={`${file.name}-${i}`}
+                              src={file.url}
+                              alt={file.name}
+                              className="rounded-xl object-cover border border-[var(--grey-200)]"
+                              style={{ width: "clamp(3rem, 14vw, 4rem)", height: "clamp(3rem, 14vw, 4rem)" }}
+                            />
+                          ) : (
+                            <div
+                              key={`${file.name}-${i}`}
+                              className="rounded-xl bg-[var(--grey-100)] flex flex-col items-center justify-center p-1"
+                              style={{ width: "clamp(3rem, 14vw, 4rem)", height: "clamp(3rem, 14vw, 4rem)" }}
                             >
-                              {file.name}
-                            </span>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  )}
+                              <span>ðŸ“„</span>
+                              <span
+                                className="text-center truncate w-full text-[var(--grey-700)]"
+                                style={{ fontSize: "0.5rem", marginTop: "0.125rem" }}
+                              >
+                                {file.name}
+                              </span>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ) : (
+                /* Assistant turn — reasoning (collapsed line), tool-call status
+                   chips, then the streamed text itself. */
+                <div key={msg.id} className="flex w-full justify-start">
+                  <div
+                    className="bg-white border border-[var(--grey-200)] text-[var(--grey-900)] rounded-[1.125rem]"
+                    style={{ maxWidth: "88%", padding: "0.625rem 0.75rem" }}
+                  >
+                    {msg.reasoning && (
+                      <p
+                        className="italic text-[var(--grey-500)] mb-1"
+                        style={{ fontSize: "0.75rem", lineHeight: "1.125rem" }}
+                      >
+                        {msg.reasoning}
+                      </p>
+                    )}
+
+                    {msg.toolCalls && msg.toolCalls.length > 0 && (
+                      <div className="flex flex-col gap-1 mb-1.5">
+                        {msg.toolCalls.map((tool) => (
+                          <div
+                            key={tool.toolCallId}
+                            className="flex items-center gap-1.5 text-[var(--grey-600)]"
+                            style={{ fontSize: "0.75rem" }}
+                          >
+                            {tool.status === "pending" ? (
+                              <Loader2 className="w-3 h-3 shrink-0 animate-spin" />
+                            ) : (
+                              <Check className="w-3 h-3 shrink-0" />
+                            )}
+                            <span className="truncate">Using {tool.toolName}...</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {msg.text ? (
+                      <p
+                        className={`break-words whitespace-pre-wrap font-normal ${
+                          msg.isError ? "text-[var(--error-600)]" : ""
+                        }`}
+                        style={{ fontSize: "0.875rem", lineHeight: "1.375rem" }}
+                      >
+                        {msg.text}
+                      </p>
+                    ) : msg.isStreaming ? (
+                      <div className="flex items-center gap-1 py-0.5" aria-label="Thinking">
+                        <span className="size-1.5 rounded-full bg-[var(--grey-400)] animate-bounce" style={{ animationDelay: "0ms" }} />
+                        <span className="size-1.5 rounded-full bg-[var(--grey-400)] animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <span className="size-1.5 rounded-full bg-[var(--grey-400)] animate-bounce" style={{ animationDelay: "300ms" }} />
+                      </div>
+                    ) : null}
+
+                    {msg.pendingQuestion && (
+                      <QuestionCard pending={msg.pendingQuestion} onSubmit={answerQuestion} />
+                    )}
+                    {msg.pendingAction && (
+                      <ActionCard pending={msg.pendingAction} onResolve={resolveAction} />
+                    )}
+                  </div>
+                </div>
+              )
+            )}
             <div ref={messagesEndRef} />
           </div>
 
@@ -1064,6 +1422,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             className="w-full flex-shrink-0 bg-[var(--background)]"
             style={{ paddingBottom: inputWrapperPb, paddingTop: "0.5rem" }}
           >
+            {connectionError && (
+              <p
+                className="text-center px-4 pb-2"
+                style={{ fontSize: "0.75rem", color: "var(--error-600)" }}
+              >
+                {connectionError}
+              </p>
+            )}
             <ChatInput {...chatInputProps} />
           </div>
         </div>

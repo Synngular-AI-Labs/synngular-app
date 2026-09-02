@@ -42,3 +42,15 @@ export function verifyLoginOtp(
     body: JSON.stringify({ email, otp } satisfies VerifyLoginOtpRequest),
   });
 }
+
+export interface UserProfileResponse {
+  user: AuthUser;
+}
+
+// Resolves from the existing auth_token cookie alone (no OTP) — used on app
+// launch to silently restore a session instead of forcing sign-in again every
+// time the app process is killed and relaunched. Rejects (ApiError, 401) if
+// there's no cookie or it's no longer valid.
+export function getUserProfile(): Promise<UserProfileResponse> {
+  return apiRequest<UserProfileResponse>("/api/user/profile");
+}
