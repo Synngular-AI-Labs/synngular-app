@@ -282,9 +282,15 @@ const ProjectPickerSheet: React.FC<ProjectPickerSheetProps> = ({
                 </button>
               </div>
             ) : filteredProjects.length === 0 ? (
-              <p className="text-secondary-14 text-[var(--grey-500)] text-center mt-4">
-                No projects found.
-              </p>
+              <div className="flex flex-col items-center text-center gap-2 mt-8">
+                <Folder className="w-10 h-10 text-[var(--grey-400)]" strokeWidth={1.5} />
+                <p className="text-body-16-m font-semibold text-[var(--grey-900)] mt-2">
+                  No Projects yet
+                </p>
+                <p className="text-secondary-14 text-[var(--grey-500)] max-w-[16rem]">
+                  Create projects in your web platform to see them here.
+                </p>
+              </div>
             ) : (
               filteredProjects.map((project) => (
                 <button
