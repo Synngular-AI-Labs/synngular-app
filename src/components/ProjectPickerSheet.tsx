@@ -164,21 +164,34 @@ const ProjectPickerSheet: React.FC<ProjectPickerSheetProps> = ({
     return sorted;
   }, [projects, searchQuery, statusFilter, sortOption]);
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 bg-black/40 z-50 flex flex-col justify-end"
-      onClick={onClose}
-    >
+    <>
+      {/* ── Backdrop ── */}
       <div
-        className="w-full bg-[var(--background)] rounded-t-3xl flex flex-col mx-auto shadow-xl"
+        className={`fixed inset-0 bg-black z-50 transition-opacity duration-300 ${
+          isOpen ? "opacity-40 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={onClose}
+      />
+
+      {/* ── Sheet — always mounted so it can slide up/down on isOpen instead of
+          just popping in/out (matches the Logout sheet's transform pattern). ── */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Choose a Project"
+        className={`fixed bottom-0 left-0 z-[51] w-full bg-[var(--background)] rounded-t-3xl flex flex-col mx-auto shadow-xl transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-y-0" : "translate-y-full"
+        }`}
         style={{
           maxWidth:      "min(28rem, 100%)",
-          maxHeight:     "85dvh",
+          // Fixed, not a cap — otherwise the flex column shrinks to hug
+          // whatever's shortest (a narrow filter match, "No projects found",
+          // the loading skeleton, etc.), so the sheet visibly jumps size as
+          // you filter. Holding it steady lets the list scroll inside instead.
+          height:        "85dvh",
           paddingBottom: "max(var(--safe-bottom), 0.75rem)",
         }}
-        onClick={(event) => event.stopPropagation()}
       >
         {/* Drag handle */}
         <div
@@ -239,9 +252,15 @@ const ProjectPickerSheet: React.FC<ProjectPickerSheetProps> = ({
 
           <div className="flex-1 min-h-0 overflow-y-auto mt-4 flex flex-col gap-4 pb-4">
             {isLoading ? (
-              <p className="text-secondary-14 text-[var(--grey-500)] text-center mt-4">
-                Loading projects...
-              </p>
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="w-full flex items-start gap-3 animate-pulse">
+                  <div className="w-8 h-8 flex-shrink-0 rounded-full bg-[var(--grey-200)] mt-0.5" />
+                  <div className="flex flex-col gap-2 flex-1 mt-1">
+                    <div className="h-3.5 w-2/5 rounded-full bg-[var(--grey-200)]" />
+                    <div className="h-3 w-4/5 rounded-full bg-[var(--grey-100)]" />
+                  </div>
+                </div>
+              ))
             ) : error ? (
               <div className="text-center mt-4">
                 <p className="text-secondary-14 text-[var(--error-600)]">{error}</p>
@@ -284,7 +303,7 @@ const ProjectPickerSheet: React.FC<ProjectPickerSheetProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
