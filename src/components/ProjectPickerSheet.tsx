@@ -130,8 +130,17 @@ const ProjectPickerSheet: React.FC<ProjectPickerSheetProps> = ({
     }
   }, [organizationId]);
 
+  // The sheet stays mounted between opens now (to animate in/out — see the
+  // transform below), so its filter/search state would otherwise carry over
+  // from the last time it was open. Reset to defaults on every open instead.
   useEffect(() => {
-    if (isOpen) fetchProjects();
+    if (!isOpen) return;
+    setSearchQuery("");
+    setIsFilterRowOpen(false);
+    setOpenDropdown(null);
+    setStatusFilter(STATUS_LABELS.ACTIVE!);
+    setSortOption("Last viewed");
+    fetchProjects();
   }, [isOpen, fetchProjects]);
 
   const filteredProjects = useMemo(() => {
