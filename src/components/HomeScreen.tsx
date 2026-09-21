@@ -1630,8 +1630,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                       >
                         <span className="flex items-center gap-2 min-w-0" style={{ maxWidth: "75%" }}>
                           <Sparkle
-                            className="shrink-0 fill-[var(--purple-1000)] text-[var(--purple-1000)]"
-                            style={{ width: "0.875rem", height: "0.875rem" }}
+                            aria-hidden="true"
+                            className="h-4 w-4 shrink-0 text-[var(--purple-700)]"
+                            fill="none"
+                            strokeWidth={2}
                           />
                           <span
                             className="font-semibold text-[var(--grey-1000)] truncate"
