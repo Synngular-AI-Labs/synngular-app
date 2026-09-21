@@ -1379,13 +1379,41 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                   </div>
                 </div>
               ) : (
-                 /* Assistant response rendered as Markdown. Internal reasoning
-                   and tool-call progress are never shown to the user. */
+                /* Assistant response rendered as Markdown. Raw internal
+                   reasoning is never shown to the user. */
                 <div key={msg.id} className="flex w-full justify-start">
                   <div
                     className="bg-white border border-[var(--grey-200)] text-[var(--grey-900)] rounded-[1.125rem]"
                     style={{ maxWidth: "88%", padding: "0.625rem 0.75rem" }}
                   >
+                    {msg.isStreaming && (
+                      <details className="mb-2 text-[var(--grey-500)]">
+                        <summary className="flex cursor-pointer select-none items-center text-xs font-medium marker:text-[var(--grey-500)]">
+                          Thinking
+                          <span className="ml-1 inline-flex items-center gap-0.5" aria-hidden="true">
+                            <span className="size-1 rounded-full bg-[var(--grey-500)] animate-bounce" style={{ animationDelay: "0ms" }} />
+                            <span className="size-1 rounded-full bg-[var(--grey-500)] animate-bounce" style={{ animationDelay: "150ms" }} />
+                            <span className="size-1 rounded-full bg-[var(--grey-500)] animate-bounce" style={{ animationDelay: "300ms" }} />
+                          </span>
+                        </summary>
+                        <div className="mt-1 pl-3 text-xs leading-5">
+                          {msg.toolCalls && msg.toolCalls.length > 0 ? (
+                            msg.toolCalls.map((tool) => (
+                              <div key={tool.toolCallId} className="flex items-center gap-1.5">
+                                <span aria-hidden="true">&gt;</span>
+                                <span>{tool.status === "completed" ? `Completed ${tool.toolName}` : `Calling ${tool.toolName}`}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="flex items-center gap-1.5">
+                              <span aria-hidden="true">&gt;</span>
+                              <span>Working on your request</span>
+                            </div>
+                          )}
+                        </div>
+                      </details>
+                    )}
+
                     {msg.text ? (
                       <div
                         className={`break-words font-normal ${msg.isError ? "text-[var(--error-600)]" : ""}`}
@@ -1419,12 +1447,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                         >
                           {msg.text}
                         </ReactMarkdown>
-                      </div>
-                    ) : msg.isStreaming ? (
-                      <div className="flex items-center gap-1 py-0.5" aria-label="Thinking">
-                        <span className="size-1.5 rounded-full bg-[var(--grey-400)] animate-bounce" style={{ animationDelay: "0ms" }} />
-                        <span className="size-1.5 rounded-full bg-[var(--grey-400)] animate-bounce" style={{ animationDelay: "150ms" }} />
-                        <span className="size-1.5 rounded-full bg-[var(--grey-400)] animate-bounce" style={{ animationDelay: "300ms" }} />
                       </div>
                     ) : null}
 
