@@ -21,16 +21,10 @@ import NotificationsScreen from "./components/NotificationsScreen";
 import {
   DEFAULT_PROJECT_ID,
   saveSelectedProject,
-  loadSelectedProject,
   type ApiProject,
 } from "./lib/api/project";
 import { useSocketChat } from "./lib/chat/useSocketChat";
-import { getUserProfile } from "./lib/api/auth";
-import {
-  findOrganizationWithActiveSubscription,
-  listOrganizations,
-  type Organization,
-} from "./lib/api/organization";
+import { type Organization } from "./lib/api/organization";
 import { getSubscriptionStatus, hasActiveSubscription } from "./lib/api/subscription";
 import "./App.css";
 import "./theme.css";
@@ -239,52 +233,6 @@ const AppContent = () => {
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Silently resumes an existing session on cold start instead of forcing
-  // Sign In -> OTP again every time the app process is killed and relaunched.
-  // The auth_token cookie itself already survives that (the native HTTP
-  // client keeps its own persistent cookie jar regardless of in-memory React
-  // state — see lib/api/client.ts) — this just uses it via a cookie-only
-  // profile check instead of throwing the session away unconditionally.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const { user } = await getUserProfile();
-        if (cancelled) return;
-        setUserId(user.id);
-        setUserEmail(user.email);
-
-        const organizations = await listOrganizations();
-        if (cancelled) return;
-        const organization =
-          await findOrganizationWithActiveSubscription(organizations) ?? organizations[0];
-        if (!organization) return;
-        setOrganizationId(organization.id);
-
-        const subscription = await getSubscriptionStatus(organization.id);
-        if (cancelled) return;
-        if (!hasActiveSubscription(subscription)) {
-          handleNavigate("subscription");
-          return;
-        }
-
-        const lastProject = loadSelectedProject(organization.id);
-        if (lastProject) {
-          setSelectedProject(lastProject);
-          handleNavigate("home");
-        } else {
-          handleNavigate("project-select");
-        }
-      } catch {
-        // No cookie, or it's no longer valid — stay on the sign-in screen.
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

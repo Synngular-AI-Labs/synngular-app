@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import logoAsset from "../assets/logo.png";
-import { Menu, Bell, Bot, ChevronDown, LogOut, Sparkle, Folder, LayoutGrid, Loader2, Check } from "lucide-react";
+import { Menu, Bell, /* Bot, */ ChevronDown, LogOut, Sparkle, Folder, LayoutGrid, Loader2, Check } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
-import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
+/* import UserRoundCheckIcon from "./ui/UserRoundCheckIcon"; */
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import ProjectPickerSheet, { type Project } from "./ProjectPickerSheet";
 import { getChatSessionMessages, listChatSessions, type ChatSessionSummary } from "../lib/api/chat";
@@ -1162,7 +1162,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         />
       ),
     },
-    {
+    /* {
       key: "agents" as Screen,
       label: "Agent",
       icon: (active: boolean) => (
@@ -1171,7 +1171,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           style={{ color: active ? "var(--purple-1000)" : "var(--grey-500)" }}
         />
       ),
-    },
+    }, */
     {
       key: "outputs" as Screen,
       label: "Outputs",
@@ -1182,7 +1182,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         />
       ),
     },
-    {
+    /* {
       key: "approvals" as Screen,
       label: "Approvals",
       icon: (active: boolean) => (
@@ -1191,7 +1191,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           style={{ color: active ? "var(--purple-1000)" : "var(--grey-500)" }}
         />
       ),
-    },
+    }, */
   ] as const;
 
   // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

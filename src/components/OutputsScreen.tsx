@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { FileText, Download, Bot } from "lucide-react";
+import { FileText, Download /*, Bot */ } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
-import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
+/* import UserRoundCheckIcon from "./ui/UserRoundCheckIcon"; */
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import SearchBar from "./SearchBar";
 import FilterBottomSheet from "./FilterBottomSheet";
@@ -175,7 +175,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
           <span className="text-[0.625rem] leading-[0.75rem] font-medium text-[var(--grey-500)]">Chat</span>
         </button>
 
-        <button
+        {/* <button
           onClick={() => onNavigate('agents')}
           className="flex-1 h-[2.75rem] flex flex-col items-center justify-between relative touch-manipulation group"
         >
@@ -183,7 +183,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
             <Bot size={24} strokeWidth={1.5} style={{ color: 'var(--grey-500)' }} />
           </div>
           <span className="text-[0.625rem] leading-[0.75rem] font-medium text-[var(--grey-500)]">Agent</span>
-        </button>
+        </button> */}
 
         <button
           onClick={() => onNavigate('outputs')}
@@ -198,7 +198,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
           <span className="text-[0.625rem] leading-[0.75rem] font-medium text-[var(--purple-1000)]">Outputs</span>
         </button>
 
-        <button
+        {/* <button
           onClick={() => onNavigate('approvals')}
           className="flex-1 h-[2.75rem] flex flex-col items-center justify-between relative touch-manipulation group"
         >
@@ -206,7 +206,7 @@ const OutputsScreen: React.FC<OutputsScreenProps> = ({ onNavigate, setSelectedOu
             <UserRoundCheckIcon size={24} style={{ color: 'var(--grey-500)' }} />
           </div>
           <span className="text-[0.625rem] leading-[0.75rem] font-medium text-[var(--grey-500)]">Approvals</span>
-        </button>
+        </button> */}
       </nav>
     </div>
   );
