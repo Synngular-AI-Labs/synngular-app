@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import logoAsset from "../assets/logo.png";
-import { Menu, Bell, /* Bot, */ ChevronDown, LogOut, Sparkle, Folder, LayoutGrid, Loader2, Check } from "lucide-react";
+import { Menu, Bell, /* Bot, */ ChevronDown, LogOut, Sparkle, Folder, LayoutGrid, Loader2 } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
 /* import UserRoundCheckIcon from "./ui/UserRoundCheckIcon"; */
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import ProjectPickerSheet, { type Project } from "./ProjectPickerSheet";
 import { getChatSessionMessages, listChatSessions, type ChatSessionSummary } from "../lib/api/chat";
-import { listOrganizations, type Organization } from "../lib/api/organization";
+import { getOrganizationAccess, listOrganizations, type Organization } from "../lib/api/organization";
 import {
   type ChatMessage,
   type ChatFile,
@@ -1387,13 +1387,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                     style={{ maxWidth: "88%", padding: "0.625rem 0.75rem" }}
                   >
                     {msg.isStreaming && (
-                      <details className="mb-2 text-[var(--grey-500)]">
-                        <summary className="flex cursor-pointer select-none items-center text-xs font-medium marker:text-[var(--grey-500)]">
+                      <details className="mb-2 rounded-xl border border-[var(--purple-700)] px-3 py-2 text-[var(--purple-700)]">
+                        <summary className="flex cursor-pointer select-none items-center text-xs font-medium marker:text-[var(--purple-700)]">
                           Thinking
                           <span className="ml-1 inline-flex items-center gap-0.5" aria-hidden="true">
-                            <span className="size-1 rounded-full bg-[var(--grey-500)] animate-bounce" style={{ animationDelay: "0ms" }} />
-                            <span className="size-1 rounded-full bg-[var(--grey-500)] animate-bounce" style={{ animationDelay: "150ms" }} />
-                            <span className="size-1 rounded-full bg-[var(--grey-500)] animate-bounce" style={{ animationDelay: "300ms" }} />
+                            <span className="size-1 rounded-full bg-[var(--purple-700)] animate-bounce" style={{ animationDelay: "0ms" }} />
+                            <span className="size-1 rounded-full bg-[var(--purple-700)] animate-bounce" style={{ animationDelay: "150ms" }} />
+                            <span className="size-1 rounded-full bg-[var(--purple-700)] animate-bounce" style={{ animationDelay: "300ms" }} />
                           </span>
                         </summary>
                         <div className="mt-1 pl-3 text-xs leading-5">
@@ -1712,45 +1712,52 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         role="dialog"
         aria-modal="true"
         aria-label="Account menu"
-        className={`fixed bottom-0 left-0 w-full z-[70] bg-white rounded-t-2xl transition-transform duration-300 ease-in-out ${
+        className={`fixed bottom-0 left-0 z-[70] w-full max-h-[90dvh] overflow-y-auto bg-white rounded-t-[var(--radius)] transition-transform duration-300 ease-in-out ${
           isLogoutOpen ? "translate-y-0" : "translate-y-full"
         }`}
-        style={{ paddingBottom: "max(var(--safe-bottom), 0.75rem)" }}
+        style={{
+          paddingBottom: "max(var(--safe-bottom), var(--spacing-12))",
+          paddingInline: "clamp(var(--spacing-12), 5vw, var(--spacing-16))",
+        }}
       >
-        <div className="flex justify-center pt-2 pb-1">
-          <div className="rounded-full bg-[var(--grey-300)]" style={{ width: "2.25rem", height: "0.25rem" }} />
+        <div className="flex justify-center py-[var(--spacing-4)]">
+          <div
+            className="rounded-full bg-[var(--grey-300)]"
+            style={{ width: "clamp(2rem, 12vw, var(--btn-size-36))", height: "var(--spacing-4)" }}
+          />
         </div>
-        <div className="px-4 pt-3 pb-2">
-          <div className="flex items-center gap-3">
+        <div className="pt-[var(--spacing-12)] pb-[var(--spacing-4)]">
+          <div className="flex items-center gap-[var(--spacing-12)]">
             <div
-              className="rounded-full bg-[var(--purple-1000)] text-white flex items-center justify-center font-semibold shrink-0"
-              style={{ width: "2.25rem", height: "2.25rem", fontSize: "0.8125rem" }}
+              className="flex shrink-0 items-center justify-center rounded-full bg-[var(--purple-1000)] text-body-12-sb text-white"
+              style={{ width: "var(--btn-size-36)", height: "var(--btn-size-36)" }}
             >
               {currentUser.initials}
             </div>
             <div className="min-w-0">
-              <p className="font-semibold text-[var(--grey-1000)] truncate" style={{ fontSize: "0.8125rem" }}>
+              <p className="truncate text-body-12-sb text-[var(--grey-1000)]">
                 {currentUser.name}
               </p>
-              <p className="text-[var(--grey-500)] truncate" style={{ fontSize: "0.6875rem" }}>
+              <p className="truncate text-captions-12 text-[var(--grey-500)]">
                 {currentUser.email}
               </p>
             </div>
           </div>
         </div>
-        <div className="px-4 pt-2">
-          <p className="font-medium text-[var(--grey-500)] mb-1" style={{ fontSize: "0.6875rem" }}>
+        <div className="pt-[var(--spacing-4)]">
+          <p className="mb-[var(--spacing-4)] text-captions-12 font-medium text-[var(--grey-500)]">
             Organizations
           </p>
-          <div className="overflow-hidden rounded-lg border border-[var(--grey-200)]">
+          <div className="overflow-hidden rounded-[var(--spacing-4)] border border-[var(--grey-300)]">
             {isLoadingOrganizations && (
-              <p className="px-3 py-2 text-xs text-[var(--grey-500)]">Loading organizations...</p>
+              <p className="px-[var(--spacing-12)] py-[var(--spacing-12)] text-body-12-m text-[var(--grey-500)]">Loading organizations...</p>
             )}
             {organizationError && (
-              <p className="px-3 py-2 text-xs text-[var(--grey-700)]">{organizationError}</p>
+              <p className="px-[var(--spacing-12)] py-[var(--spacing-12)] text-body-12-m text-[var(--grey-700)]">{organizationError}</p>
             )}
             {!isLoadingOrganizations && !organizationError && organizations.map((organization) => {
               const isSelected = organization.id === organizationId;
+              const access = getOrganizationAccess(organization);
               return (
                 <button
                   key={organization.id}
@@ -1770,46 +1777,53 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                         setSwitchingOrganizationId(null);
                       });
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-left border-b last:border-b-0 border-[var(--grey-100)] active:bg-[var(--grey-100)] transition-colors touch-manipulation"
+                  className={`flex min-h-[var(--btn-size-36)] w-full items-center gap-[var(--spacing-12)] border-b border-[var(--grey-100)] px-[var(--spacing-12)] py-[var(--spacing-4)] text-left transition-colors last:border-b-0 touch-manipulation ${
+                    isSelected ? "bg-[var(--grey-200)]" : "active:bg-[var(--grey-100)]"
+                  }`}
                 >
                   <span
-                    className="flex items-center justify-center rounded-full bg-[var(--purple-100)] text-[var(--purple-1000)] font-semibold shrink-0"
-                    style={{ width: "1.25rem", height: "1.25rem", fontSize: "0.625rem" }}
+                    className="flex shrink-0 items-center justify-center rounded-full bg-[var(--purple-100)] text-captions-12 font-semibold text-[var(--purple-1000)]"
+                    style={{ width: "var(--spacing-16)", height: "var(--spacing-16)" }}
                   >
                     {organization.name.slice(0, 1).toUpperCase()}
                   </span>
-                  <span className="flex-1 truncate text-xs font-medium text-[var(--grey-1000)]">
+                  <span className="flex-1 truncate text-body-12-m text-[var(--grey-1000)]">
                     {organization.name}
                   </span>
-                  {switchingOrganizationId === organization.id ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-[var(--purple-1000)]" />
-                  ) : isSelected ? (
-                    <Check className="w-4 h-4 text-[var(--purple-1000)]" />
-                  ) : null}
+                  {access && (
+                    <span className="shrink-0 text-captions-12 text-[var(--grey-500)]">
+                      {access}
+                    </span>
+                  )}
+                  {switchingOrganizationId === organization.id && (
+                    <Loader2 className="h-4 w-4 animate-spin text-[var(--purple-1000)]" />
+                  )}
                 </button>
               );
             })}
           </div>
         </div>
-        <div className="px-4 pt-3">
-          <p className="font-medium text-[var(--grey-500)] mb-1" style={{ fontSize: "0.6875rem" }}>
+        <div className="pt-[var(--spacing-16)]">
+          <p className="mb-[var(--spacing-4)] text-captions-12 font-medium text-[var(--grey-500)]">
             Account
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            setIsLogoutOpen(false);
-            setIsRecentsOpen(false);
-            onNavigate("signin");
-          }}
-          className="w-full flex items-center justify-between px-4 py-4 active:bg-[var(--grey-100)] transition-colors touch-manipulation"
-        >
-          <span className="font-medium text-red-600" style={{ fontSize: "0.9375rem" }}>
-            Logout
-          </span>
-          <LogOut className="w-4 h-4 text-red-600" />
-        </button>
+        <div className="overflow-hidden rounded-[var(--spacing-4)] border border-[var(--grey-300)]">
+          <button
+            type="button"
+            onClick={() => {
+              setIsLogoutOpen(false);
+              setIsRecentsOpen(false);
+              onNavigate("signin");
+            }}
+            className="flex min-h-[var(--btn-size-36)] w-full items-center justify-between px-[var(--spacing-12)] py-[var(--spacing-12)] transition-colors active:bg-[var(--grey-100)] touch-manipulation"
+          >
+            <span className="text-body-14-m text-red-600">
+              Logout
+            </span>
+            <LogOut className="h-4 w-4 text-red-600" />
+          </button>
+        </div>
       </div>
 
       <ProjectPickerSheet
