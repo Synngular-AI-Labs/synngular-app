@@ -1692,7 +1692,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             <button
               type="button"
               onClick={handleNewChat}
-              className="shrink-0 rounded-full border border-[var(--purple-1000)] text-[var(--purple-1000)] font-medium active:bg-[var(--purple-100)] transition-colors touch-manipulation"
+              className="shrink-0 rounded-[var(--spacing-12)] border border-[var(--purple-1000)] text-[var(--purple-1000)] font-medium active:bg-[var(--purple-100)] transition-colors touch-manipulation"
               style={{ fontSize: "0.75rem", padding: "0.375rem 0.75rem" }}
             >
               New chat
@@ -1750,16 +1750,19 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           <p className="mb-[var(--spacing-4)] text-captions-12 font-medium text-[var(--grey-500)]">
             Organizations
           </p>
-          <div className="overflow-hidden rounded-[var(--spacing-4)] border border-[var(--grey-300)]">
+          <div className="overflow-hidden rounded-[var(--spacing-12)] border border-[var(--grey-300)]">
             {isLoadingOrganizations && (
               <p className="px-[var(--spacing-12)] py-[var(--spacing-12)] text-body-12-m text-[var(--grey-500)]">Loading organizations...</p>
             )}
             {organizationError && (
               <p className="px-[var(--spacing-12)] py-[var(--spacing-12)] text-body-12-m text-[var(--grey-700)]">{organizationError}</p>
             )}
-            {!isLoadingOrganizations && !organizationError && organizations.map((organization) => {
+            {!isLoadingOrganizations && !organizationError && organizations.map((organization, organizationIndex) => {
               const isSelected = organization.id === organizationId;
               const access = getOrganizationAccess(organization);
+              const organizationIconColor = organizationIndex % 2 === 0
+                ? "var(--organization-icon-purple)"
+                : "var(--organization-icon-blue)";
               return (
                 <button
                   key={organization.id}
@@ -1784,8 +1787,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                   }`}
                 >
                   <span
-                    className="flex shrink-0 items-center justify-center rounded-full bg-[var(--purple-100)] text-captions-12 font-semibold text-[var(--purple-1000)]"
-                    style={{ width: "var(--spacing-16)", height: "var(--spacing-16)" }}
+                    className="flex shrink-0 items-center justify-center rounded-full text-captions-12 font-semibold text-white"
+                    style={{ backgroundColor: organizationIconColor, width: "var(--spacing-16)", height: "var(--spacing-16)" }}
                   >
                     {organization.name.slice(0, 1).toUpperCase()}
                   </span>
@@ -1805,12 +1808,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             })}
           </div>
         </div>
-        <div className="pt-[var(--spacing-16)]">
+        <div className="border-t border-[var(--grey-300)] pt-[var(--spacing-16)]">
           <p className="mb-[var(--spacing-4)] text-captions-12 font-medium text-[var(--grey-500)]">
             Account
           </p>
         </div>
-        <div className="overflow-hidden rounded-[var(--spacing-4)] border border-[var(--grey-300)]">
+        <div className="overflow-hidden rounded-[var(--spacing-12)] border border-[var(--grey-300)]">
           <button
             type="button"
             onClick={() => {
@@ -1826,6 +1829,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             <LogOut className="h-4 w-4 text-red-600" />
           </button>
         </div>
+        <p className="pt-[var(--spacing-16)] text-center text-captions-12 text-[var(--grey-500)]">
+          Synngular
+        </p>
       </div>
 
       <ProjectPickerSheet
