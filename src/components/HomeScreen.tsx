@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import logoAsset from "../assets/logo.png";
 import { Menu, Bell, Bot, ChevronDown, LogOut, Sparkle, Folder, Loader2, Check } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
@@ -1378,50 +1379,47 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                   </div>
                 </div>
               ) : (
-                /* Assistant turn — reasoning (collapsed line), tool-call status
-                   chips, then the streamed text itself. */
+                 /* Assistant response rendered as Markdown. Internal reasoning
+                   and tool-call progress are never shown to the user. */
                 <div key={msg.id} className="flex w-full justify-start">
                   <div
                     className="bg-white border border-[var(--grey-200)] text-[var(--grey-900)] rounded-[1.125rem]"
                     style={{ maxWidth: "88%", padding: "0.625rem 0.75rem" }}
                   >
-                    {msg.reasoning && (
-                      <p
-                        className="italic text-[var(--grey-500)] mb-1"
-                        style={{ fontSize: "0.75rem", lineHeight: "1.125rem" }}
-                      >
-                        {msg.reasoning}
-                      </p>
-                    )}
-
-                    {msg.toolCalls && msg.toolCalls.length > 0 && (
-                      <div className="flex flex-col gap-1 mb-1.5">
-                        {msg.toolCalls.map((tool) => (
-                          <div
-                            key={tool.toolCallId}
-                            className="flex items-center gap-1.5 text-[var(--grey-600)]"
-                            style={{ fontSize: "0.75rem" }}
-                          >
-                            {tool.status === "pending" ? (
-                              <Loader2 className="w-3 h-3 shrink-0 animate-spin" />
-                            ) : (
-                              <Check className="w-3 h-3 shrink-0" />
-                            )}
-                            <span className="truncate">Using {tool.toolName}...</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
                     {msg.text ? (
-                      <p
-                        className={`break-words whitespace-pre-wrap font-normal ${
-                          msg.isError ? "text-[var(--error-600)]" : ""
-                        }`}
+                      <div
+                        className={`break-words font-normal ${msg.isError ? "text-[var(--error-600)]" : ""}`}
                         style={{ fontSize: "0.875rem", lineHeight: "1.375rem" }}
                       >
-                        {msg.text}
-                      </p>
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                            ul: ({ children }) => <ul className="list-disc pl-5 mb-2 last:mb-0">{children}</ul>,
+                            ol: ({ children }) => <ol className="list-decimal pl-5 mb-2 last:mb-0">{children}</ol>,
+                            li: ({ children }) => <li className="mb-1 last:mb-0">{children}</li>,
+                            h1: ({ children }) => <h1 className="font-semibold text-base mb-2">{children}</h1>,
+                            h2: ({ children }) => <h2 className="font-semibold text-sm mb-2">{children}</h2>,
+                            h3: ({ children }) => <h3 className="font-semibold text-sm mb-1">{children}</h3>,
+                            blockquote: ({ children }) => (
+                              <blockquote className="border-l-2 border-[var(--grey-300)] pl-3 italic mb-2">
+                                {children}
+                              </blockquote>
+                            ),
+                            code: ({ children, className }) => (
+                              <code className={`${className ?? ""} rounded bg-[var(--grey-100)] px-1 py-0.5 text-[0.8125em]`}>
+                                {children}
+                              </code>
+                            ),
+                            pre: ({ children }) => (
+                              <pre className="overflow-x-auto rounded-lg bg-[var(--grey-100)] p-3 mb-2 text-[0.8125em]">
+                                {children}
+                              </pre>
+                            ),
+                          }}
+                        >
+                          {msg.text}
+                        </ReactMarkdown>
+                      </div>
                     ) : msg.isStreaming ? (
                       <div className="flex items-center gap-1 py-0.5" aria-label="Thinking">
                         <span className="size-1.5 rounded-full bg-[var(--grey-400)] animate-bounce" style={{ animationDelay: "0ms" }} />
