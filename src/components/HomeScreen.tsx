@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import logoAsset from "../assets/logo.png";
-import { Menu, Bell, Bot, ChevronDown, LogOut, Sparkle, Folder, Loader2, Check } from "lucide-react";
+import { Menu, Bell, Bot, ChevronDown, LogOut, Sparkle, Folder, LayoutGrid, Loader2, Check } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
@@ -1575,6 +1575,28 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                   strokeLinecap="round" strokeLinejoin="round"
                 />
               </svg>
+            </button>
+          </div>
+
+          <div className="w-full flex-shrink-0 px-4 pb-3">
+            <button
+              type="button"
+              aria-label="Change project"
+              onClick={() => setIsProjectPickerOpen(true)}
+              className="w-full min-w-0 flex items-center gap-2 rounded-lg bg-[var(--grey-300)] px-3 py-2 text-left text-[var(--grey-1000)] transition-colors active:bg-[var(--grey-400)] touch-manipulation"
+            >
+              <LayoutGrid
+                aria-hidden="true"
+                className="h-5 w-5 shrink-0 text-[var(--purple-700)]"
+                strokeWidth={2}
+              />
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                {selectedProject?.name ?? "Select a project"}
+              </span>
+              <ChevronDown
+                aria-hidden="true"
+                className="h-4 w-4 shrink-0 text-[var(--grey-700)]"
+              />
             </button>
           </div>
 
