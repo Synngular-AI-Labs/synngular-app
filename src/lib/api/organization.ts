@@ -1,4 +1,5 @@
 import { apiRequest } from "./client";
+import { getSubscriptionStatus, hasActiveSubscription } from "./subscription";
 
 export interface Organization {
   id: string;
@@ -18,4 +19,16 @@ export async function listOrganizations(): Promise<Organization[]> {
     | null
     | undefined;
   return body?.organisations ?? body?.organizations ?? [];
+}
+
+export async function findOrganizationWithActiveSubscription(
+  organizations: Organization[],
+): Promise<Organization | null> {
+  const statuses = await Promise.all(
+    organizations.map(async (organization) => ({
+      organization,
+      subscription: await getSubscriptionStatus(organization.id),
+    })),
+  );
+  return statuses.find(({ subscription }) => hasActiveSubscription(subscription))?.organization ?? null;
 }

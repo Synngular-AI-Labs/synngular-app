@@ -26,7 +26,11 @@ import {
 } from "./lib/api/project";
 import { useSocketChat } from "./lib/chat/useSocketChat";
 import { getUserProfile } from "./lib/api/auth";
-import { listOrganizations } from "./lib/api/organization";
+import {
+  findOrganizationWithActiveSubscription,
+  listOrganizations,
+  type Organization,
+} from "./lib/api/organization";
 import { getSubscriptionStatus, hasActiveSubscription } from "./lib/api/subscription";
 import "./App.css";
 import "./theme.css";
@@ -77,6 +81,13 @@ const AppContent = () => {
   const handleSelectProject = (project: ApiProject) => {
     setSelectedProject(project);
     saveSelectedProject(project.organizationId, project);
+  };
+
+  const handleSelectOrganization = async (organization: Organization) => {
+    const subscription = await getSubscriptionStatus(organization.id);
+    setOrganizationId(organization.id);
+    setSelectedProject(null);
+    handleNavigate(hasActiveSubscription(subscription) ? "project-select" : "subscription");
   };
 
   const [screenData, setScreenData] = useState<any>(null);
@@ -246,11 +257,10 @@ const AppContent = () => {
         setUserId(user.id);
         setUserEmail(user.email);
 
-        // Mirrors VerifyEmailScreen's org selection (org[1] ?? org[0]) until
-        // the app supports switching organizations — see its own comment.
         const organizations = await listOrganizations();
         if (cancelled) return;
-        const organization = organizations[1] ?? organizations[0];
+        const organization =
+          await findOrganizationWithActiveSubscription(organizations) ?? organizations[0];
         if (!organization) return;
         setOrganizationId(organization.id);
 
@@ -334,6 +344,7 @@ const AppContent = () => {
           userId={userId}
           selectedProject={selectedProject}
           onSelectProject={handleSelectProject}
+          onSelectOrganization={handleSelectOrganization}
           messages={chat.messages}
           isConnected={chat.isConnected}
           isSending={chat.isSending}

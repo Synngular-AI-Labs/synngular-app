@@ -6,6 +6,7 @@ import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import ProjectPickerSheet, { type Project } from "./ProjectPickerSheet";
 import { getChatSessionMessages, listChatSessions, type ChatSessionSummary } from "../lib/api/chat";
+import { listOrganizations, type Organization } from "../lib/api/organization";
 import {
   type ChatMessage,
   type ChatFile,
@@ -54,6 +55,7 @@ interface HomeScreenProps {
   userId: string | null;
   selectedProject: Project | null;
   onSelectProject: (project: Project) => void;
+  onSelectOrganization: (organization: Organization) => Promise<void>;
   // Chat state/actions, owned by App (see App.tsx) so they survive HomeScreen
   // unmounting when the user navigates to another tab and back.
   messages: ChatMessage[];
@@ -880,6 +882,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   organizationId,
   selectedProject,
   onSelectProject,
+  onSelectOrganization,
   messages,
   isConnected,
   isSending,
@@ -902,9 +905,31 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const [recentsError, setRecentsError]     = useState<string | null>(null);
   const [loadingSessionId, setLoadingSessionId] = useState<string | null>(null);
   const [isLogoutOpen, setIsLogoutOpen]     = useState(false);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [isLoadingOrganizations, setIsLoadingOrganizations] = useState(false);
+  const [organizationError, setOrganizationError] = useState<string | null>(null);
+  const [switchingOrganizationId, setSwitchingOrganizationId] = useState<string | null>(null);
   const [isProjectPickerOpen, setIsProjectPickerOpen] = useState(false);
 
   const currentUser = deriveCurrentUser(userEmail);
+
+  useEffect(() => {
+    if (!isLogoutOpen) return;
+    let cancelled = false;
+    setIsLoadingOrganizations(true);
+    setOrganizationError(null);
+    listOrganizations()
+      .then((items) => {
+        if (!cancelled) setOrganizations(items);
+      })
+      .catch(() => {
+        if (!cancelled) setOrganizationError("Unable to load organizations.");
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingOrganizations(false);
+      });
+    return () => { cancelled = true; };
+  }, [isLogoutOpen]);
 
   const textareaRef    = useRef<HTMLTextAreaElement>(null);
   const fileInputRef   = useRef<HTMLInputElement>(null);
@@ -1652,6 +1677,82 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
       >
         <div className="flex justify-center pt-2 pb-1">
           <div className="rounded-full bg-[var(--grey-300)]" style={{ width: "2.25rem", height: "0.25rem" }} />
+        </div>
+        <div className="px-4 pt-3 pb-2">
+          <div className="flex items-center gap-3">
+            <div
+              className="rounded-full bg-[var(--purple-1000)] text-white flex items-center justify-center font-semibold shrink-0"
+              style={{ width: "2.25rem", height: "2.25rem", fontSize: "0.8125rem" }}
+            >
+              {currentUser.initials}
+            </div>
+            <div className="min-w-0">
+              <p className="font-semibold text-[var(--grey-1000)] truncate" style={{ fontSize: "0.8125rem" }}>
+                {currentUser.name}
+              </p>
+              <p className="text-[var(--grey-500)] truncate" style={{ fontSize: "0.6875rem" }}>
+                {currentUser.email}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="px-4 pt-2">
+          <p className="font-medium text-[var(--grey-500)] mb-1" style={{ fontSize: "0.6875rem" }}>
+            Organizations
+          </p>
+          <div className="overflow-hidden rounded-lg border border-[var(--grey-200)]">
+            {isLoadingOrganizations && (
+              <p className="px-3 py-2 text-xs text-[var(--grey-500)]">Loading organizations...</p>
+            )}
+            {organizationError && (
+              <p className="px-3 py-2 text-xs text-[var(--grey-700)]">{organizationError}</p>
+            )}
+            {!isLoadingOrganizations && !organizationError && organizations.map((organization) => {
+              const isSelected = organization.id === organizationId;
+              return (
+                <button
+                  key={organization.id}
+                  type="button"
+                  disabled={isSelected || switchingOrganizationId !== null}
+                  onClick={() => {
+                    setSwitchingOrganizationId(organization.id);
+                    onSelectOrganization(organization)
+                      .then(() => {
+                        setIsLogoutOpen(false);
+                        setIsRecentsOpen(false);
+                      })
+                      .catch(() => {
+                        setOrganizationError("Unable to switch organization.");
+                      })
+                      .finally(() => {
+                        setSwitchingOrganizationId(null);
+                      });
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-left border-b last:border-b-0 border-[var(--grey-100)] active:bg-[var(--grey-100)] transition-colors touch-manipulation"
+                >
+                  <span
+                    className="flex items-center justify-center rounded-full bg-[var(--purple-100)] text-[var(--purple-1000)] font-semibold shrink-0"
+                    style={{ width: "1.25rem", height: "1.25rem", fontSize: "0.625rem" }}
+                  >
+                    {organization.name.slice(0, 1).toUpperCase()}
+                  </span>
+                  <span className="flex-1 truncate text-xs font-medium text-[var(--grey-1000)]">
+                    {organization.name}
+                  </span>
+                  {switchingOrganizationId === organization.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-[var(--purple-1000)]" />
+                  ) : isSelected ? (
+                    <Check className="w-4 h-4 text-[var(--purple-1000)]" />
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="px-4 pt-3">
+          <p className="font-medium text-[var(--grey-500)] mb-1" style={{ fontSize: "0.6875rem" }}>
+            Account
+          </p>
         </div>
         <button
           type="button"

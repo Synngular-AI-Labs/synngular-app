@@ -178,11 +178,17 @@ const ProjectSelectionScreen: React.FC<ProjectSelectionScreenProps> = ({
       >
         {navItems.map(({ key, label, icon }) => {
           const active = key === "home";
+          const isDisabled = !active;
           return (
             <button
               key={key}
+              type="button"
               onClick={() => onNavigate(key)}
-              className="flex-1 flex flex-col items-center justify-between relative touch-manipulation"
+              disabled={isDisabled}
+              aria-disabled={isDisabled}
+              className={`flex-1 flex flex-col items-center justify-between relative touch-manipulation ${
+                isDisabled ? "cursor-not-allowed opacity-50" : ""
+              }`}
               style={{ height: "2.75rem" }}
             >
               {active && (

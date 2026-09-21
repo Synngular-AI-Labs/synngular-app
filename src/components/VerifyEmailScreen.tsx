@@ -6,7 +6,10 @@ import { Input } from "./ui/input";
 import { ArrowLeft, CheckCircle, X } from "lucide-react";
 import { verifyLoginOtp } from "../lib/api/auth";
 import { ApiError } from "../lib/api/client";
-import { listOrganizations } from "../lib/api/organization";
+import {
+  findOrganizationWithActiveSubscription,
+  listOrganizations,
+} from "../lib/api/organization";
 import { getSubscriptionStatus, hasActiveSubscription } from "../lib/api/subscription";
 
 /* ── Constants ── */
@@ -92,12 +95,9 @@ const VerifyEmailScreen: React.FC<{
         setUserId(user.id);
         setShowToast(true);
 
-        // The app doesn't support switching organizations yet — until it
-        // does, org[1] is used as a stand-in for "the org this account
-        // actually works in" (falls back to org[0] for accounts with fewer
-        // than 2), per product direction.
         const organizations = await listOrganizations();
-        const organization = organizations[1] ?? organizations[0];
+        const organization =
+          await findOrganizationWithActiveSubscription(organizations) ?? organizations[0];
         if (!organization) {
           setOtpError("No organization found for this account.");
           return;
