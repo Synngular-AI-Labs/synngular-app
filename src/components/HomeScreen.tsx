@@ -5,6 +5,7 @@ import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import ProjectPickerSheet, { type Project } from "./ProjectPickerSheet";
+import { getChatSessionMessages, listChatSessions, type ChatSessionSummary } from "../lib/api/chat";
 import {
   type ChatMessage,
   type ChatFile,
@@ -39,42 +40,7 @@ const deriveCurrentUser = (email: string) => {
 };
 
 // â”€â”€ Recents persistence (per signed-in user, survives sign-out/sign-in) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const recentsStorageKey = (email: string) => `synngular:recents:${email || "guest"}`;
-
-const loadRecentItems = (email: string): RecentItem[] => {
-  try {
-    const raw = localStorage.getItem(recentsStorageKey(email));
-    if (raw) return JSON.parse(raw);
-  } catch {
-    // Corrupt/unavailable storage falls back to the seeded demo list below.
-  }
-  return initialRecentItems;
-};
-
 // â”€â”€ Recents Dummy Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const initialRecentItems: RecentItem[] = [
-  { id: 1,  title: "Contract analysis",                  time: "2m ago", group: "Today" },
-  { id: 2,  title: "Customer Support Ticket Summary...", time: "2m ago", group: "Today" },
-  { id: 3,  title: "HR Candidate Screening",             time: "2m ago", group: "Today" },
-  { id: 4,  title: "Sales Lead Analysis",                time: "2m ago", group: "Today" },
-  { id: 5,  title: "Invoice Processing",                 time: "2m ago", group: "Yesterday" },
-  { id: 6,  title: "Marketing Campaign Ideas",           time: "2m ago", group: "Yesterday" },
-  { id: 7,  title: "Employee Onboarding Workflow",       time: "2m ago", group: "Yesterday" },
-  { id: 8,  title: "Quarterly Sales Report",             time: "2m ago", group: "Yesterday" },
-  { id: 9,  title: "Vendor Comparison",                  time: "2m ago", group: "1 week ago" },
-  { id: 10, title: "Expense Report Review",              time: "2m ago", group: "1 week ago" },
-  { id: 11, title: "Product Requirements Draft",         time: "2m ago", group: "1 week ago" },
-  { id: 12, title: "Project Status Update",              time: "2m ago", group: "1 week ago" },
-  { id: 13, title: "Lead Qualification",                 time: "2m ago", group: "1 week ago" },
-  { id: 14, title: "Policy Document Summary",            time: "2m ago", group: "1 week ago" },
-  { id: 15, title: "Recruitment Pipeline Review",        time: "2m ago", group: "1 week ago" },
-  { id: 16, title: "Q3 Financial Review",                time: "2m ago", group: "1 week ago" },
-  { id: 17, title: "New Hire Onboarding Doc",            time: "2m ago", group: "1 week ago" },
-  { id: 18, title: "Sales Pitch Transcript",             time: "2m ago", group: "1 week ago" },
-  { id: 19, title: "Client Feedback Analysis",           time: "2m ago", group: "1 week ago" },
-  { id: 20, title: "Weekly Sync Notes",                  time: "2m ago", group: "1 week ago" },
-];
-
 // â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 type Screen =
   | "signin" | "verify" | "terms" | "privacy"
@@ -102,12 +68,22 @@ interface HomeScreenProps {
 }
 
 interface RecentItem {
-  id: number;
+  id: string;
   title: string;
   time: string;
   group: string;
-  messages?: ChatMessage[];
+  session: ChatSessionSummary;
 }
+
+const relativeTime = (dateValue?: string | null): { time: string; group: string } => {
+  if (!dateValue) return { time: "", group: "Earlier" };
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return { time: "", group: "Earlier" };
+  const minutes = Math.max(0, Math.floor((Date.now() - date.getTime()) / 60000));
+  const time = minutes < 1 ? "Just now" : minutes < 60 ? `${minutes}m ago` : `${Math.floor(minutes / 60)}h ago`;
+  const group = minutes < 1440 ? "Today" : minutes < 2880 ? "Yesterday" : "Earlier";
+  return { time, group };
+};
 
 interface Attachment {
   url: string;
@@ -115,12 +91,6 @@ interface Attachment {
   name: string;
   isImage: boolean;
 }
-
-// Synthesizes a stand-in first message for the seeded demo Recents, which
-// predate real chat history and so have no `messages` of their own.
-const seedMessagesFromTitle = (item: RecentItem): ChatMessage[] => [
-  { id: `seed-${item.id}`, role: "user", text: item.title },
-];
 
 // â”€â”€ ChatInput â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface ChatInputProps {
@@ -927,7 +897,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const [isRecentsOpen, setIsRecentsOpen]   = useState(false);
   const [hasFocusedInput, setHasFocusedInput] = useState(false);
   const [isMultiline, setIsMultiline]       = useState(false);
-  const [recentItems, setRecentItems]       = useState<RecentItem[]>(() => loadRecentItems(userEmail));
+  const [recentItems, setRecentItems]       = useState<RecentItem[]>([]);
+  const [isLoadingRecents, setIsLoadingRecents] = useState(false);
+  const [recentsError, setRecentsError]     = useState<string | null>(null);
+  const [loadingSessionId, setLoadingSessionId] = useState<string | null>(null);
   const [isLogoutOpen, setIsLogoutOpen]     = useState(false);
   const [isProjectPickerOpen, setIsProjectPickerOpen] = useState(false);
 
@@ -960,16 +933,37 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     return () => urls.forEach((u) => URL.revokeObjectURL(u));
   }, []);
 
-  // Persists Recents under the signed-in user's key so it's restored on the next
-  // sign-in (HomeScreen unmounts entirely on sign-out, so component state alone
-  // wouldn't survive that round trip).
   useEffect(() => {
-    try {
-      localStorage.setItem(recentsStorageKey(userEmail), JSON.stringify(recentItems));
-    } catch {
-      // Storage unavailable (e.g. private browsing) — recents just won't persist.
+    const projectId = selectedProject?.id;
+    if (!projectId) {
+      setRecentItems([]);
+      return;
     }
-  }, [recentItems, userEmail]);
+    let cancelled = false;
+    setIsLoadingRecents(true);
+    setRecentsError(null);
+    listChatSessions(projectId)
+      .then((sessions) => {
+        if (cancelled) return;
+        setRecentItems(sessions.map((session) => {
+          const timing = relativeTime(session.updatedAt ?? session.createdAt);
+          return {
+            id: session.id,
+            title: session.title?.trim() || session.firstMessage?.trim() || "New chat",
+            time: timing.time,
+            group: timing.group,
+            session,
+          };
+        }));
+      })
+      .catch(() => {
+        if (!cancelled) setRecentsError("Unable to load recent chats.");
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingRecents(false);
+      });
+    return () => { cancelled = true; };
+  }, [selectedProject?.id, isRecentsOpen]);
 
   // Tracks the browser/webview's *actual* visible height so the screen's own
   // height can be pinned to it directly. `100dvh` alone is unreliable once the
@@ -1054,9 +1048,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   // Archives the active conversation into Recents, if it has any messages.
   const archiveActiveChat = () => {
     if (messages.length === 0) return;
-    const firstUserMessage = messages.find((m) => m.role === "user" && m.text.trim());
-    const title = firstUserMessage?.text.trim().slice(0, 60) || "New chat";
-    setRecentItems((prev) => [{ id: Date.now(), title, time: "Just now", group: "Today", messages }, ...prev]);
   };
 
   // Archives the active conversation into Recents, then resets the chat back
@@ -1074,15 +1065,24 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
   // Archives the active conversation (so it isn't lost), then loads the
   // selected Recents entry's own messages back into the chat.
-  const handleOpenRecent = (item: RecentItem) => {
-    archiveActiveChat();
-    loadMessages(item.messages && item.messages.length > 0 ? item.messages : seedMessagesFromTitle(item));
-    setMessage("");
-    setAttachments([]);
-    setIsMultiline(false);
-    setHasFocusedInput(true);
-    if (textareaRef.current) textareaRef.current.style.height = "auto";
-    setIsRecentsOpen(false);
+  const handleOpenRecent = async (item: RecentItem) => {
+    if (!selectedProject || loadingSessionId) return;
+    setLoadingSessionId(item.id);
+    try {
+      const restored = await getChatSessionMessages(selectedProject.id, item.id);
+      archiveActiveChat();
+      loadMessages(restored);
+      setMessage("");
+      setAttachments([]);
+      setIsMultiline(false);
+      setHasFocusedInput(true);
+      if (textareaRef.current) textareaRef.current.style.height = "auto";
+      setIsRecentsOpen(false);
+    } catch {
+      setRecentsError("Unable to open this chat.");
+    } finally {
+      setLoadingSessionId(null);
+    }
   };
 
   // Buckets Recents into their time-group sections (Today, Yesterday, ...),
@@ -1534,6 +1534,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto w-full">
+            {isLoadingRecents && (
+              <p className="px-4 py-6 text-sm text-[var(--grey-500)]">Loading recent chats...</p>
+            )}
+            {recentsError && (
+              <p className="px-4 py-6 text-sm text-[var(--grey-700)]">{recentsError}</p>
+            )}
+            {!isLoadingRecents && !recentsError && recentItems.length === 0 && (
+              <p className="px-4 py-6 text-sm text-[var(--grey-500)]">No recent chats.</p>
+            )}
             {recentGroups.map(({ group, items }) => (
               <div key={group} className="flex flex-col">
                 <h3
@@ -1548,6 +1557,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                       <button
                         type="button"
                         onClick={() => handleOpenRecent(item)}
+                        disabled={loadingSessionId !== null}
                         className="w-full flex items-center justify-between text-left active:bg-[var(--grey-100)] transition-colors touch-manipulation px-4 py-2"
                         style={{ minHeight: "2.5rem" }}
                       >
@@ -1560,7 +1570,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                             className="font-semibold text-[var(--grey-1000)] truncate"
                             style={{ fontSize: "0.875rem", lineHeight: "1.25rem" }}
                           >
-                            {item.title}
+                            {loadingSessionId === item.id ? "Loading..." : item.title}
                           </span>
                         </span>
                         <span

@@ -246,11 +246,11 @@ const AppContent = () => {
         setUserId(user.id);
         setUserEmail(user.email);
 
-        // Mirrors VerifyEmailScreen's org selection (org[2] ?? org[0]) until
+        // Mirrors VerifyEmailScreen's org selection (org[1] ?? org[0]) until
         // the app supports switching organizations — see its own comment.
         const organizations = await listOrganizations();
         if (cancelled) return;
-        const organization = organizations[2] ?? organizations[0];
+        const organization = organizations[1] ?? organizations[0];
         if (!organization) return;
         setOrganizationId(organization.id);
 

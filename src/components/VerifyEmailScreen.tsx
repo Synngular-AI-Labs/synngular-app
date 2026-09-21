@@ -93,11 +93,11 @@ const VerifyEmailScreen: React.FC<{
         setShowToast(true);
 
         // The app doesn't support switching organizations yet — until it
-        // does, org[2] is used as a stand-in for "the org this account
+        // does, org[1] is used as a stand-in for "the org this account
         // actually works in" (falls back to org[0] for accounts with fewer
-        // than 3), per product direction.
+        // than 2), per product direction.
         const organizations = await listOrganizations();
-        const organization = organizations[2] ?? organizations[0];
+        const organization = organizations[1] ?? organizations[0];
         if (!organization) {
           setOtpError("No organization found for this account.");
           return;
