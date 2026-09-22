@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import logoAsset from "../assets/logo.png";
-import { Menu, Bell, Bot, FileInput } from "lucide-react";
+import { Menu, Bell, Bot } from "lucide-react";
 import FileOutputIcon from "./ui/FileOutputIcon";
 import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
@@ -37,16 +37,16 @@ const ProjectSelectionScreen: React.FC<ProjectSelectionScreenProps> = ({
         />
       ),
     },
-    // {
-    //   key: "agents" as Screen,
-    //   label: "Agent",
-    //   icon: (active: boolean) => (
-    //     <Bot
-    //       size={24} strokeWidth={1.5}
-    //       style={{ color: active ? "var(--purple-1000)" : "var(--grey-500)" }}
-    //     />
-    //   ),
-    // },
+    {
+      key: "agents" as Screen,
+      label: "Agent",
+      icon: (active: boolean) => (
+        <Bot
+          size={24} strokeWidth={1.5}
+          style={{ color: active ? "var(--purple-1000)" : "var(--grey-500)" }}
+        />
+      ),
+    },
     {
       key: "outputs" as Screen,
       label: "Outputs",
@@ -57,16 +57,16 @@ const ProjectSelectionScreen: React.FC<ProjectSelectionScreenProps> = ({
         />
       ),
     },
-    // {
-    //   key: "approvals" as Screen,
-    //   label: "Approvals",
-    //   icon: (active: boolean) => (
-    //     <UserRoundCheckIcon
-    //       size={24}
-    //       style={{ color: active ? "var(--purple-1000)" : "var(--grey-500)" }}
-    //     />
-    //   ),
-    // },
+    {
+      key: "approvals" as Screen,
+      label: "Approvals",
+      icon: (active: boolean) => (
+        <UserRoundCheckIcon
+          size={24}
+          style={{ color: active ? "var(--purple-1000)" : "var(--grey-500)" }}
+        />
+      ),
+    },
   ] as const;
 
   return (
@@ -119,40 +119,6 @@ const ProjectSelectionScreen: React.FC<ProjectSelectionScreenProps> = ({
           }}
         />
 
-        {/* "Select a Project" — sized to hug its own content (icon + label +
-            padding) rather than a fixed box, so it renders at a consistent,
-            comfortable size across every phone/tablet without relying on a
-            fixed pixel width or height. */}
-        <button
-          type="button"
-          onClick={() => setIsPickerOpen(true)}
-          className="
-            inline-flex
-            w-fit
-            max-w-full
-            items-center
-            justify-center
-            gap-2
-            rounded-full
-            bg-[var(--purple-1000)]
-            text-white
-            font-semibold
-            shadow-sm
-            transition-opacity
-            active:opacity-90
-            touch-manipulation
-          "
-          style={{
-            paddingInline: "clamp(1.25rem, 6vw, 1.75rem)",
-            paddingBlock:  "clamp(0.8125rem, 3.4vw, 1rem)",
-            fontSize:      "clamp(0.9375rem, 4vw, 1rem)",
-            lineHeight:    1.5,
-          }}
-        >
-          <FileInput className="shrink-0" style={{ width: "1.25rem", height: "1.25rem" }} />
-          <span className="truncate">Select a Project</span>
-        </button>
-
         <p
           className="font-medium text-center"
           style={{
@@ -165,6 +131,18 @@ const ProjectSelectionScreen: React.FC<ProjectSelectionScreenProps> = ({
         >
           Choose a project to start chatting with its AI agents.
         </p>
+
+        <button
+          type="button"
+          onClick={() => setIsPickerOpen(true)}
+          className="mt-[var(--spacing-16)] inline-flex w-fit max-w-full items-center justify-center rounded-lg border border-[var(--purple-1000)] bg-transparent px-[clamp(1rem,6vw,1.5rem)] py-[clamp(0.5rem,2.5vw,0.75rem)] font-semibold text-[var(--purple-1000)] transition-colors active:bg-[var(--purple-100)] touch-manipulation"
+          style={{
+            fontSize:   "clamp(0.75rem, 3.6vw, 0.875rem)",
+            lineHeight: 1.5,
+          }}
+        >
+          <span className="truncate">Select a Project</span>
+        </button>
       </main>
 
       {/* ── Bottom Nav ── */}
