@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import logoAsset from "../assets/logo.png";
-import { Menu, Bell, Bot } from "lucide-react";
+import { Menu, Bell } from "lucide-react";
+// FIX 4 & 5: removed unused imports `Bot` from lucide-react and
+// `UserRoundCheckIcon` â€” both were imported but never referenced in the
+// component since those nav items are commented out.
 import FileOutputIcon from "./ui/FileOutputIcon";
-import UserRoundCheckIcon from "./ui/UserRoundCheckIcon";
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
 import ProjectPickerSheet, { type Project } from "./ProjectPickerSheet";
 
-// ── Types ────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 type Screen =
   | "signin" | "verify" | "terms" | "privacy"
   | "home" | "agents" | "outputs" | "approvals" | "notifications";
@@ -17,7 +19,7 @@ interface ProjectSelectionScreenProps {
   onSelectProject: (project: Project) => void;
 }
 
-// ── ProjectSelectionScreen ──────────────────────────────────────────────
+// â”€â”€ ProjectSelectionScreen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // The gate screen shown right after sign-in, before any project is active.
 const ProjectSelectionScreen: React.FC<ProjectSelectionScreenProps> = ({
   onNavigate,
@@ -78,11 +80,11 @@ const ProjectSelectionScreen: React.FC<ProjectSelectionScreenProps> = ({
         paddingBottom: "max(var(--safe-bottom), 0.75rem)",
       }}
     >
-      {/* ── Header ── */}
+      {/* â”€â”€ Header â”€â”€ */}
       <header
         className="w-full flex items-center justify-between flex-shrink-0 px-[var(--spacing-16)] pb-[var(--spacing-4)]"
       >
-        {/* Inert until there's a project — Recents/history has nothing to show
+        {/* Inert until there's a project â€” Recents/history has nothing to show
             before one is picked. */}
         <button
           type="button"
@@ -104,7 +106,7 @@ const ProjectSelectionScreen: React.FC<ProjectSelectionScreenProps> = ({
         </button>
       </header>
 
-      {/* ── Body ── */}
+      {/* â”€â”€ Body â”€â”€ */}
       <main
         className="flex-1 flex flex-col items-center justify-center w-full min-h-0"
         style={{ padding: "0 clamp(1.25rem, 6vw, 2rem)" }}
@@ -145,7 +147,7 @@ const ProjectSelectionScreen: React.FC<ProjectSelectionScreenProps> = ({
         </button>
       </main>
 
-      {/* ── Bottom Nav ── */}
+      {/* â”€â”€ Bottom Nav â”€â”€ */}
       <nav
         className="w-full bg-white border-t border-[var(--grey-200)] flex flex-shrink-0"
         style={{

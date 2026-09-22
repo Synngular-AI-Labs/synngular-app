@@ -18,13 +18,21 @@ import ApprovalsScreen from "./components/ApprovalsScreen";
 import TranscriptScreen from "./components/TranscriptScreen";
 import ApprovalDetailsScreen from "./components/ApprovalDetailsScreen";
 import NotificationsScreen from "./components/NotificationsScreen";
+import { getUserProfile } from "./lib/api/auth";
+import { ApiError } from "./lib/api/client";
 import {
   DEFAULT_PROJECT_ID,
   saveSelectedProject,
   type ApiProject,
 } from "./lib/api/project";
 import { useSocketChat } from "./lib/chat/useSocketChat";
-import { type Organization } from "./lib/api/organization";
+// FIX 2 & 3: added listOrganizations and findOrganizationWithActiveSubscription
+// which were used in restoreSession() but missing from the import.
+import {
+  listOrganizations,
+  findOrganizationWithActiveSubscription,
+  type Organization,
+} from "./lib/api/organization";
 import { getSubscriptionStatus, hasActiveSubscription } from "./lib/api/subscription";
 import "./App.css";
 import "./theme.css";
@@ -58,9 +66,12 @@ const DARK_HEADER_SCREENS = new Set<Screen>(["signin", "verify"]);
 
 const AppContent = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen>("signin");
+  // FIX 1: isRestoringSession was declared but never read â€” removed the state
+  // variable, kept only the setter which is used in the restoreSession finally block.
+  const [, setIsRestoringSession] = useState(true);
   // Popstate (hardware back) fires on a listener subscribed once on mount, so it
   // needs a live read of "what screen are we on right now" without resubscribing
-  // on every navigation — a ref, not the state value itself, gives it that.
+  // on every navigation â€” a ref, not the state value itself, gives it that.
   const currentScreenRef = useRef(currentScreen);
   currentScreenRef.current = currentScreen;
   const [previousScreen, setPreviousScreen] = useState<DocumentScreen>("signin");
@@ -70,7 +81,7 @@ const AppContent = () => {
   const [selectedProject, setSelectedProject] = useState<ApiProject | null>(null);
 
   // Every real selection (initial project-select gate, or the in-chat
-  // project switcher) also persists — see the session-restore effect below,
+  // project switcher) also persists â€” see the session-restore effect below,
   // which is the only place this gets read back.
   const handleSelectProject = (project: ApiProject) => {
     setSelectedProject(project);
@@ -91,7 +102,7 @@ const AppContent = () => {
   const [splashFading, setSplashFading] = useState(false);
 
   // Owned here (not inside HomeScreen) so the conversation and its socket
-  // connection survive switching to Agents/Outputs/etc. and back — HomeScreen
+  // connection survive switching to Agents/Outputs/etc. and back â€” HomeScreen
   // unmounts on every such navigation (see the screen-switch render below),
   // which would otherwise wipe out chat state along with it.
   const chat = useSocketChat({
@@ -102,13 +113,84 @@ const AppContent = () => {
 
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const restoreSession = async () => {
+      try {
+        const { user } = await getUserProfile();
+
+        if (cancelled) return;
+
+        setUserId(user.id);
+        setUserEmail(user.email);
+
+        const organizations = await listOrganizations();
+
+        if (cancelled) return;
+
+        const organization =
+          (await findOrganizationWithActiveSubscription(organizations)) ??
+          organizations[0];
+
+        if (!organization) {
+          setUserId(null);
+          setUserEmail("");
+          setOrganizationId(null);
+          setSelectedProject(null);
+          setCurrentScreen("signin");
+          return;
+        }
+
+        if (cancelled) return;
+
+        setOrganizationId(organization.id);
+
+        const subscription = await getSubscriptionStatus(organization.id);
+
+        if (cancelled) return;
+
+        setCurrentScreen(
+          hasActiveSubscription(subscription) ? "project-select" : "subscription"
+        );
+      } catch (error) {
+        if (cancelled) return;
+
+        if (error instanceof ApiError && error.status === 401) {
+          setUserId(null);
+          setUserEmail("");
+          setOrganizationId(null);
+          setSelectedProject(null);
+          setCurrentScreen("signin");
+        } else {
+          console.error("Failed to restore authentication session:", error);
+          setUserId(null);
+          setUserEmail("");
+          setOrganizationId(null);
+          setSelectedProject(null);
+          setCurrentScreen("signin");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsRestoringSession(false);
+        }
+      }
+    };
+
+    restoreSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Keeps the native status/nav bar icon color in sync with whichever screen is
-  // showing, since it's one Activity/WebView across every React-level navigation —
+  // showing, since it's one Activity/WebView across every React-level navigation â€”
   // a one-time call (as HomeScreen used to do) goes stale the moment the user
   // navigates to a screen with a different background.
   //
   // setBarColor is async and can race the WebView's readiness right after a cold
-  // start/navigation, or transiently fail — either way it resolves false/rejects
+  // start/navigation, or transiently fail â€” either way it resolves false/rejects
   // rather than throwing synchronously. Left as a fire-and-forget single call, a
   // missed attempt leaves icons stuck in the previous screen's color (invisible
   // against the new background, e.g. white icons on a light screen) until the next
@@ -168,22 +250,22 @@ const AppContent = () => {
   useEffect(() => {
     const handleFocus = (e: Event) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') setIsKeyboardOpen(true);
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") setIsKeyboardOpen(true);
     };
     const handleBlur = (e: Event) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') setIsKeyboardOpen(false);
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") setIsKeyboardOpen(false);
     };
-    document.addEventListener('focusin', handleFocus);
-    document.addEventListener('focusout', handleBlur);
+    document.addEventListener("focusin", handleFocus);
+    document.addEventListener("focusout", handleBlur);
     return () => {
-      document.removeEventListener('focusin', handleFocus);
-      document.removeEventListener('focusout', handleBlur);
+      document.removeEventListener("focusin", handleFocus);
+      document.removeEventListener("focusout", handleBlur);
     };
   }, []);
 
   // Applies the side effects a screen change needs (previousScreen/payload state)
-  // without touching browser history — shared by forward navigation (handleNavigate)
+  // without touching browser history â€” shared by forward navigation (handleNavigate)
   // and by popstate (going back/forward), which must never push a *new* history
   // entry of its own.
   const applyScreenChange = (screen: Screen, fromScreen: Screen, payload?: any) => {
@@ -205,12 +287,12 @@ const AppContent = () => {
   };
 
   // Every real navigation pushes onto the WebView's own session history so the
-  // hardware/gesture back button — wired to WebView.goBack() natively, see
-  // MainActivity.kt's handleBackNavigation override — has a real stack to step back
+  // hardware/gesture back button â€” wired to WebView.goBack() natively, see
+  // MainActivity.kt's handleBackNavigation override â€” has a real stack to step back
   // through, one screen at a time, matching whatever path the user actually took.
   //
   // Accepts `string` (not the stricter `Screen` union) because several child screens
-  // declare their own `onNavigate` prop as `(screen: string, ...) => void` — App.tsx
+  // declare their own `onNavigate` prop as `(screen: string, ...) => void` â€” App.tsx
   // is the single place that actually owns and controls the Screen union, so the
   // cast below is safe: every real call site passes one of the literal Screen values.
   const handleNavigate = (screen: string, payload?: any) => {
@@ -219,7 +301,7 @@ const AppContent = () => {
     window.history.pushState({ screen: nextScreen, payload }, "");
   };
 
-  // Syncs React state to whatever the browser/WebView just navigated to — fired by
+  // Syncs React state to whatever the browser/WebView just navigated to â€” fired by
   // the hardware back button (via WebView.goBack()) as well as any forward re-visit
   // of a popped entry. Must not call pushState/replaceState itself; the history
   // position already moved before this fires.

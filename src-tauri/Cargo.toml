@@ -23,10 +23,13 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-m3 = "0.3.2"
-tauri-plugin-http = "2.5.9"
+# `cookies` is the correct feature name (not `cookie-store`) — it enables
+# reqwest's persistent cookie jar so the HttpOnly auth_token cookie survives
+# the app process being killed and is re-sent on the next cold launch,
+# allowing restoreSession() to succeed without forcing re-login.
+tauri-plugin-http = { version = "2.5.9", features = ["cookies"] }
 tauri-plugin-fs = "2"
 tauri-plugin-dialog = "2"
 
 [target.'cfg(target_os = "android")'.dependencies]
 jni = { version = "0.21", default-features = false }
-
