@@ -1228,19 +1228,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           <Menu className="w-6 h-6" />
         </button>
 
-        {/* Project selector â€” "Hug" sizing (fits its content, capped at a max
-            width) rather than a fixed box, so it scales with the device's own
-            font/spacing settings instead of a hard-coded pixel size. Opens the
-            same "Choose a Project" sheet used on the pre-chat gate screen. */}
+        {/* Project selector uses content-driven Hug sizing and remains bounded
+            by the center header column on narrow screens. */}
         <div className="flex justify-center min-w-0">
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); setIsProjectPickerOpen(true); }}
-            className="flex items-center gap-1.5 min-w-0 w-fit max-w-[11.25rem] rounded-full border border-[var(--grey-200)] bg-[var(--grey-100)] px-3 py-1 text-[var(--foreground)] touch-manipulation"
+            className="flex min-w-0 max-w-full w-fit items-center gap-2 rounded-xl border border-[var(--grey-300)] bg-[var(--background)] px-[var(--spacing-12)] py-[var(--spacing-4)] text-[var(--foreground)] transition-colors hover:bg-[var(--grey-100)] active:bg-[var(--grey-200)] touch-manipulation"
           >
-            <Folder className="w-4 h-4 flex-shrink-0" />
-            <span className="text-body-14-sb truncate">{selectedProject?.name ?? "Project"}</span>
-            <ChevronDown className="w-4 h-4 flex-shrink-0" />
+            <Folder className="h-6 w-6 shrink-0 text-[var(--grey-700)]" strokeWidth={1.5} />
+            <span className="min-w-0 truncate text-body-14-m">{selectedProject?.name ?? "Project"}</span>
+            <ChevronDown className="h-5 w-5 shrink-0 text-[var(--grey-700)]" strokeWidth={1.5} />
           </button>
         </div>
 
