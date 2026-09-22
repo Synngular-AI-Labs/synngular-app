@@ -67,7 +67,7 @@ const AiFlowProjectIcon = () => (
   </svg>
 );
 
-const getProjectIcon = (project: ApiProject) => {
+export const getProjectIcon = (project: ApiProject) => {
   switch (project.subType) {
     case "DATA_CHAT":
       return <AiFlowProjectIcon />;

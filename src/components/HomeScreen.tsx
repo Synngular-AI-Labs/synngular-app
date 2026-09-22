@@ -5,7 +5,7 @@ import { Menu, Bell, /* Bot, */ ChevronDown, LogOut, Sparkle, Folder, LayoutGrid
 import FileOutputIcon from "./ui/FileOutputIcon";
 /* import UserRoundCheckIcon from "./ui/UserRoundCheckIcon"; */
 import MessageSquareTextIcon from "./ui/MessageSquareTextIcon";
-import ProjectPickerSheet, { type Project } from "./ProjectPickerSheet";
+import ProjectPickerSheet, { getProjectIcon, type Project } from "./ProjectPickerSheet";
 import { getChatSessionMessages, listChatSessions, type ChatSessionSummary } from "../lib/api/chat";
 import { getOrganizationAccess, listOrganizations, type Organization } from "../lib/api/organization";
 import {
@@ -1236,7 +1236,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             onClick={(e) => { e.stopPropagation(); setIsProjectPickerOpen(true); }}
             className="flex min-w-0 max-w-full w-fit items-center gap-2 rounded-xl border border-[var(--grey-300)] bg-[var(--background)] px-[var(--spacing-12)] py-[var(--spacing-4)] text-[var(--foreground)] transition-colors hover:bg-[var(--grey-100)] active:bg-[var(--grey-200)] touch-manipulation"
           >
-            <Folder className="h-6 w-6 shrink-0 text-[var(--grey-700)]" strokeWidth={1.5} />
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center text-[var(--grey-700)]">
+              {selectedProject ? getProjectIcon(selectedProject) : <Folder className="h-6 w-6" strokeWidth={1.5} />}
+            </span>
             <span className="min-w-0 truncate text-body-14-m">{selectedProject?.name ?? "Project"}</span>
             <ChevronDown className="h-5 w-5 shrink-0 text-[var(--grey-700)]" strokeWidth={1.5} />
           </button>
