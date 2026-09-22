@@ -37,16 +37,16 @@ const ProjectSelectionScreen: React.FC<ProjectSelectionScreenProps> = ({
         />
       ),
     },
-    {
-      key: "agents" as Screen,
-      label: "Agent",
-      icon: (active: boolean) => (
-        <Bot
-          size={24} strokeWidth={1.5}
-          style={{ color: active ? "var(--purple-1000)" : "var(--grey-500)" }}
-        />
-      ),
-    },
+    // {
+    //   key: "agents" as Screen,
+    //   label: "Agent",
+    //   icon: (active: boolean) => (
+    //     <Bot
+    //       size={24} strokeWidth={1.5}
+    //       style={{ color: active ? "var(--purple-1000)" : "var(--grey-500)" }}
+    //     />
+    //   ),
+    // },
     {
       key: "outputs" as Screen,
       label: "Outputs",
@@ -57,16 +57,16 @@ const ProjectSelectionScreen: React.FC<ProjectSelectionScreenProps> = ({
         />
       ),
     },
-    {
-      key: "approvals" as Screen,
-      label: "Approvals",
-      icon: (active: boolean) => (
-        <UserRoundCheckIcon
-          size={24}
-          style={{ color: active ? "var(--purple-1000)" : "var(--grey-500)" }}
-        />
-      ),
-    },
+    // {
+    //   key: "approvals" as Screen,
+    //   label: "Approvals",
+    //   icon: (active: boolean) => (
+    //     <UserRoundCheckIcon
+    //       size={24}
+    //       style={{ color: active ? "var(--purple-1000)" : "var(--grey-500)" }}
+    //     />
+    //   ),
+    // },
   ] as const;
 
   return (
