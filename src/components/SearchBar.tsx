@@ -29,6 +29,8 @@ interface SearchBarProps {
   placeholder?: string;
   onFilterClick?: () => void;
   isFilterActive?: boolean;
+  showBackButton?: boolean;
+  showFilterButton?: boolean;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -38,21 +40,25 @@ const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = "Search",
   onFilterClick,
   isFilterActive = false,
+  showBackButton = true,
+  showFilterButton = true,
 }) => {
   return (
     <div className="w-full h-[var(--btn-size-36)] flex flex-row items-center gap-2">
-      <button
-        type="button"
-        onClick={() => {
-          setSearchQuery("");
-          setIsSearchActive(false);
-        }}
-        className="w-[var(--btn-size-36)] h-[var(--btn-size-36)] flex items-center justify-center shrink-0 cursor-pointer text-[var(--foreground)]"
-      >
-        <ArrowLeft size={20} />
-      </button>
+      {showBackButton && (
+        <button
+          type="button"
+          onClick={() => {
+            setSearchQuery("");
+            setIsSearchActive(false);
+          }}
+          className="w-[var(--btn-size-36)] h-[var(--btn-size-36)] flex items-center justify-center shrink-0 cursor-pointer text-[var(--foreground)]"
+        >
+          <ArrowLeft size={20} />
+        </button>
+      )}
 
-      <div className="flex-1 h-[var(--btn-size-36)] bg-[var(--grey-100)] border border-[var(--grey-300)] rounded-full px-[var(--spacing-16)] flex items-center">
+      <div className={`h-[var(--btn-size-36)] bg-[var(--grey-100)] border border-[var(--grey-300)] rounded-full px-[var(--spacing-16)] flex items-center ${showBackButton || showFilterButton ? "flex-1" : "w-full"}`}>
         <input
           type="text"
           value={searchQuery}
@@ -62,22 +68,24 @@ const SearchBar: React.FC<SearchBarProps> = ({
         />
       </div>
 
-      <button
-        type="button"
-        aria-label="Filter"
-        onClick={() => {
-          if (onFilterClick) {
-            onFilterClick();
-          } else {
-            console.log("Filter clicked");
-          }
-        }}
-        className={`w-[var(--btn-size-36)] h-[var(--btn-size-36)] flex items-center justify-center shrink-0 cursor-pointer rounded-full text-[var(--foreground)] transition-colors ${
-          isFilterActive ? "bg-[var(--grey-200)]" : ""
-        }`}
-      >
-        <FilterIcon className="w-5 h-5" />
-      </button>
+      {showFilterButton && (
+        <button
+          type="button"
+          aria-label="Filter"
+          onClick={() => {
+            if (onFilterClick) {
+              onFilterClick();
+            } else {
+              console.log("Filter clicked");
+            }
+          }}
+          className={`w-[var(--btn-size-36)] h-[var(--btn-size-36)] flex items-center justify-center shrink-0 cursor-pointer rounded-full text-[var(--foreground)] transition-colors ${
+            isFilterActive ? "bg-[var(--grey-200)]" : ""
+          }`}
+        >
+          <FilterIcon className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 };

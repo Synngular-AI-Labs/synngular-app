@@ -97,7 +97,6 @@ const ProjectPickerSheet: React.FC<ProjectPickerSheetProps> = ({
   organizationId,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [isFilterRowOpen, setIsFilterRowOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<"status" | "sort" | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>(STATUS_LABELS.ACTIVE!);
   const [sortOption, setSortOption] = useState<SortOption>("Last viewed");
@@ -136,7 +135,6 @@ const ProjectPickerSheet: React.FC<ProjectPickerSheetProps> = ({
   useEffect(() => {
     if (!isOpen) return;
     setSearchQuery("");
-    setIsFilterRowOpen(false);
     setOpenDropdown(null);
     setStatusFilter(STATUS_LABELS.ACTIVE!);
     setSortOption("Last viewed");
@@ -219,45 +217,35 @@ const ProjectPickerSheet: React.FC<ProjectPickerSheetProps> = ({
             <SearchBar
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
-              // This sheet has no separate "collapsed" header to fall back to like
-              // Agents/Outputs do — the search bar is always shown here, so the
-              // back arrow it renders just closes the whole sheet instead.
-              setIsSearchActive={(active) => {
-                if (!active) onClose();
-              }}
-              placeholder="Search"
-              isFilterActive={isFilterRowOpen}
-              onFilterClick={() => {
-                setIsFilterRowOpen((open) => !open);
-                setOpenDropdown(null);
-              }}
+              setIsSearchActive={() => {}}
+              placeholder="Search Projects"
+              showBackButton={false}
+              showFilterButton={false}
             />
           </div>
 
-          {isFilterRowOpen && (
-            <div className="mt-3 flex items-center gap-2 flex-shrink-0">
-              <FilterChip
-                value={statusFilter}
-                options={STATUS_OPTIONS}
-                onChange={(value) => {
-                  setStatusFilter(value);
-                  setOpenDropdown(null);
-                }}
-                isOpen={openDropdown === "status"}
-                onToggle={() => setOpenDropdown((d) => (d === "status" ? null : "status"))}
-              />
-              <FilterChip
-                value={sortOption}
-                options={SORT_OPTIONS}
-                onChange={(value) => {
-                  setSortOption(value as SortOption);
-                  setOpenDropdown(null);
-                }}
-                isOpen={openDropdown === "sort"}
-                onToggle={() => setOpenDropdown((d) => (d === "sort" ? null : "sort"))}
-              />
-            </div>
-          )}
+          <div className="mt-3 flex items-center gap-2 flex-shrink-0">
+            <FilterChip
+              value={statusFilter}
+              options={STATUS_OPTIONS}
+              onChange={(value) => {
+                setStatusFilter(value);
+                setOpenDropdown(null);
+              }}
+              isOpen={openDropdown === "status"}
+              onToggle={() => setOpenDropdown((d) => (d === "status" ? null : "status"))}
+            />
+            <FilterChip
+              value={sortOption}
+              options={SORT_OPTIONS}
+              onChange={(value) => {
+                setSortOption(value as SortOption);
+                setOpenDropdown(null);
+              }}
+              isOpen={openDropdown === "sort"}
+              onToggle={() => setOpenDropdown((d) => (d === "sort" ? null : "sort"))}
+            />
+          </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto mt-4 flex flex-col gap-4 pb-4">
             {isLoading ? (
