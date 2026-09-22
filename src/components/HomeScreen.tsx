@@ -1069,14 +1069,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
            * across viewport heights instead of a fixed value, animated for a smooth move.
            */}
           <main
-            className={`flex-1 flex flex-col items-center w-full px-[var(--spacing-16)] min-h-0 transition-[padding] duration-300 ease-out ${
-              hasFocusedInput ? "justify-start" : "justify-center"
-            }`}
-            style={
-              hasFocusedInput
-                ? { paddingTop: "clamp(0.75rem, 2dvh, 1.25rem)", paddingBottom: "clamp(0.75rem, 2dvh, 1.25rem)" }
-                : undefined
-            }
+            className="flex-1 flex flex-col items-center w-full px-[var(--spacing-16)] min-h-0"
+  style={{
+    justifyContent: "center",
+    transition: "padding-bottom 300ms ease-out",
+    paddingBottom: hasFocusedInput ? "clamp(6rem, 25dvh, 12rem)" : "0",
+  }}
           >
             <img
               src={logoAsset}
