@@ -128,78 +128,37 @@ const ChatInput: React.FC<ChatInputProps> = ({
   isSending = false,
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
-  const expandedRef = React.useRef(false);
   const isStacked = isExpanded || attachments.length > 0;
 
   const hasContent =
     (message.trim().length > 0 || attachments.length > 0) && !sendDisabled;
 
-  /*
-   * Determines whether the textarea needs more than one line.
-   *
-   * This is based on the actual rendered textarea width and
-   * scrollHeight, so wrapping caused by different mobile widths
-   * is handled automatically.
-   */
-  const updateTextareaLayout = React.useCallback(() => {
+  React.useLayoutEffect(() => {
     const textarea = textareaRef.current;
+    if (!textarea) return;
 
-    if (!textarea) {
+    if (!message) {
+      setIsExpanded(false);
+      textarea.style.height = "auto";
       return;
     }
 
-    /*
-     * Reset first so the textarea can shrink when text is deleted.
-     */
-    textarea.style.height = "0px";
-
-    /*
-     * When height is auto, scrollHeight tells us whether the
-     * content requires more than the initial row.
-     */
-    const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 20;
-    const requiresMultipleLines = textarea.scrollHeight > lineHeight * 1.5;
-
-    if (expandedRef.current !== requiresMultipleLines) {
-      expandedRef.current = requiresMultipleLines;
-      setIsExpanded(requiresMultipleLines);
+    if (isExpanded) {
+      textarea.style.height = `${textarea.scrollHeight}px`;
+      return;
     }
 
-    /*
-     * Only explicitly grow the textarea after it has become
-     * multiline. The initial state remains naturally one line.
-     */
-    textarea.style.height = requiresMultipleLines ? `${textarea.scrollHeight}px` : "auto";
-  }, [textareaRef]);
+    textarea.style.height = "auto";
+    const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight);
+    const shouldExpand = Number.isFinite(lineHeight) && textarea.scrollHeight > lineHeight + 1;
 
-  /*
-   * Recalculate after React has rendered the latest message.
-   *
-   * This is important for:
-   * - typing
-   * - deleting
-   * - pasted text
-   * - different mobile widths
-   * - orientation changes
-   */
-  React.useLayoutEffect(() => {
-    updateTextareaLayout();
-  }, [message, updateTextareaLayout]);
+    if (shouldExpand) {
+      setIsExpanded(true);
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [message, isExpanded, textareaRef]);
 
-  /*
-   * Recalculate when the available width changes.
-   *
-   * This handles mobile orientation changes and responsive
-   * layout changes without relying on device-specific sizes.
-   */
-  const handleInput = (
-    event: React.ChangeEvent<HTMLTextAreaElement>
-  ) => {
-    /*
-     * Let the parent update the message.
-     * The useLayoutEffect above will measure the new content
-     * after React renders it.
-     */
+  const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     onInput(event);
   };
 
@@ -209,95 +168,26 @@ const ChatInput: React.FC<ChatInputProps> = ({
       onClick={onAttachClick}
       disabled={attachments.length >= MAX_ATTACHMENTS}
       aria-label="Attach file"
-      className={`
-        shrink-0
-        flex
-        items-center
-        justify-center
-        rounded-full
-        p-2
-        touch-manipulation
-        transition-colors
-        ${
-          attachments.length >= MAX_ATTACHMENTS
-            ? "text-gray-300 cursor-not-allowed"
-            : "text-gray-500 hover:bg-gray-100 active:bg-gray-100"
-        }
-      `}
+      className="flex shrink-0 items-center justify-center rounded-full p-2 text-gray-500 touch-manipulation"
     >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="size-5"
-      >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="size-5">
         <line x1="12" y1="5" x2="12" y2="19" />
         <line x1="5" y1="12" x2="19" y2="12" />
       </svg>
     </button>
   );
 
-  // Frozen (not clickable) while a turn is in flight — the agent's response
-  // always runs to completion once started, so there's nothing to interrupt.
-  const sendButton = isSending ? (
-    <button
-      type="button"
-      disabled
-      aria-label="Waiting for response"
-      className="
-        shrink-0
-        flex
-        items-center
-        justify-center
-        rounded-full
-        p-2
-        text-white
-        bg-[var(--send-button-color)]
-        opacity-40
-        cursor-default
-        touch-manipulation
-      "
-    >
-      <svg viewBox="0 0 24 24" className="size-4">
-        <rect x="5" y="5" width="14" height="14" rx="2" fill="currentColor" />
-      </svg>
-    </button>
-  ) : (
+  const sendButton = (
     <button
       type="button"
       onClick={onSend}
-      disabled={!hasContent}
+      disabled={!hasContent || isSending}
       aria-label="Send message"
-      className={`
-        shrink-0
-        flex
-        items-center
-        justify-center
-        rounded-full
-        p-2
-        text-white
-        bg-[var(--send-button-color)]
-        transition-all
-        touch-manipulation
-        ${
-          hasContent
-            ? "opacity-100 hover:opacity-90 shadow-sm cursor-pointer"
-            : "opacity-40 cursor-default"
-        }
-      `}
+      className={`flex shrink-0 items-center justify-center rounded-full p-2 text-white bg-[var(--send-button-color)] touch-manipulation ${
+        hasContent && !isSending ? "opacity-100" : "opacity-40 cursor-default"
+      }`}
     >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="size-4"
-      >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="size-4">
         <line x1="12" y1="19" x2="12" y2="5" />
         <polyline points="5 12 12 5 19 12" />
       </svg>
@@ -312,12 +202,15 @@ const ChatInput: React.FC<ChatInputProps> = ({
       onFocus={onFocus}
       onBlur={onBlur}
       rows={1}
+      wrap="soft"
       placeholder="Type a message here..."
       className="
         block
         w-full
         min-w-0
         resize-none
+        whitespace-pre-wrap
+        break-all
         bg-transparent
         p-0
         text-sm
@@ -329,12 +222,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
         focus:ring-0
       "
       style={{
-        /*
-         * The textarea itself is allowed to grow naturally.
-         * The outer composer controls the overall available space.
-         */
         maxHeight: "35dvh",
         overflowY: isExpanded ? "auto" : "hidden",
+        transition: "height 150ms ease-out",
       }}
     />
   );
@@ -545,11 +435,15 @@ const ChatInput: React.FC<ChatInputProps> = ({
         <div
           className={`flex min-h-0 w-full gap-1 px-[var(--spacing-4)] py-[var(--spacing-4)] ${
             isStacked ? "flex-col" : "items-center"
+          } ${
+            attachments.length > 0 ? "min-h-0 flex-1" : ""
           }`}
         >
           <div
             className={`min-w-0 ${
-              isStacked
+              attachments.length > 0
+                ? "order-1 min-h-0 flex-1 overflow-y-auto overscroll-contain px-1 py-1"
+                : isStacked
                 ? "order-1 w-full max-h-[35dvh] shrink-0 overflow-y-auto overscroll-contain px-1 py-1"
                 : "order-2 min-w-0 flex-1"
             }`}
@@ -828,7 +722,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const [message, setMessage]               = useState("");
   const [attachments, setAttachments]       = useState<Attachment[]>([]);
   const [isSoftKeyboard, setIsSoftKeyboard] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
   const [isRecentsOpen, setIsRecentsOpen]   = useState(false);
   const [hasFocusedInput, setHasFocusedInput] = useState(false);
   const [recentItems, setRecentItems]       = useState<RecentItem[]>([]);
@@ -917,8 +810,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   useEffect(() => {
     if (!window.visualViewport) return;
     const onResize = () => {
-      setIsSoftKeyboard(window.visualViewport!.height < window.innerHeight * 0.85);
-      setViewportHeight(window.visualViewport!.height);
+      setIsSoftKeyboard((wasOpen) => {
+        const isOpen = window.visualViewport!.height < window.innerHeight * 0.85;
+        return wasOpen === isOpen ? wasOpen : isOpen;
+      });
     };
     window.visualViewport.addEventListener("resize", onResize);
     onResize();
@@ -1110,12 +1005,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     <div
       className="flex flex-col bg-[var(--background)] p-2 overflow-hidden"
       style={{
-        // Real visible height once known (see the visualViewport effect above) —
-        // falls back to 100dvh before the first measurement or where
-        // visualViewport isn't supported. Prevents the keyboard from leaving the
-        // screen taller than what's actually visible, which is what let the page
-        // scroll instead of staying pinned.
-        height:        viewportHeight != null ? `${viewportHeight}px` : "100dvh",
+        height:        "100dvh",
         paddingTop:    "max(var(--safe-top), 2.75rem)",
         paddingBottom: "max(var(--safe-bottom), 0.75rem)",
       }}
