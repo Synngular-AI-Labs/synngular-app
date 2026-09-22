@@ -126,6 +126,7 @@ const FilterChip: React.FC<FilterChipProps> = ({ value, options, onChange, isOpe
           ? "bg-[var(--purple-1000)] border-[var(--purple-1000)] text-white"
           : "bg-[var(--background)] border-[var(--grey-300)] text-[var(--foreground)]"
       }`}
+      style={{ minHeight: "2.25rem" }}
     >
       <span className="truncate max-w-[6.5rem]">{value}</span>
       <ChevronDown
@@ -356,15 +357,30 @@ const ProjectPickerSheet: React.FC<ProjectPickerSheetProps> = ({
                   </button>
                 </div>
               ) : filteredProjects.length === 0 ? (
-                <div className="flex flex-col items-center text-center gap-2 mt-8">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--grey-200)] text-[var(--grey-700)]">
-                    <GeneralProjectIcon />
+                <div className="mt-8 flex min-h-[16rem] flex-col items-center justify-center gap-3 text-center">
+                  <div className="flex aspect-square h-10 w-10 items-center justify-center rounded-full border-[1.5px] border-[var(--grey-400)] text-[var(--grey-700)] sm:h-12 sm:w-12 md:h-14 md:w-14">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="40"
+                      height="40"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-[62.5%] w-[62.5%]"
+                      aria-hidden="true"
+                    >
+                      <path d="m21 21-4.34-4.34" />
+                      <circle cx="11" cy="11" r="8" />
+                    </svg>
                   </div>
-                  <p className="text-body-16-m font-semibold text-[var(--grey-900)] mt-2">
-                    No Projects yet
+                  <p className="text-[clamp(1.3rem,2.5vw,1.75rem)] font-medium leading-none text-[var(--grey-900)]">
+                    No project match {`"${searchQuery}"`}
                   </p>
-                  <p className="text-secondary-14 text-[var(--grey-500)] max-w-[16rem]">
-                    Create projects in your web platform to see them here.
+                  <p className="max-w-[18rem] text-[clamp(0.75rem,1.5vw,0.875rem)] leading-5 text-[var(--grey-500)]">
+                    No projects match your search. Try a different keyword or browse all projects.
                   </p>
                 </div>
               ) : (

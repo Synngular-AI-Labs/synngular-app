@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Search, X } from "lucide-react";
 
 // Custom filter icon (settings-2 style)
 const FilterIcon = ({ className }: { className?: string }) => (
@@ -58,7 +58,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
         </button>
       )}
 
-      <div className={`h-[var(--btn-size-36)] bg-[var(--grey-100)] border border-[var(--grey-300)] rounded-full px-[var(--spacing-16)] flex items-center ${showBackButton || showFilterButton ? "flex-1" : "w-full"}`}>
+      <div className={`h-[var(--btn-size-36)] bg-[var(--grey-100)] border border-[var(--grey-300)] rounded-lg px-[var(--spacing-16)] flex items-center gap-2 ${showBackButton || showFilterButton ? "flex-1" : "w-full"}`}>
+        <Search className="h-4 w-4 shrink-0 text-[var(--grey-500)]" />
         <input
           type="text"
           value={searchQuery}
@@ -66,6 +67,16 @@ const SearchBar: React.FC<SearchBarProps> = ({
           placeholder={placeholder}
           className="w-full bg-transparent border-none outline-none text-sm text-[var(--foreground)] placeholder:text-[var(--grey-500)]"
         />
+        {searchQuery && (
+          <button
+            type="button"
+            aria-label="Clear search"
+            onClick={() => setSearchQuery("")}
+            className="flex h-5 w-5 shrink-0 items-center justify-center text-[var(--grey-600)]"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
       </div>
 
       {showFilterButton && (
