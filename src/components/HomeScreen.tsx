@@ -723,7 +723,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const [attachments, setAttachments]       = useState<Attachment[]>([]);
   const [isSoftKeyboard, setIsSoftKeyboard] = useState(false);
   const [isRecentsOpen, setIsRecentsOpen]   = useState(false);
-  const [hasFocusedInput, setHasFocusedInput] = useState(false);
   const [recentItems, setRecentItems]       = useState<RecentItem[]>([]);
   const [isLoadingRecents, setIsLoadingRecents] = useState(false);
   const [recentsError, setRecentsError]     = useState<string | null>(null);
@@ -841,15 +840,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   };
 
   const handleFocus = () => {
-    setHasFocusedInput(true);
+    // Keep the welcome content visible while the user is typing.
   };
 
-  // Leaving the box empty (no text, no attachments) settles the welcome text
-  // back to its centred idle position. Any actual content keeps it shifted up.
   const handleBlur = () => {
-    if (!message.trim() && attachments.length === 0) {
-      setHasFocusedInput(false);
-    }
+    // Keep the welcome content visible until a message is successfully sent.
   };
 
   const handleAttachClick = () => {
@@ -892,7 +887,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     startNewChat();
     setMessage("");
     setAttachments([]);
-    setHasFocusedInput(false);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     setIsRecentsOpen(false);
   };
@@ -908,7 +902,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
       loadMessages(restored);
       setMessage("");
       setAttachments([]);
-      setHasFocusedInput(true);
       if (textareaRef.current) textareaRef.current.style.height = "auto";
       setIsRecentsOpen(false);
     } catch {
@@ -1069,12 +1062,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
            * across viewport heights instead of a fixed value, animated for a smooth move.
            */}
           <main
-            className="flex-1 flex flex-col items-center w-full px-[var(--spacing-16)] min-h-0"
-  style={{
-    justifyContent: "center",
-    transition: "padding-bottom 300ms ease-out",
-    paddingBottom: hasFocusedInput ? "clamp(6rem, 25dvh, 12rem)" : "0",
-  }}
+            className="flex-1 flex flex-col items-center justify-center w-full min-h-0 overflow-hidden px-[var(--spacing-16)]"
+            style={{
+              paddingTop: "clamp(1rem, 4dvh, 2.5rem)",
+              paddingBottom: "clamp(1rem, 4dvh, 2.5rem)",
+            }}
           >
             <img
               src={logoAsset}
