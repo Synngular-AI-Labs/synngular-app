@@ -99,7 +99,6 @@ interface Attachment {
 interface ChatInputProps {
   message: string;
   attachments: Attachment[];
-  isMultiline: boolean;
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   onInput: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
@@ -129,6 +128,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
   isSending = false,
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const expandedRef = React.useRef(false);
+  const isStacked = isExpanded || attachments.length > 0;
 
   const hasContent =
     (message.trim().length > 0 || attachments.length > 0) && !sendDisabled;
@@ -150,24 +151,25 @@ const ChatInput: React.FC<ChatInputProps> = ({
     /*
      * Reset first so the textarea can shrink when text is deleted.
      */
-    textarea.style.height = "auto";
+    textarea.style.height = "0px";
 
     /*
      * When height is auto, scrollHeight tells us whether the
      * content requires more than the initial row.
      */
-    const requiresMultipleLines =
-      textarea.scrollHeight > textarea.clientHeight + 1;
+    const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 20;
+    const requiresMultipleLines = textarea.scrollHeight > lineHeight * 1.5;
 
-    setIsExpanded(requiresMultipleLines);
+    if (expandedRef.current !== requiresMultipleLines) {
+      expandedRef.current = requiresMultipleLines;
+      setIsExpanded(requiresMultipleLines);
+    }
 
     /*
      * Only explicitly grow the textarea after it has become
      * multiline. The initial state remains naturally one line.
      */
-    if (requiresMultipleLines) {
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    }
+    textarea.style.height = requiresMultipleLines ? `${textarea.scrollHeight}px` : "auto";
   }, [textareaRef]);
 
   /*
@@ -190,24 +192,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
    * This handles mobile orientation changes and responsive
    * layout changes without relying on device-specific sizes.
    */
-  React.useEffect(() => {
-    const textarea = textareaRef.current;
-
-    if (!textarea || typeof ResizeObserver === "undefined") {
-      return;
-    }
-
-    const observer = new ResizeObserver(() => {
-      updateTextareaLayout();
-    });
-
-    observer.observe(textarea);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [textareaRef, updateTextareaLayout]);
-
   const handleInput = (
     event: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
@@ -558,85 +542,32 @@ const ChatInput: React.FC<ChatInputProps> = ({
         {/* Attachments always remain at the top */}
         {attachmentPreview}
 
-        {!isExpanded ? (
-          /*
-           * ========================================================
-           * SINGLE-LINE STATE
-           *
-           * +   textarea   send
-           *
-           * This is the initial state.
-           * ========================================================
-           */
+        <div
+          className={`flex min-h-0 w-full gap-1 px-[var(--spacing-4)] py-[var(--spacing-4)] ${
+            isStacked ? "flex-col" : "items-center"
+          }`}
+        >
           <div
-            className="
-              flex
-              w-full
-              min-w-0
-              items-center
-              gap-1
-              px-[var(--spacing-4)]
-              py-[var(--spacing-4)]
-            "
+            className={`min-w-0 ${
+              isStacked
+                ? "order-1 w-full max-h-[35dvh] shrink-0 overflow-y-auto overscroll-contain px-1 py-1"
+                : "order-2 min-w-0 flex-1"
+            }`}
           >
-            {attachButton}
-
-            <div className="min-w-0 flex-1">
-              {textarea}
-            </div>
-
-            {sendButton}
+            {textarea}
           </div>
-        ) : (
-          /*
-           * ========================================================
-           * EXPANDED STATE
-           *
-           * textarea
-           *
-           * +                         send
-           *
-           * Still ONE outer container.
-           * ========================================================
-           */
+
           <div
-            className="
-              flex
-              min-h-0
-              w-full
-              flex-col
-            "
+            className={
+              isStacked
+                ? "order-2 flex shrink-0 items-center justify-between gap-1"
+                : "contents"
+            }
           >
-            <div
-              className="
-                min-h-0
-                flex-1
-                overflow-y-auto
-                overscroll-contain
-                px-3
-                py-2
-              "
-            >
-              {textarea}
-            </div>
-
-            <div
-              className="
-                flex
-                shrink-0
-                items-center
-                justify-between
-                gap-1
-                px-[var(--spacing-4)]
-                pt-[var(--spacing-4)]
-                pb-[var(--spacing-4)]
-              "
-            >
-              {attachButton}
-              {sendButton}
-            </div>
+            <span className={isStacked ? "" : "order-1"}>{attachButton}</span>
+            <span className={isStacked ? "" : "order-3"}>{sendButton}</span>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -900,7 +831,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const [viewportHeight, setViewportHeight] = useState<number | null>(null);
   const [isRecentsOpen, setIsRecentsOpen]   = useState(false);
   const [hasFocusedInput, setHasFocusedInput] = useState(false);
-  const [isMultiline, setIsMultiline]       = useState(false);
   const [recentItems, setRecentItems]       = useState<RecentItem[]>([]);
   const [isLoadingRecents, setIsLoadingRecents] = useState(false);
   const [recentsError, setRecentsError]     = useState<string | null>(null);
@@ -936,19 +866,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const fileInputRef   = useRef<HTMLInputElement>(null);
   const fileUrlsRef    = useRef<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Re-measures the textarea after every change and flips the input between its
-  // single-row and stacked layouts once the content grows past one line. The
-  // textarea's own max-height (set in ChatInput via CSS var calc) caps growth
-  // beyond that, at which point it scrolls internally instead of the box growing.
-  const syncTextareaHeight = () => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    const lineHeight = parseFloat(getComputedStyle(el).lineHeight || "0") || el.scrollHeight;
-    setIsMultiline(el.scrollHeight > lineHeight + 2);
-    el.style.height = `${el.scrollHeight}px`;
-  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -1021,18 +938,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     if (!sent) return;
     setMessage("");
     setAttachments([]);
-    setIsMultiline(false);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
   };
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);
-    syncTextareaHeight();
   };
 
   const handleFocus = () => {
     setHasFocusedInput(true);
-    setTimeout(syncTextareaHeight, 50);
   };
 
   // Leaving the box empty (no text, no attachments) settles the welcome text
@@ -1083,7 +997,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     startNewChat();
     setMessage("");
     setAttachments([]);
-    setIsMultiline(false);
     setHasFocusedInput(false);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
     setIsRecentsOpen(false);
@@ -1100,7 +1013,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
       loadMessages(restored);
       setMessage("");
       setAttachments([]);
-      setIsMultiline(false);
       setHasFocusedInput(true);
       if (textareaRef.current) textareaRef.current.style.height = "auto";
       setIsRecentsOpen(false);
@@ -1136,7 +1048,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const chatInputProps: ChatInputProps = {
     message,
     attachments,
-    isMultiline,
     textareaRef,
     fileInputRef,
     onInput:            handleInput,
