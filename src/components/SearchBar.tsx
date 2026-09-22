@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { ArrowLeft, Search, X } from "lucide-react";
 
 // Custom filter icon (settings-2 style)
@@ -43,6 +43,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
   showBackButton = true,
   showFilterButton = true,
 }) => {
+  const [isFocused, setIsFocused] = useState(false);
+
   return (
     <div className="w-full h-[var(--btn-size-36)] flex flex-row items-center gap-2">
       {showBackButton && (
@@ -58,12 +60,18 @@ const SearchBar: React.FC<SearchBarProps> = ({
         </button>
       )}
 
-      <div className={`h-[var(--btn-size-36)] bg-[var(--grey-100)] border border-[var(--grey-300)] rounded-lg px-[var(--spacing-16)] flex items-center gap-2 ${showBackButton || showFilterButton ? "flex-1" : "w-full"}`}>
+      <div
+        className={`h-[var(--btn-size-36)] bg-[var(--grey-100)] border rounded-lg px-[var(--spacing-16)] flex items-center gap-2 transition-colors ${
+          isFocused ? "border-[var(--purple-1000)] shadow-[0_0_0_1px_var(--purple-1000)]" : "border-[var(--grey-300)]"
+        } ${showBackButton || showFilterButton ? "flex-1" : "w-full"}`}
+      >
         <Search className="h-4 w-4 shrink-0 text-[var(--grey-500)]" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
           className="w-full bg-transparent border-none outline-none text-sm text-[var(--foreground)] placeholder:text-[var(--grey-500)]"
         />
