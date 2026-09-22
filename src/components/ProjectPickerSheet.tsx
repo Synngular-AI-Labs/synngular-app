@@ -1,8 +1,85 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Check, ChevronDown, Folder } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import SearchBar from "./SearchBar";
 import { listProjects, type ApiProject, type ProjectStatus } from "../lib/api/project";
 import { ApiError } from "../lib/api/client";
+
+const GeneralProjectIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-6 w-6"
+    aria-hidden="true"
+  >
+    <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" />
+    <path d="M14 2v5a1 1 0 0 0 1 1h5" />
+    <path d="M10 9H8" />
+    <path d="M16 13H8" />
+    <path d="M16 17H8" />
+  </svg>
+);
+
+const SoftwareProjectIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-6 w-6"
+    aria-hidden="true"
+  >
+    <path d="m18 16 4-4-4-4" />
+    <path d="m6 8-4 4 4 4" />
+    <path d="m14.5 4-5 16" />
+  </svg>
+);
+
+const AiFlowProjectIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-6 w-6"
+    aria-hidden="true"
+  >
+    <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" />
+    <path d="M20 2v4" />
+    <path d="M22 4h-4" />
+    <circle cx="4" cy="20" r="2" />
+  </svg>
+);
+
+const getProjectIcon = (project: ApiProject) => {
+  switch (project.subType) {
+    case "DATA_CHAT":
+      return <AiFlowProjectIcon />;
+    case "WEB_APP":
+    case "DESKTOP_APP":
+    case "API":
+    case "MIGRATION":
+      return <SoftwareProjectIcon />;
+    default:
+      return <GeneralProjectIcon />;
+  }
+};
 
 export type Project = ApiProject;
 
@@ -11,6 +88,7 @@ interface ProjectPickerSheetProps {
   onClose: () => void;
   onSelectProject: (project: Project) => void;
   organizationId: string | null;
+  selectedProject?: Project | null;
 }
 
 // Only the 4 statuses the approved filter design shows chips for — projects
@@ -95,11 +173,13 @@ const ProjectPickerSheet: React.FC<ProjectPickerSheetProps> = ({
   onClose,
   onSelectProject,
   organizationId,
+  selectedProject,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [openDropdown, setOpenDropdown] = useState<"status" | "sort" | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>(STATUS_LABELS.ACTIVE!);
   const [sortOption, setSortOption] = useState<SortOption>("Last viewed");
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(selectedProject?.id ?? null);
 
   const [projects, setProjects] = useState<ApiProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -138,8 +218,9 @@ const ProjectPickerSheet: React.FC<ProjectPickerSheetProps> = ({
     setOpenDropdown(null);
     setStatusFilter(STATUS_LABELS.ACTIVE!);
     setSortOption("Last viewed");
+    setSelectedProjectId(selectedProject?.id ?? null);
     fetchProjects();
-  }, [isOpen, fetchProjects]);
+  }, [isOpen, selectedProject?.id, fetchProjects]);
 
   const filteredProjects = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -151,25 +232,29 @@ const ProjectPickerSheet: React.FC<ProjectPickerSheetProps> = ({
       return matchesQuery && STATUS_LABELS[project.status] === statusFilter;
     });
 
-    // The API has no "last viewed" timestamp — createdAt is the closest
-    // proxy available until one exists.
-    const sorted = [...matches];
-    switch (sortOption) {
-      case "Last viewed":
-        sorted.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-        break;
-      case "Oldest":
-        sorted.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-        break;
-      case "Name A-Z":
-        sorted.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "Name Z-A":
-        sorted.sort((a, b) => b.name.localeCompare(a.name));
-        break;
-    }
+    // Keep the active project pinned to the top when it is already selected,
+    // while preserving the configured sort order for the remaining projects.
+    const sorted = [...matches].sort((a, b) => {
+      const aSelected = a.id === selectedProject?.id ? 0 : 1;
+      const bSelected = b.id === selectedProject?.id ? 0 : 1;
+      if (aSelected !== bSelected) return aSelected - bSelected;
+
+      switch (sortOption) {
+        case "Last viewed":
+          return b.createdAt.localeCompare(a.createdAt);
+        case "Oldest":
+          return a.createdAt.localeCompare(b.createdAt);
+        case "Name A-Z":
+          return a.name.localeCompare(b.name);
+        case "Name Z-A":
+          return b.name.localeCompare(a.name);
+        default:
+          return 0;
+      }
+    });
+
     return sorted;
-  }, [projects, searchQuery, statusFilter, sortOption]);
+  }, [projects, searchQuery, statusFilter, sortOption, selectedProject?.id]);
 
   return (
     <>
@@ -247,62 +332,81 @@ const ProjectPickerSheet: React.FC<ProjectPickerSheetProps> = ({
             />
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto mt-4 flex flex-col gap-4 pb-4">
-            {isLoading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="w-full flex items-start gap-3 animate-pulse">
-                  <div className="w-8 h-8 flex-shrink-0 rounded-full bg-[var(--grey-200)] mt-0.5" />
-                  <div className="flex flex-col gap-2 flex-1 mt-1">
-                    <div className="h-3.5 w-2/5 rounded-full bg-[var(--grey-200)]" />
-                    <div className="h-3 w-4/5 rounded-full bg-[var(--grey-100)]" />
+          <div className="flex-1 min-h-0 overflow-y-auto mt-4 pb-4">
+            <div className="mx-auto w-full" style={{ width: "min(100%, 21.4375rem)", minHeight: "0" }}>
+              {isLoading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="w-full flex items-start gap-3 animate-pulse py-2 px-1">
+                    <div className="w-8 h-8 flex-shrink-0 rounded-full bg-[var(--grey-200)] mt-0.5" />
+                    <div className="flex flex-col gap-2 flex-1 mt-1">
+                      <div className="h-3.5 w-2/5 rounded-full bg-[var(--grey-200)]" />
+                      <div className="h-3 w-4/5 rounded-full bg-[var(--grey-100)]" />
+                    </div>
                   </div>
+                ))
+              ) : error ? (
+                <div className="text-center mt-4">
+                  <p className="text-secondary-14 text-[var(--error-600)]">{error}</p>
+                  <button
+                    type="button"
+                    onClick={fetchProjects}
+                    className="text-secondary-14 text-[var(--purple-800)] font-medium mt-2 hover:underline"
+                  >
+                    Try again
+                  </button>
                 </div>
-              ))
-            ) : error ? (
-              <div className="text-center mt-4">
-                <p className="text-secondary-14 text-[var(--error-600)]">{error}</p>
-                <button
-                  type="button"
-                  onClick={fetchProjects}
-                  className="text-secondary-14 text-[var(--purple-800)] font-medium mt-2 hover:underline"
-                >
-                  Try again
-                </button>
-              </div>
-            ) : filteredProjects.length === 0 ? (
-              <div className="flex flex-col items-center text-center gap-2 mt-8">
-                <Folder className="w-10 h-10 text-[var(--grey-400)]" strokeWidth={1.5} />
-                <p className="text-body-16-m font-semibold text-[var(--grey-900)] mt-2">
-                  No Projects yet
-                </p>
-                <p className="text-secondary-14 text-[var(--grey-500)] max-w-[16rem]">
-                  Create projects in your web platform to see them here.
-                </p>
-              </div>
-            ) : (
-              filteredProjects.map((project) => (
-                <button
-                  key={project.id}
-                  type="button"
-                  onClick={() => onSelectProject(project)}
-                  className="w-full flex items-start gap-3 text-left touch-manipulation rounded-xl p-1 -m-1 active:bg-[var(--grey-100)] transition-colors"
-                >
-                  <div className="w-8 h-8 flex-shrink-0 rounded-full bg-[var(--grey-200)] flex items-center justify-center mt-0.5">
-                    <Folder className="w-4 h-4 text-[var(--grey-700)]" />
+              ) : filteredProjects.length === 0 ? (
+                <div className="flex flex-col items-center text-center gap-2 mt-8">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--grey-200)] text-[var(--grey-700)]">
+                    <GeneralProjectIcon />
                   </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-body-16-m text-[var(--grey-1000)] truncate">
-                      {project.name}
-                    </span>
-                    {project.description && (
-                      <span className="text-secondary-14 text-[var(--grey-700)] mt-0.5 line-clamp-2">
-                        {project.description}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              ))
-            )}
+                  <p className="text-body-16-m font-semibold text-[var(--grey-900)] mt-2">
+                    No Projects yet
+                  </p>
+                  <p className="text-secondary-14 text-[var(--grey-500)] max-w-[16rem]">
+                    Create projects in your web platform to see them here.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {filteredProjects.map((project) => {
+                    const isSelected = selectedProjectId === project.id;
+                    return (
+                      <button
+                        key={project.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedProjectId(project.id);
+                          onSelectProject(project);
+                        }}
+                        className={`w-full flex items-start gap-3 text-left touch-manipulation rounded-xl border border-[var(--grey-200)] px-3 py-3 transition-colors ${
+                          isSelected ? "bg-[var(--grey-200)]" : "bg-[var(--background)] active:bg-[var(--grey-100)]"
+                        }`}
+                        style={{ width: "100%", minHeight: "5.4375rem", maxWidth: "21.4375rem" }}
+                      >
+                        <div
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                            isSelected ? "bg-[var(--grey-100)] text-[var(--grey-700)]" : "bg-[var(--grey-200)] text-[var(--grey-700)]"
+                          }`}
+                        >
+                          {getProjectIcon(project)}
+                        </div>
+                        <div className="flex min-w-0 flex-1 flex-col">
+                          <span className="truncate text-body-16-m text-[var(--grey-1000)]">
+                            {project.name}
+                          </span>
+                          {project.description && (
+                            <span className="mt-0.5 line-clamp-2 text-secondary-14 text-[var(--grey-700)]">
+                              {project.description}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

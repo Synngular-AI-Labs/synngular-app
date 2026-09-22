@@ -1838,6 +1838,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         isOpen={isProjectPickerOpen}
         onClose={() => setIsProjectPickerOpen(false)}
         organizationId={organizationId}
+        selectedProject={selectedProject}
         onSelectProject={(project) => {
           onSelectProject(project);
           setIsProjectPickerOpen(false);

@@ -219,6 +219,7 @@ const ProjectSelectionScreen: React.FC<ProjectSelectionScreenProps> = ({
         isOpen={isPickerOpen}
         onClose={() => setIsPickerOpen(false)}
         organizationId={organizationId}
+        selectedProject={null}
         onSelectProject={(project) => {
           setIsPickerOpen(false);
           onSelectProject(project);
